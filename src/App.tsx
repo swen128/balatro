@@ -1,35 +1,31 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import './App.css';
+import type { PlayingCardEntity } from './domain/card';
+import { RunState } from './domain/runState';
+import { RoundScene } from './scene/round';
 
 function App() {
-  const [count, setCount] = useState(0)
+    // TODO: Replace this with a real deck
+    const deck: PlayingCardEntity[] = [
+        { id: '1', card: { rank: { type: 'ace' }, suit: 'heart' } },
+        { id: '2', card: { rank: { type: 'face', variant: 'jack' }, suit: 'club' } },
+        { id: '3', card: { rank: { type: 'number', value: 4 }, suit: 'spade' } },
+        { id: '4', card: { rank: { type: 'number', value: 7 }, suit: 'diamond' } },
+        { id: '5', card: { rank: { type: 'number', value: 10 }, suit: 'heart' } },
+        { id: '6', card: { rank: { type: 'ace' }, suit: 'club' } },
+        { id: '7', card: { rank: { type: 'ace' }, suit: 'diamond' } },
+    ];
+    const runState: RunState = {
+        handSize: 8,
+        handsCount: 5,
+        deck: deck,
+        upcomingBlind: { scoreGoal: 300 },
+    };
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    return (
+        <>
+            <RoundScene runState={runState} onRoundEnd={console.log} />
+        </>
+    )
 }
 
 export default App
