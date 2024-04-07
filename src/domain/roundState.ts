@@ -1,4 +1,4 @@
-import { nonEmptyArray } from "../utils/nonEmptyArray";
+import { NonEmptyArray, nonEmptyArray } from "../utils/nonEmptyArray";
 import { chip, type PlayingCardEntity, type PlayingCardId } from "./card";
 import { ChipMult } from "./chipMult";
 import { DrawPile } from "./drawPile";
@@ -18,7 +18,7 @@ interface PlayingState extends BaseState {
     phase: 'playing';
     playedHand: PlayedHand;
     stayingCards: PlayingCardEntity[];
-    unresolvedEffects: Effect[];
+    unresolvedEffects: NonEmptyArray<Effect>;
     chipMult: ChipMult;
 }
 
@@ -68,38 +68,32 @@ export const playSelectedCards = (state: SelectingHandState): PlayingState | und
 
     const playedHand = evaluate(selectedCards);
     const scoredCards = playedHand.cards.filter(card => card.isScored).map(card => card.card);
-    const effects: Effect[] = scoredCards.map(card => ({
+    const stayingCards = state.hand.cards.filter(card => !card.isSelected).map(card => card.card);
+    const effects = nonEmptyArray(scoredCards.map<Effect>(card => ({
         type: 'chip',
         value: chip(card),
         source: { type: 'playedHand', card },
-    }));
+    })));
+
+    if (effects === undefined) return undefined;
 
     return {
         ...state,
         phase: 'playing',
         playedHand,
-        stayingCards: selectedCards,
+        stayingCards,
         unresolvedEffects: effects,
         chipMult: ChipMult.init(playedHand.pokerHand),
     };
 }
 
-export const resolveEffect = (state: PlayingState): { nextState: PlayingState | PlayedState, resolvedEffect?: Effect } => {
-    const unresolvedEffects = nonEmptyArray(state.unresolvedEffects);
+export const resolveEffect = (state: PlayingState): { nextState: PlayingState | PlayedState, resolvedEffect: Effect } => {
+    const [resolvedEffect, ...remainingEffect] = state.unresolvedEffects;
+    const unresolvedEffects = nonEmptyArray(remainingEffect);
 
-    if (unresolvedEffects === undefined) {
-        return { nextState: { ...state, phase: 'played' } };
-    }
-
-    const [resolvedEffect, ...remainingEffect] = unresolvedEffects;
-    return {
-        resolvedEffect,
-        nextState: {
-            ...state,
-            unresolvedEffects: remainingEffect,
-            chipMult: state.chipMult.resolveEffect(resolvedEffect),
-        },
-    };
+    return unresolvedEffects === undefined
+        ? { resolvedEffect, nextState: { ...state, phase: 'played' } }
+        : { resolvedEffect, nextState: { ...state, unresolvedEffects, chipMult: state.chipMult.withEffectApplied(resolvedEffect) } };
 }
 
 export const endTurn = (state: PlayedState): SelectingHandState | RoundFinishedState => {

@@ -8,7 +8,7 @@ export class ChipMult {
 
     private constructor(readonly chip: number, readonly mult: number) { }
 
-    resolveEffect(effect: Effect): ChipMult {
+    withEffectApplied(effect: Effect): ChipMult {
         const value = Math.max(0, Math.round(effect.value));
 
         switch (effect.type) {

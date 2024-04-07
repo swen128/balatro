@@ -23,7 +23,9 @@ function App() {
 
     return (
         <>
-            <RoundScene runState={runState} onRoundEnd={console.log} />
+            <div className='mt-64'>
+                <RoundScene runState={runState} onRoundEnd={console.log} />
+            </div>
         </>
     )
 }

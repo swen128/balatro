@@ -1,7 +1,8 @@
-import type { PlayingCardEntity, PlayingCardId } from "../domain/card";
-import { RoundState, initialState } from "../domain/roundState";
+import { useEffect } from "react";
+import type { PlayingCardId } from "../domain/card";
+import { initialState } from "../domain/roundState";
 import type { RunState } from "../domain/runState";
-import { Hand } from "../view/hand";
+import { Hand, type CardInHand, type PlayedCard } from "../view/hand";
 import { useRoundState } from "./roundState";
 
 interface Props {
@@ -19,24 +20,35 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
     const playButton = state.phase === 'selectingHand' && state.play !== undefined
         ? <button onClick={state.play}>Play</button>
         : <button disabled>Play</button>;
+    
+    const handleEffectEnd = state.phase === 'playing' ? state.next : undefined;
+
+    useEffect(() => {
+        switch (state.phase) {
+            case 'played':
+                setTimeout(() => state.next(), 1000);
+                return;
+            case 'playing':
+            case 'roundFinished':
+            case 'selectingHand':
+                return;
+        }
+    }, [state]);
 
     return (<>
         <Hand
             cardsInHand={cardsInHand(state)}
             playedCards={playedCards(state)}
             onClick={handleCardClicked}
+            onEffectEnd={handleEffectEnd}
         />
         {playButton}
+
+        <pre>{JSON.stringify(state, null, 4)}</pre>
     </>);
 };
 
-type CardInHand = PlayingCardEntity & {
-    state: 'inHand' | 'selected' | 'discarded';
-};
-
-type PlayedCard = PlayingCardEntity & {
-    state: 'played' | 'scored' | 'discarded';
-};
+type RoundState = ReturnType<typeof useRoundState>;
 
 const cardsInHand = (state: RoundState): ReadonlyArray<CardInHand> => {
     switch (state.phase) {
@@ -61,7 +73,10 @@ const playedCards = (state: RoundState): ReadonlyArray<PlayedCard> => {
         case 'playing':
             return state.playedHand.cards.map(({ card, isScored }) => ({
                 ...card,
-                state: isScored ? 'scored' : 'played'
+                state: isScored ? 'scored' : 'played',
+                effect: state.nextEffect.source.card.id === card.id
+                    ? state.nextEffect
+                    : undefined,
             }));
         case 'played':
             return state.playedHand.cards.map(({ card }) => ({ ...card, state: 'discarded' }));

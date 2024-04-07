@@ -18,15 +18,16 @@ export const useRoundState = (initialState: RoundState) => {
                 toggleCardSelection: (cardId: PlayingCardId) => setState(toggleCardSelection(state, cardId)),
             };
         }
-        case "playing":
+        case "playing": {
+            const { nextState, resolvedEffect } = resolveEffect(state);
             return {
                 ...state,
+                nextEffect: resolvedEffect,
                 next: () => {
-                    const { nextState, resolvedEffect } = resolveEffect(state);
                     setState(nextState);
-                    return resolvedEffect;
-                },
+                }
             };
+        }
         case "played":
             return {
                 ...state,
