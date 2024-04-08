@@ -26,6 +26,7 @@ interface PlayedState extends BaseState {
     phase: 'played';
     playedHand: PlayedHand;
     stayingCards: PlayingCardEntity[];
+    chipMult: ChipMult;
 }
 
 interface RoundFinishedState extends BaseState {
@@ -90,10 +91,11 @@ export const playSelectedCards = (state: SelectingHandState): PlayingState | und
 export const resolveEffect = (state: PlayingState): { nextState: PlayingState | PlayedState, resolvedEffect: Effect } => {
     const [resolvedEffect, ...remainingEffect] = state.unresolvedEffects;
     const unresolvedEffects = nonEmptyArray(remainingEffect);
+    const chipMult = state.chipMult.withEffectApplied(resolvedEffect);
 
     return unresolvedEffects === undefined
-        ? { resolvedEffect, nextState: { ...state, phase: 'played' } }
-        : { resolvedEffect, nextState: { ...state, unresolvedEffects, chipMult: state.chipMult.withEffectApplied(resolvedEffect) } };
+        ? { resolvedEffect, nextState: { ...state, phase: 'played', chipMult } }
+        : { resolvedEffect, nextState: { ...state, unresolvedEffects, chipMult } };
 }
 
 export const endTurn = (state: PlayedState): SelectingHandState | RoundFinishedState => {
@@ -112,6 +114,7 @@ export const endTurn = (state: PlayedState): SelectingHandState | RoundFinishedS
         ...state,
         phase: 'selectingHand',
         hand,
+        score: state.score + state.chipMult.score(),
         drawPile: remaining,
         remainingHands: state.remainingHands - 1,
     };

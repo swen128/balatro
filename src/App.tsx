@@ -23,7 +23,7 @@ function App() {
 
     return (
         <>
-            <div className='mt-64'>
+            <div className='w-screen h-screen'>
                 <RoundScene runState={runState} onRoundEnd={console.log} />
             </div>
         </>

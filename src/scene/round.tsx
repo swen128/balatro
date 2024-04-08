@@ -20,7 +20,9 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
     const playButton = state.phase === 'selectingHand' && state.play !== undefined
         ? <button onClick={state.play}>Play</button>
         : <button disabled>Play</button>;
-    
+
+    const { chip, mult } = chipMult(state);
+
     const handleEffectEnd = state.phase === 'playing' ? state.next : undefined;
 
     useEffect(() => {
@@ -32,23 +34,49 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
             case 'roundFinished':
             case 'selectingHand':
                 return;
+            default:
+                throw new Error(state satisfies never);
         }
     }, [state]);
 
     return (<>
-        <Hand
-            cardsInHand={cardsInHand(state)}
-            playedCards={playedCards(state)}
-            onClick={handleCardClicked}
-            onEffectEnd={handleEffectEnd}
-        />
-        {playButton}
+        <div className="w-full h-full flex">
+            <div className='basis-2/12 grow-0 p-12 bg-slate-800'>
+                <div>Score: {state.score}</div>
+                <div>
+                    <div>Chip: {chip}</div>
+                    <div>Mult: {mult}</div>
+                </div>
+                <div>Hand: {state.remainingHands}</div>
+            </div>
 
-        <pre>{JSON.stringify(state, null, 4)}</pre>
+            <div className='grow bg-slate-600'>
+                <Hand
+                    cardsInHand={cardsInHand(state)}
+                    playedCards={playedCards(state)}
+                    onClick={handleCardClicked}
+                    onEffectEnd={handleEffectEnd}
+                />
+                {playButton}
+
+                <pre>{JSON.stringify(state, null, 4)}</pre>
+            </div>
+        </div>
     </>);
 };
 
 type RoundState = ReturnType<typeof useRoundState>;
+
+const chipMult = (state: RoundState): { chip: number, mult: number } => {
+    switch (state.phase) {
+        case 'playing':
+        case 'played':
+            return state.chipMult;
+        case 'selectingHand':
+        case 'roundFinished':
+            return { chip: 0, mult: 0 };
+    }
+}
 
 const cardsInHand = (state: RoundState): ReadonlyArray<CardInHand> => {
     switch (state.phase) {
