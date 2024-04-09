@@ -4,6 +4,7 @@ import { initialState } from "../domain/roundState";
 import type { RunState } from "../domain/runState";
 import { Hand, type CardInHand, type PlayedCard } from "../view/hand";
 import { useRoundState } from "./roundState";
+import { ScoreCounter } from "../view/scoreCounter";
 
 interface Props {
     runState: RunState;
@@ -42,7 +43,7 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
     return (<>
         <div className="w-full h-full flex">
             <div className='basis-2/12 grow-0 p-12 bg-slate-800'>
-                <div>Score: {state.score}</div>
+                <div>Score: <ScoreCounter value={state.score} /></div>
                 <div>
                     <div>Chip: {chip}</div>
                     <div>Mult: {mult}</div>
