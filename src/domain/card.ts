@@ -1,15 +1,25 @@
-export type Rank = { type: 'number', value: NumberedRank } | { type: 'face', variant: FaceRank } | { type: 'ace' };
-export type NumberedRank = 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
-export type FaceRank = 'jack' | 'queen' | 'king';
+export const allSuits = ['spade', 'heart', 'club', 'diamond'] as const;
 
-export type Suit = 'spade' | 'heart' | 'club' | 'diamond';
+const allNumberedRanks = [2, 3, 4, 5, 6, 7, 8, 9, 10] as const;
+const allFaceRanks = ['jack', 'queen', 'king'] as const;
+export const allRanks = [
+    ...allNumberedRanks.map(value => ({ type: 'number', value }) as const),
+    ...allFaceRanks.map(variant => ({ type: 'face', variant }) as const),
+    { type: 'ace' },
+] as const;
+
+export type Rank = typeof allRanks[number];
+export type NumberedRank = typeof allNumberedRanks[number];
+export type FaceRank = typeof allFaceRanks[number];
+
+export type Suit = typeof allSuits[number];
 
 export interface PlayingCard {
     rank: Rank;
     suit: Suit;
 }
 
-export type PlayingCardId = string;
+export type PlayingCardId = number;
 
 export interface PlayingCardEntity {
     id: PlayingCardId;
