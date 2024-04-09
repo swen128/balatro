@@ -25,7 +25,7 @@ export const Hand: React.FC<Props> = ({ cardsInHand, playedCards, onClick, onEff
         const style = {
             played: '',
             scored: '-translate-y-1/3',
-            discarded: 'invisible',
+            discarded: 'translate-x-[100vw]',
         }[state];
 
         return (
@@ -40,7 +40,7 @@ export const Hand: React.FC<Props> = ({ cardsInHand, playedCards, onClick, onEff
         const style = {
             inHand: '',
             selected: '-translate-y-1/3',
-            discarded: 'invisible',
+            discarded: 'translate-x-[100vw]',
         }[state];
 
         const handleClick = onClick === undefined ? undefined : () => onClick(id);
