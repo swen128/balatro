@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 :root {
+  /** The maximum width which fits the screen while maintaining the aspect ratio 16:9 */
+  --game-screen-width: calc(16 * min(calc(100vw / 16), calc(100vh / 9)));
+  font-size: calc(var(--game-screen-width) / 100);
+
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;

@@ -25,7 +25,7 @@ export const Hand: React.FC<Props> = ({ cardsInHand, playedCards, onClick, onEff
         const style = {
             played: '',
             scored: '-translate-y-1/3',
-            discarded: 'translate-x-[100vw]',
+            discarded: 'translate-x-[85rem]',
         }[state];
 
         return (
@@ -40,21 +40,21 @@ export const Hand: React.FC<Props> = ({ cardsInHand, playedCards, onClick, onEff
         const style = {
             inHand: '',
             selected: '-translate-y-1/3',
-            discarded: 'translate-x-[100vw]',
+            discarded: 'translate-x-[85rem]',
         }[state];
 
         const handleClick = onClick === undefined ? undefined : () => onClick(id);
 
         return (
-            <div key={id} className={`transition ${style}`} onClick={handleClick}>
+            <div key={id} className={`transition ${style} -mx-6`} onClick={handleClick}>
                 <Card card={card} />
             </div>
         );
     });
 
     return (<>
-        <div className="flex flex-row">{playedCardsElements}</div>
-        <div className="flex flex-row">{cardsInHandElements}</div>
+        <div className="flex flex-row h-64 gap-6">{playedCardsElements}</div>
+        <div className="flex flex-row h-64 px-6">{cardsInHandElements}</div>
     </>)
 };
 

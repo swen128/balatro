@@ -12,24 +12,29 @@ export const Card: React.FC<{ card: PlayingCard }> = ({ card }) => {
         diamond: 'text-red-500',
     }[suit];
 
-    const renderSuitPositions = () => {
-        if (rank.type === 'number') {
-            const suitPositions = getSuitPositions(rank.value);
-            return suitPositions.map((position, index) => (
-                <div
-                    key={index}
-                    className={`absolute text-4xl ${textColor}`}
-                    style={{
-                        top: `${position.y * 100}%`,
-                        left: `${position.x * 100}%`,
-                        transform: `translate(-50%, -50%) ${position.rotate ? 'rotate(180deg)' : ''}`,
-                    }}
-                >
-                    {suitSymbol}
-                </div>
-            ));
+    const renderSuitPositions = (): React.ReactElement[] => {
+        switch (rank.type) {
+            case 'number': {
+                const suitPositions = getSuitPositions(rank.value);
+                return suitPositions.map((position, index) => (
+                    <div
+                        key={index}
+                        className={`absolute text-4xl ${textColor}`}
+                        style={{
+                            top: `${position.y * 100}%`,
+                            left: `${position.x * 100}%`,
+                            transform: `translate(-50%, -50%) ${position.rotate ? 'rotate(180deg)' : ''}`,
+                        }}
+                    >
+                        {suitSymbol}
+                    </div>
+                ));
+            }
+            // TODO: Implement face and ace cards
+            case 'face':
+            case 'ace':
+                return [];
         }
-        return null;
     };
 
     const cornerElem = <div className='flex flex-col text-center'>
@@ -42,7 +47,7 @@ export const Card: React.FC<{ card: PlayingCard }> = ({ card }) => {
     </div>
 
     return (
-        <div className="w-48 h-64 p-2 select-none bg-white rounded-lg shadow-md flex flex-row justify-between relative">
+        <div className="aspect-[63/88] h-full p-2 select-none bg-white rounded-lg shadow-md flex relative">
             <div className="flex flex-col justify-start">{cornerElem}</div>
 
             <div className="flex grow relative">
