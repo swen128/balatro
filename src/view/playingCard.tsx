@@ -1,7 +1,5 @@
 import type { NumberedRank, PlayingCard, Rank, Suit } from "../domain/card";
 
-// TODO: https://github.com/deck-of-cards/standard-deck/
-
 export const Card: React.FC<{ card: PlayingCard }> = ({ card }) => {
     const { rank, suit } = card;
 
@@ -34,27 +32,24 @@ export const Card: React.FC<{ card: PlayingCard }> = ({ card }) => {
         return null;
     };
 
+    const cornerElem = <div className='flex flex-col text-center'>
+        <div className={`text-2xl ${textColor}`}>
+            {rankSymbol}
+        </div>
+        <div className={`text-2xl ${textColor}`}>
+            {suitSymbol}
+        </div>
+    </div>
+
     return (
-        <div className="w-48 h-64 select-none bg-white rounded-lg shadow-md flex flex-col justify-between p-4 relative">
-            <div className="flex justify-between">
-                <div className={`text-2xl ${textColor}`}>
-                    {rankSymbol}
-                </div>
-                <div className={`text-2xl ${textColor}`}>
-                    {suitSymbol}
-                </div>
-            </div>
-            <div className="flex justify-center items-center">
+        <div className="w-48 h-64 p-2 select-none bg-white rounded-lg shadow-md flex flex-row justify-between relative">
+            <div className="flex flex-col justify-start">{cornerElem}</div>
+
+            <div className="flex grow relative">
                 {renderSuitPositions()}
             </div>
-            <div className="flex justify-between rotate-180">
-                <div className={`text-2xl ${textColor}`}>
-                    {rankSymbol}
-                </div>
-                <div className={`text-2xl ${textColor}`}>
-                    {suitSymbol}
-                </div>
-            </div>
+
+            <div className="flex flex-col justify-start rotate-180">{cornerElem}</div>
         </div>
     );
 };
@@ -168,57 +163,3 @@ const getSuitPositions = (rank: NumberedRank) => {
             ];
     }
 };
-
-// const suitPositions = (rank: NumberedRank) => ({
-//   2: [
-//     [0, -1],
-//     [0, 1, true]
-//   ],
-//   3: [
-//     [0, -1],
-//     [0, 0],
-//     [0, 1, true]
-//   ],
-//   4: [
-//     [-1, -1], [1, -1],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-//   5: [
-//     [-1, -1], [1, -1],
-//     [0, 0],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-//   6: [
-//     [-1, -1], [1, -1],
-//     [-1, 0], [1, 0],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-//   7: [
-//     [-1, -1], [1, -1],
-//     [0, -0.5],
-//     [-1, 0], [1, 0],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-//   8: [
-//     [-1, -1], [1, -1],
-//     [0, -0.5],
-//     [-1, 0], [1, 0],
-//     [0, 0.5, true],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-//   9: [
-//     [-1, -1], [1, -1],
-//     [-1, -1 / 3], [1, -1 / 3],
-//     [0, 0],
-//     [-1, 1 / 3, true], [1, 1 / 3, true],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-//   10: [
-//     [-1, -1], [1, -1],
-//     [0, -2 / 3],
-//     [-1, -1 / 3], [1, -1 / 3],
-//     [-1, 1 / 3, true], [1, 1 / 3, true],
-//     [0, 2 / 3, true],
-//     [-1, 1, true], [1, 1, true]
-//   ],
-// }[rank]);
