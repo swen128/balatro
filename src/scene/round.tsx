@@ -13,7 +13,7 @@ interface Props {
 export const RoundScene: React.FC<Props> = ({ runState }) => {
     const state = useRoundState(initialState(runState));
 
-    const playButton = state.phase === 'selectingHand' && state.play !== undefined
+    const playButton = state.phase === 'selectingHand' && state.play !== null
         ? <button onClick={state.play}>Play</button>
         : <button disabled>Play</button>;
 

@@ -29,7 +29,7 @@ export const useRoundState = (initialState: RoundState): RoundUiState => {
         case "selectingHand": {
             const playingState = playSelectedCards(state);
             const play = playingState === undefined
-                ? undefined
+                ? null
                 : () => setState(playingState);
 
             return {
@@ -90,8 +90,8 @@ interface DrawingState extends BaseState {
 interface SelectingHandState extends BaseState {
     phase: "selectingHand";
     hand: ReadonlyArray<PlayingCardEntity & { isSelected: boolean }>;
-    play?: () => void;
     toggleCardSelection: (cardId: PlayingCardId) => void;
+    play: (() => void) | null;
 }
 
 interface PlayingState extends BaseState {
