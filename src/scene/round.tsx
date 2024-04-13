@@ -1,9 +1,6 @@
 import { useEffect } from "react";
-import { ChipMult } from "../domain/chipMult";
-import { evaluate } from "../domain/pokerHand";
 import { initialState } from "../domain/roundState";
 import type { RunState } from "../domain/runState";
-import { nonEmptyArray } from "../utils/nonEmptyArray";
 import { Hand } from "../view/hand";
 import { ScoreCounter } from "../view/scoreCounter";
 import { useRoundState } from "./roundState";
@@ -20,7 +17,7 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
         ? <button onClick={state.play}>Play</button>
         : <button disabled>Play</button>;
 
-    const { chip, mult } = displayedChipMult(state);
+    const { chip, mult } = state.chipMult;
 
     useEffect(() => {
         switch (state.phase) {
@@ -56,25 +53,3 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
         </div>
     </>);
 };
-
-type RoundState = ReturnType<typeof useRoundState>;
-
-// TODO: Move this to domain or somewhere else
-const displayedChipMult = (state: RoundState): { chip: number, mult: number } => {
-    switch (state.phase) {
-        case 'scoring':
-        case 'played':
-            return state.chipMult;
-        case 'playing':
-            return ChipMult.init(state.playedHand.pokerHand);
-        case 'selectingHand': {
-            const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected).map(card => card.card));
-            return selectedCards === undefined
-                ? { chip: 0, mult: 0 }
-                : ChipMult.init(evaluate(selectedCards).pokerHand);
-        }
-        case 'drawing':
-        case 'roundFinished':
-            return { chip: 0, mult: 0 };
-    }
-}

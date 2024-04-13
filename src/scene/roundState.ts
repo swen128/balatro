@@ -1,15 +1,28 @@
 import { useState } from "react";
-import type { PlayingCardId } from "../domain/card";
+import type { PlayingCardEntity, PlayingCardId } from "../domain/card";
+import { ChipMult } from "../domain/chipMult";
+import { Effect } from "../domain/effect";
+import { evaluate } from "../domain/pokerHand";
 import { RoundState, endTurn, playSelectedCards, resolveEffect, startScoring, startSelectingHand, toggleCardSelection } from "../domain/roundState";
+import { NonEmptyArray, nonEmptyArray } from "../utils/nonEmptyArray";
 
-export const useRoundState = (initialState: RoundState) => {
+export const useRoundState = (initialState: RoundState): RoundUiState => {
     const [state, setState] = useState(initialState);
     console.log(state)
+
+    const { chip, mult } = displayedChipMult(state);
+    const baseState = {
+        chipMult: { chip, mult },
+        score: state.score,
+        remainingHands: state.remainingHands
+    };
 
     switch (state.phase) {
         case "drawing":
             return {
-                ...state,
+                ...baseState,
+                phase: "drawing",
+                hand: state.hand,
                 next: () => setState(startSelectingHand(state)),
             };
         case "selectingHand": {
@@ -19,33 +32,115 @@ export const useRoundState = (initialState: RoundState) => {
                 : () => setState(playingState);
 
             return {
-                ...state,
+                ...baseState,
+                phase: "selectingHand",
+                hand: state.hand.cards,
                 play,
                 toggleCardSelection: (cardId: PlayingCardId) => setState(toggleCardSelection(state, cardId)),
             };
         }
         case "playing": {
             return {
-                ...state,
+                ...baseState,
+                phase: "playing",
+                hand: state.hand,
                 next: () => setState(startScoring(state)),
             };
         }
         case "scoring": {
             const { nextState, resolvedEffect } = resolveEffect(state);
             return {
-                ...state,
-                nextEffect: resolvedEffect,
+                ...baseState,
+                phase: "scoring",
+                stayingCards: state.stayingCards,
+                playedHand: state.playedHand.cards,
+                effect: resolvedEffect,
                 next: () => setState(nextState),
             };
         }
         case "played":
             return {
-                ...state,
+                ...baseState,
+                phase: "played",
+                playedHand: state.playedHand.cards,
+                stayingCards: state.stayingCards,
                 next: () => setState(endTurn(state)),
             };
         case "roundFinished":
-            return state;
+            return {
+                ...baseState,
+                phase: "roundFinished",
+                stayingCards: state.stayingCards,
+                hasPlayerWon: state.hasPlayerWon,
+            }
         default:
             throw new Error(state satisfies never);
+    }
+}
+
+type RoundUiState = DrawingState | SelectingHandState | PlayingState | ScoringState | PlayedState | RoundFinishedState;
+
+interface DrawingState extends BaseState {
+    phase: "drawing";
+    hand: ReadonlyArray<PlayingCardEntity & { state: "drawing" | "inHand" }>;
+    next: () => void;
+}
+
+interface SelectingHandState extends BaseState {
+    phase: "selectingHand";
+    hand: ReadonlyArray<PlayingCardEntity & { isSelected: boolean }>;
+    play?: () => void;
+    toggleCardSelection: (cardId: PlayingCardId) => void;
+}
+
+interface PlayingState extends BaseState {
+    phase: "playing";
+    hand: ReadonlyArray<PlayingCardEntity & { state: "played" | "staying" }>;
+    next: () => void;
+}
+
+interface ScoringState extends BaseState {
+    phase: 'scoring';
+    stayingCards: ReadonlyArray<PlayingCardEntity>;
+    playedHand: NonEmptyArray<PlayingCardEntity & { isScored: boolean }>;
+    effect: Effect;
+    next: () => void;
+}
+
+interface PlayedState extends BaseState {
+    phase: 'played';
+    playedHand: NonEmptyArray<PlayingCardEntity>;
+    stayingCards: ReadonlyArray<PlayingCardEntity>;
+    next: () => void;
+}
+
+interface RoundFinishedState extends BaseState {
+    phase: 'roundFinished';
+    stayingCards: PlayingCardEntity[];
+    hasPlayerWon: boolean;
+}
+
+interface BaseState {
+    score: number;
+    remainingHands: number;
+    chipMult: { chip: number, mult: number };
+}
+
+const displayedChipMult = (state: RoundState): ChipMult => {
+    switch (state.phase) {
+        case 'scoring':
+        case 'played':
+            return state.chipMult;
+        case 'playing':
+            return ChipMult.init(state.playedHand.pokerHand);
+        case 'selectingHand': {
+            const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected));
+            return selectedCards === undefined
+                ? ChipMult.zero()
+                : ChipMult.init(evaluate(selectedCards).pokerHand);
+        }
+        case 'drawing':
+        case 'roundFinished':
+            return ChipMult.zero();
     }
 }

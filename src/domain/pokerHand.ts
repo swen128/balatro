@@ -8,10 +8,7 @@ export type PokerHand =
 export interface PlayedHand {
     pokerHand: PokerHand;
 
-    cards: NonEmptyArray<{
-        isScored: boolean;
-        card: PlayingCardEntity;
-    }>;
+    cards: NonEmptyArray<PlayingCardEntity & { isScored: boolean }>;
 }
 
 export const evaluate = (selectedCards: NonEmptyArray<PlayingCardEntity>): PlayedHand => {
@@ -19,6 +16,6 @@ export const evaluate = (selectedCards: NonEmptyArray<PlayingCardEntity>): Playe
     const [head, ...tail] = selectedCards;
     return {
         pokerHand: 'highCard',
-        cards: [{ isScored: true, card: head }, ...tail.map(card => ({ isScored: false, card }))]
+        cards: [{ ...head, isScored: true }, ...tail.map(card => ({ ...card, isScored: false }))]
     }
 };

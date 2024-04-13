@@ -16,7 +16,7 @@ interface DrawingState extends BaseState {
 
 interface SelectingHandState extends BaseState {
     phase: 'selectingHand';
-    hand: HandSelection<PlayingCardEntity>;
+    hand: HandSelection;
 }
 
 interface PlayingState extends BaseState {
@@ -82,7 +82,7 @@ export const toggleCardSelection = (state: SelectingHandState, cardId: PlayingCa
 }
 
 export const playSelectedCards = (state: SelectingHandState): PlayingState | undefined => {
-    const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected).map(card => card.card));
+    const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected));
     return selectedCards === undefined
         ? undefined
         : {
@@ -90,14 +90,14 @@ export const playSelectedCards = (state: SelectingHandState): PlayingState | und
             phase: 'playing',
             playedHand: evaluate(selectedCards),
             hand: state.hand.cards.map(card => card.isSelected
-                ? { ...card.card, state: 'played' }
-                : { ...card.card, state: 'staying' }
+                ? { ...card, state: 'played' }
+                : { ...card, state: 'staying' }
             ),
         };
 }
 
 export const startScoring = (state: PlayingState): ScoringState | PlayedState => {
-    const scoredCards = state.playedHand.cards.filter(card => card.isScored).map(card => card.card);
+    const scoredCards = state.playedHand.cards.filter(card => card.isScored);
     const stayingCards = state.hand.filter(card => card.state === 'staying');
     const chipMult = ChipMult.init(state.playedHand.pokerHand);
     const effects = nonEmptyArray(scoredCards.map<Effect>(card => ({

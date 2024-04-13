@@ -5,6 +5,10 @@ export class ChipMult {
         const { chip, mult } = baseScore(pokerHand);
         return new ChipMult(chip, mult);
     }
+    
+    static zero(): ChipMult {
+        return new ChipMult(0, 0);
+    }
 
     private constructor(readonly chip: number, readonly mult: number) { }
 
