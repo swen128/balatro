@@ -43,6 +43,7 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
                     <div>Chip: {chip}</div>
                     <div>Mult: {mult}</div>
                 </div>
+                <div>Poker Hand: {state.pokerHand ?? '-'}</div>
                 <div>Hand: {state.remainingHands}</div>
             </div>
 

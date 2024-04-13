@@ -2,9 +2,9 @@ import { useState } from "react";
 import type { PlayingCardEntity, PlayingCardId } from "../domain/card";
 import { ChipMult } from "../domain/chipMult";
 import { Effect } from "../domain/effect";
-import { evaluate } from "../domain/pokerHand";
+import { PokerHand } from "../domain/pokerHand";
 import { RoundState, endTurn, playSelectedCards, resolveEffect, startScoring, startSelectingHand, toggleCardSelection } from "../domain/roundState";
-import { NonEmptyArray, nonEmptyArray } from "../utils/nonEmptyArray";
+import { NonEmptyArray } from "../utils/nonEmptyArray";
 
 export const useRoundState = (initialState: RoundState): RoundUiState => {
     const [state, setState] = useState(initialState);
@@ -14,7 +14,8 @@ export const useRoundState = (initialState: RoundState): RoundUiState => {
     const baseState = {
         chipMult: { chip, mult },
         score: state.score,
-        remainingHands: state.remainingHands
+        remainingHands: state.remainingHands,
+        pokerHand: displayedPokerHand(state),
     };
 
     switch (state.phase) {
@@ -124,6 +125,7 @@ interface BaseState {
     score: number;
     remainingHands: number;
     chipMult: { chip: number, mult: number };
+    pokerHand: PokerHand | undefined;
 }
 
 const displayedChipMult = (state: RoundState): ChipMult => {
@@ -134,13 +136,27 @@ const displayedChipMult = (state: RoundState): ChipMult => {
         case 'playing':
             return ChipMult.init(state.playedHand.pokerHand);
         case 'selectingHand': {
-            const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected));
-            return selectedCards === undefined
+            const pokerHand = playSelectedCards(state)?.playedHand.pokerHand;
+            return pokerHand === undefined
                 ? ChipMult.zero()
-                : ChipMult.init(evaluate(selectedCards).pokerHand);
+                : ChipMult.init(pokerHand);
         }
         case 'drawing':
         case 'roundFinished':
             return ChipMult.zero();
+    }
+}
+
+const displayedPokerHand = (state: RoundState): PokerHand | undefined => {
+    switch (state.phase) {
+        case 'playing':
+        case 'scoring':
+        case 'played':
+            return state.playedHand.pokerHand;
+        case 'selectingHand':
+            return playSelectedCards(state)?.playedHand.pokerHand;
+        case 'drawing':
+        case 'roundFinished':
+            return undefined;
     }
 }

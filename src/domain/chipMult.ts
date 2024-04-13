@@ -46,15 +46,15 @@ interface AddedMult {
 
 const baseScore = (pokerHand: PokerHand): { chip: number, mult: number } => {
     return {
-        'highCard': { chip: 5, mult: 1 },
-        'pair': { chip: 10, mult: 2 },
-        'twoPair': { chip: 20, mult: 2 },
-        'threeOfAKind': { chip: 30, mult: 3 },
-        'straight': { chip: 30, mult: 4 },
-        'flush': { chip: 35, mult: 4 },
-        'fullHouse': { chip: 40, mult: 4 },
-        'fourOfAKind': { chip: 60, mult: 7 },
-        'straightFlush': { chip: 100, mult: 8 },
-        'royalStraightFlush': { chip: 100, mult: 8 },
+        'High Card': { chip: 5, mult: 1 },
+        'Pair': { chip: 10, mult: 2 },
+        'Two Pair': { chip: 20, mult: 2 },
+        'Three of a Kind': { chip: 30, mult: 3 },
+        'Straight': { chip: 30, mult: 4 },
+        'Flush': { chip: 35, mult: 4 },
+        'Full House': { chip: 40, mult: 4 },
+        'Four of a Kind': { chip: 60, mult: 7 },
+        'Straight Flush': { chip: 100, mult: 8 },
+        'Royal Straight Flush': { chip: 100, mult: 8 },
     }[pokerHand];
 }
