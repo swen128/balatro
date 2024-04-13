@@ -1,62 +1,117 @@
-import React, { ReactElement } from "react";
-import type { PlayingCardEntity, PlayingCardId } from "../domain/card";
+import React, { ReactElement, useEffect, useState } from "react";
+import type { PlayingCardEntity } from "../domain/card";
 import { Effect } from "../domain/effect";
+import { useRoundState } from "../scene/roundState";
 import { Card } from "./playingCard";
 
-export interface CardInHand extends PlayingCardEntity {
-    state: 'inHand' | 'selected' | 'discarded';
+
+interface Props {
+    state: ReturnType<typeof useRoundState>;
 }
 
-export interface PlayedCard extends PlayingCardEntity {
-    state: 'played' | 'scored' | 'discarded';
-    effect?: Effect;
-}
+export const Hand: React.FC<Props> = ({ state }) => {
+    const cards: React.ReactElement[] = (() => {
+        switch (state.phase) {
+            case 'drawing': {
+                return state.hand.map((card, index) =>
+                    <div
+                        key={card.id}
+                        // TODO: When the hand is empty, `next` is never called and the game is stuck.
+                        onTransitionEnd={index === state.hand.length - 1 ? state.next : undefined}
+                    >
+                        {DrawnCard(card, index)}
+                    </div>);
+            }
+            case 'selectingHand':
+                return state.hand.cards.map((card, index) =>
+                    <div key={card.card.id} onClick={() => state.toggleCardSelection(card.card.id)}>
+                        {CardInHand(card, index)}
+                    </div>)
 
-type Props = {
-    cardsInHand: ReadonlyArray<CardInHand>;
-    playedCards: ReadonlyArray<PlayedCard>;
+            case 'playing': {
+                const playedCards = state.hand.filter(card => card.state === 'played');
+                const stayingCards = state.hand.filter(card => card.state === 'staying');
 
-    onClick?: (cardId: PlayingCardId) => void;
-    onEffectEnd?: () => void;
-};
+                return [
+                    ...stayingCards.map((card, index) =>
+                        <div key={card.id}>
+                            {PlayedCard(card, index)}
+                        </div>
+                    ),
+                    ...playedCards.map((card, index) =>
+                        <div
+                            key={card.id}
+                            onTransitionEnd={index === playedCards.length - 1 ? state.next : undefined}
+                        >
+                            {PlayedCard(card, index)}
+                        </div>
+                    ),
+                ]
+            }
+            case 'scoring':
+            // TODO: Implement this
 
-export const Hand: React.FC<Props> = ({ cardsInHand, playedCards, onClick, onEffectEnd }) => {
-    const playedCardsElements = playedCards.map(({ card, id, state, effect }) => {
-        const style = {
-            played: '',
-            scored: '-translate-y-1/3',
-            discarded: 'translate-x-[85rem]',
-        }[state];
+            default:
+                return [];
+        }
+    })();
 
-        return (
-            <div key={id} className={`transition ${style}`}>
-                {effect && effectElement({effect, onAnimationEnd: onEffectEnd})}
-                <Card card={card} />
-            </div>
-        );
-    });
-
-    const cardsInHandElements = cardsInHand.map(({ card, id, state }) => {
-        const style = {
-            inHand: '',
-            selected: '-translate-y-1/3',
-            discarded: 'translate-x-[85rem]',
-        }[state];
-
-        const handleClick = onClick === undefined ? undefined : () => onClick(id);
-
-        return (
-            <div key={id} className={`transition ${style} -mx-6`} onClick={handleClick}>
-                <Card card={card} />
-            </div>
-        );
-    });
+    // TODO: Make this type-safe.
+    const cardsSortedByKey = cards.toSorted((a, b) => parseInt(a.key) - parseInt(b.key));
 
     return (<>
-        <div className="flex flex-row h-64 gap-6">{playedCardsElements}</div>
-        <div className="flex flex-row h-64 px-6">{cardsInHandElements}</div>
+        <div className="h-64 mt-96 relative">
+            {cardsSortedByKey}
+        </div>
     </>)
 };
+
+const DrawnCard = (card: PlayingCardEntity & { state: 'inHand' | 'drawing' }, index: number): ReactElement => {
+    const [state, setState] = useState(card.state);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setState('inHand'), index * 50);
+        return () => clearTimeout(timer);
+    }, [index]);
+
+    const style = {
+        drawing: { translate: '85rem' },
+        inHand: { translate: `${index * 70}%` },
+    }[state];
+
+    return <div className={`absolute transition-all h-full`} style={style}><Card card={card.card} /></div>;
+}
+
+const CardInHand = (card: { card: PlayingCardEntity, isSelected: boolean }, index: number): ReactElement => {
+    const style = card.isSelected ? '-translate-y-1/3' : '';
+
+    return <div
+        className={`absolute transition-all h-full ${style}`}
+        style={{ translate: `${index * 70}%` }}
+    >
+        {/* TODO: WTF is card.card.card */}
+        <Card card={card.card.card} />
+    </div>;
+}
+
+const PlayedCard = (card: PlayingCardEntity & { state: 'played' | 'staying' }, index: number): ReactElement => {
+    const yStyle = {
+        played: '-translate-y-[125%]',
+        staying: '',
+    }[card.state];
+
+    const xStyle = {
+        played: { translate: `${index * 125}%` },
+        staying: { translate: `${index * 70}%` },
+    }[card.state];
+
+    return <div
+        className={`absolute transition-all h-full ${yStyle}`}
+        style={xStyle}
+    >
+        <Card card={card.card} />
+    </div>;
+}
 
 const effectElement: React.FC<{ effect: Effect, onAnimationEnd?: () => void }> = ({ effect, onAnimationEnd }): ReactElement => {
     const style = 'text-2xl animate-ping-short';

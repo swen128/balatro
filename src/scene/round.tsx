@@ -1,10 +1,12 @@
 import { useEffect } from "react";
-import type { PlayingCardId } from "../domain/card";
+import { ChipMult } from "../domain/chipMult";
+import { evaluate } from "../domain/pokerHand";
 import { initialState } from "../domain/roundState";
 import type { RunState } from "../domain/runState";
-import { Hand, type CardInHand, type PlayedCard } from "../view/hand";
-import { useRoundState } from "./roundState";
+import { nonEmptyArray } from "../utils/nonEmptyArray";
+import { Hand } from "../view/hand";
 import { ScoreCounter } from "../view/scoreCounter";
+import { useRoundState } from "./roundState";
 
 interface Props {
     runState: RunState;
@@ -14,26 +16,22 @@ interface Props {
 export const RoundScene: React.FC<Props> = ({ runState }) => {
     const state = useRoundState(initialState(runState));
 
-    const handleCardClicked = state.phase === 'selectingHand'
-        ? (cardId: PlayingCardId) => state.toggleCardSelection(cardId)
-        : undefined;
-
     const playButton = state.phase === 'selectingHand' && state.play !== undefined
         ? <button onClick={state.play}>Play</button>
         : <button disabled>Play</button>;
 
-    const { chip, mult } = chipMult(state);
-
-    const handleEffectEnd = state.phase === 'playing' ? state.next : undefined;
+    const { chip, mult } = displayedChipMult(state);
 
     useEffect(() => {
         switch (state.phase) {
             case 'played':
                 setTimeout(() => state.next(), 1000);
                 return;
-            case 'playing':
-            case 'roundFinished':
+            case 'drawing':
             case 'selectingHand':
+            case 'playing':
+            case 'scoring':
+            case 'roundFinished':
                 return;
             default:
                 throw new Error(state satisfies never);
@@ -52,15 +50,8 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
             </div>
 
             <div className='grow bg-slate-600'>
-                <Hand
-                    cardsInHand={cardsInHand(state)}
-                    playedCards={playedCards(state)}
-                    onClick={handleCardClicked}
-                    onEffectEnd={handleEffectEnd}
-                />
+                <Hand state={state} />
                 {playButton}
-
-                <pre>{JSON.stringify(state, null, 4)}</pre>
             </div>
         </div>
     </>);
@@ -68,48 +59,22 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
 
 type RoundState = ReturnType<typeof useRoundState>;
 
-const chipMult = (state: RoundState): { chip: number, mult: number } => {
+// TODO: Move this to domain or somewhere else
+const displayedChipMult = (state: RoundState): { chip: number, mult: number } => {
     switch (state.phase) {
-        case 'playing':
+        case 'scoring':
         case 'played':
             return state.chipMult;
-        case 'selectingHand':
+        case 'playing':
+            return ChipMult.init(state.playedHand.pokerHand);
+        case 'selectingHand': {
+            const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected).map(card => card.card));
+            return selectedCards === undefined
+                ? { chip: 0, mult: 0 }
+                : ChipMult.init(evaluate(selectedCards).pokerHand);
+        }
+        case 'drawing':
         case 'roundFinished':
             return { chip: 0, mult: 0 };
-    }
-}
-
-const cardsInHand = (state: RoundState): ReadonlyArray<CardInHand> => {
-    switch (state.phase) {
-        case 'selectingHand':
-            return state.hand.cards.map(({ card, isSelected }) => ({
-                ...card,
-                state: isSelected ? 'selected' : 'inHand',
-            }));
-        case 'playing':
-            return state.stayingCards.map(card => ({ ...card, state: 'inHand' }));
-        case 'played':
-            return state.stayingCards.map(card => ({ ...card, state: 'inHand' }));
-        case 'roundFinished':
-            return state.stayingCards.map(card => ({ ...card, state: 'discarded' }));
-    }
-}
-
-const playedCards = (state: RoundState): ReadonlyArray<PlayedCard> => {
-    switch (state.phase) {
-        case 'selectingHand':
-            return [];
-        case 'playing':
-            return state.playedHand.cards.map(({ card, isScored }) => ({
-                ...card,
-                state: isScored ? 'scored' : 'played',
-                effect: state.nextEffect.source.card.id === card.id
-                    ? state.nextEffect
-                    : undefined,
-            }));
-        case 'played':
-            return state.playedHand.cards.map(({ card }) => ({ ...card, state: 'discarded' }));
-        case 'roundFinished':
-            return [];
     }
 }
