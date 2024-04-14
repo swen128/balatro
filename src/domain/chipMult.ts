@@ -1,16 +1,24 @@
 import type { PokerHand } from "./pokerHand";
 
 export class ChipMult {
+    // This property ensures that this class can only be instantiated via this module.
+    #_nominal: unknown;
+
     static init(pokerHand: PokerHand): ChipMult {
         const { chip, mult } = baseScore(pokerHand);
         return new ChipMult(chip, mult);
     }
-    
+
     static zero(): ChipMult {
         return new ChipMult(0, 0);
     }
 
-    private constructor(readonly chip: number, readonly mult: number) { }
+    private constructor(
+        /** Guaranteed to be a non-negative integer. */
+        readonly chip: number,
+        /** Guaranteed to be a non-negative integer. */
+        readonly mult: number
+    ) { }
 
     withEffectApplied(effect: Effect): ChipMult {
         const value = Math.max(0, Math.round(effect.value));

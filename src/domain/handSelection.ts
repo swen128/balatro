@@ -3,6 +3,9 @@ import type { PlayingCardEntity, PlayingCardId } from "./card";
 const maxSelectionCount = 5;
 
 export class HandSelection {
+    // This property ensures that this class can only be instantiated via this module.
+    #_nominal: unknown;
+
     static init(cards: ReadonlyArray<PlayingCardEntity>): HandSelection {
         return new HandSelection(cards.map(card => ({
             ...card,
@@ -11,6 +14,7 @@ export class HandSelection {
     }
 
     private constructor(
+        /** Number of selected cards are guaranteed to be 5 or less. */
         readonly cards: ReadonlyArray<PlayingCardEntity & { isSelected: boolean }>,
     ) { }
 
