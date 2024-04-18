@@ -3,20 +3,23 @@ import type { PlayingCardEntity, PlayingCardId } from "../domain/card";
 import { ChipMult } from "../domain/chipMult";
 import { Effect } from "../domain/effect";
 import { PokerHand } from "../domain/pokerHand";
-import { RoundState, endTurn, playSelectedCards, resolveEffect, startScoring, startSelectingHand, toggleCardSelection } from "../domain/roundState";
+import { RoundState, endTurn, initialState, playSelectedCards, resolveEffect, startScoring, startSelectingHand, toggleCardSelection } from "../domain/roundState";
+import { RunState } from "../domain/runState";
 import { NonEmptyArray } from "../utils/nonEmptyArray";
 
-export const useRoundState = (initialState: RoundState): RoundUiState => {
-    const [state, setState] = useState(initialState);
+export const useRoundState = (runState: RunState): RoundUiState => {
+    const [state, setState] = useState(initialState(runState));
 
     useEffect(() => console.debug(state), [state]);
 
     const { chip, mult } = displayedChipMult(state);
-    const baseState = {
+    const baseState: BaseState = {
         chipMult: { chip, mult },
         score: state.score,
+        scoreGoal: state.scoreGoal,
         remainingHands: state.remainingHands,
         pokerHand: displayedPokerHand(state),
+        ante: runState.ante,
     };
 
     switch (state.phase) {
@@ -124,9 +127,11 @@ interface RoundFinishedState extends BaseState {
 
 interface BaseState {
     score: number;
+    scoreGoal: number;
     remainingHands: number;
     chipMult: { chip: number, mult: number };
     pokerHand: PokerHand | undefined;
+    ante: number;
 }
 
 const displayedChipMult = (state: RoundState): ChipMult => {

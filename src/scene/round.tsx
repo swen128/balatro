@@ -1,4 +1,3 @@
-import { initialState } from "../domain/roundState";
 import type { RunState } from "../domain/runState";
 import { Hand } from "../view/hand";
 import { ScoreCounter } from "../view/scoreCounter";
@@ -10,7 +9,7 @@ interface Props {
 }
 
 export const RoundScene: React.FC<Props> = ({ runState }) => {
-    const state = useRoundState(initialState(runState));
+    const state = useRoundState(runState);
 
     const playButton = state.phase === 'selectingHand' && state.play !== null
         ? <button onClick={state.play}>Play</button>
@@ -21,6 +20,7 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
     return (<>
         <div className="w-full h-full flex">
             <div className='basis-2/12 grow-0 p-12 bg-slate-800'>
+                <div>Score at least {state.scoreGoal}</div>
                 <div>Score: <ScoreCounter value={state.score} /></div>
                 <div>
                     <div>Chip: {chip}</div>
@@ -28,6 +28,7 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
                 </div>
                 <div>Poker Hand: {state.pokerHand ?? '-'}</div>
                 <div>Hand: {state.remainingHands}</div>
+                <div>Ante: {state.ante}</div>
             </div>
 
             <div className='grow bg-slate-600'>

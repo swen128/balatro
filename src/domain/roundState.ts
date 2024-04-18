@@ -1,4 +1,5 @@
 import { NonEmptyArray, nonEmptyArray } from "../utils/nonEmptyArray";
+import { scoreGoal } from "./blind";
 import { chip, type PlayingCardEntity, type PlayingCardId } from "./card";
 import { ChipMult } from "./chipMult";
 import { DrawPile } from "./drawPile";
@@ -54,16 +55,22 @@ interface BaseState {
     handSize: number;
 }
 
-export const initialState = (runState: RunState): DrawingState => {
+export const initialState = (runState: RunState): RoundState => {
     const drawPile = DrawPile.init(runState.deck);
     const { drawn, remaining } = drawPile.draw(runState.handSize);
+
+    const blind = {
+        small: { type: 'small' as const },
+        big: { type: 'big' as const },
+        boss: { type: 'boss' as const, name: runState.bossBlind },
+    }[runState.nextBlind];
 
     return {
         phase: 'drawing',
         hand: drawn.map(card => ({ ...card, state: 'drawing' })),
         drawPile: remaining,
         score: 0,
-        scoreGoal: runState.upcomingBlind.scoreGoal,
+        scoreGoal: scoreGoal(blind, runState.ante),
         remainingHands: runState.handsCount,
         handSize: runState.handSize,
     };
