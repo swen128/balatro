@@ -34,6 +34,16 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
                 <Hand state={state} />
                 {playButton}
             </div>
+
+            {state.phase === 'roundFinished' && roundFinishedDialog(state.hasPlayerWon)}
         </div>
     </>);
 };
+
+const roundFinishedDialog = (hasPlayerWon: boolean) => {
+    return <dialog open>
+        <p className="text-8xl">
+            {hasPlayerWon ? 'You win!' : 'GAME OVER'}
+        </p>
+    </dialog>;
+}
