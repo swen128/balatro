@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { PlayingCardEntity, PlayingCardId } from "../domain/card";
 import { ChipMult } from "../domain/chipMult";
 import { Effect } from "../domain/effect";
@@ -8,7 +8,8 @@ import { NonEmptyArray } from "../utils/nonEmptyArray";
 
 export const useRoundState = (initialState: RoundState): RoundUiState => {
     const [state, setState] = useState(initialState);
-    console.log(state)
+
+    useEffect(() => console.debug(state), [state]);
 
     const { chip, mult } = displayedChipMult(state);
     const baseState = {
