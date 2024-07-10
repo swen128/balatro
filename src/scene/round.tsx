@@ -1,6 +1,6 @@
 import type { RunState } from "../domain/runState";
 import { Hand } from "../view/hand";
-import { ScoreCounter } from "../view/scoreCounter";
+import { RunScreen } from "../view/runScreen";
 import { useRoundState } from "./roundState";
 
 interface Props {
@@ -18,26 +18,19 @@ export const RoundScene: React.FC<Props> = ({ runState }) => {
     const { chip, mult } = state.chipMult;
 
     return (<>
-        <div className="w-full h-full flex">
-            <div className='basis-2/12 grow-0 p-12 bg-slate-800'>
-                <div>Score at least {state.scoreGoal}</div>
-                <div>Score: <ScoreCounter value={state.score} /></div>
-                <div>
-                    <div>Chip: {chip}</div>
-                    <div>Mult: {mult}</div>
-                </div>
-                <div>Poker Hand: {state.pokerHand ?? '-'}</div>
-                <div>Hand: {state.remainingHands}</div>
-                <div>Ante: {state.ante}</div>
-            </div>
-
-            <div className='grow bg-slate-600'>
-                <Hand state={state} />
-                {playButton}
-            </div>
-
+        <RunScreen
+            chip={chip}
+            mult={mult}
+            score={state.score}
+            scoreGoal={state.scoreGoal}
+            remainingHands={state.remainingHands}
+            pokerHand={state.pokerHand}
+            ante={runState.ante}
+        >
             {state.phase === 'roundFinished' && roundFinishedDialog(state.hasPlayerWon)}
-        </div>
+            <Hand state={state} />
+            {playButton}
+        </RunScreen>
     </>);
 };
 
