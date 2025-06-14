@@ -1,4 +1,4 @@
-export type ShopItemType = 'upgrade' | 'joker' | 'pack' | 'voucher';
+export type ShopItemType = 'upgrade' | 'joker' | 'pack' | 'voucher' | 'spectral';
 
 export interface ShopItem {
   readonly id: string;
@@ -29,6 +29,11 @@ export interface VoucherItem extends ShopItem {
   readonly effect: VoucherEffect;
 }
 
+export interface SpectralItem extends ShopItem {
+  readonly type: 'spectral';
+  readonly effect: SpectralEffect;
+}
+
 export type UpgradeEffect = 
   | { readonly type: 'increaseHandSize'; readonly amount: number }
   | { readonly type: 'increaseHandsPerRound'; readonly amount: number }
@@ -43,6 +48,12 @@ export type VoucherEffect =
   | { readonly type: 'shopDiscount'; readonly percent: number }
   | { readonly type: 'interestRate'; readonly percent: number }
   | { readonly type: 'rerollCost'; readonly amount: number };
+
+export type SpectralEffect =
+  | { readonly type: 'addFoil'; readonly count: number }
+  | { readonly type: 'addHolographic'; readonly count: number }
+  | { readonly type: 'addPolychrome'; readonly count: number }
+  | { readonly type: 'duplicateCard'; readonly count: number };
 
 export const SHOP_UPGRADES: ReadonlyArray<UpgradeItem> = [
   {
@@ -117,6 +128,15 @@ export const SHOP_PACKS: ReadonlyArray<PackItem> = [
     packType: 'arcana',
     cardCount: 3,
   },
+  {
+    id: 'pack-spectral',
+    type: 'pack',
+    name: 'Spectral Pack',
+    description: 'Choose 1 of 2 Spectral cards',
+    price: 8,
+    packType: 'spectral',
+    cardCount: 2,
+  },
 ];
 
 export const SHOP_VOUCHERS: ReadonlyArray<VoucherItem> = [
@@ -130,6 +150,33 @@ export const SHOP_VOUCHERS: ReadonlyArray<VoucherItem> = [
   },
 ];
 
+export const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
+  {
+    id: 'spectral-aura',
+    type: 'spectral',
+    name: 'Aura',
+    description: 'Add Foil to 1 selected card',
+    price: 6,
+    effect: { type: 'addFoil', count: 1 },
+  },
+  {
+    id: 'spectral-wraith',
+    type: 'spectral',
+    name: 'Wraith',
+    description: 'Add Holographic to 1 random card',
+    price: 8,
+    effect: { type: 'addHolographic', count: 1 },
+  },
+  {
+    id: 'spectral-sigil',
+    type: 'spectral',
+    name: 'Sigil',
+    description: 'Add Polychrome to 1 random card',
+    price: 10,
+    effect: { type: 'addPolychrome', count: 1 },
+  },
+];
+
 export function generateShopItems(cash: number): ReadonlyArray<ShopItem> {
   // For now, return a random selection of items
   const allItems: ReadonlyArray<ShopItem> = [
@@ -137,6 +184,7 @@ export function generateShopItems(cash: number): ReadonlyArray<ShopItem> {
     ...SHOP_JOKERS,
     ...SHOP_PACKS,
     ...SHOP_VOUCHERS,
+    ...SHOP_SPECTRAL,
   ];
   
   // Filter items by price and randomly select

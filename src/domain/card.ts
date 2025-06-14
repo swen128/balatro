@@ -4,19 +4,23 @@ export const RANKS = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K
 export type Suit = typeof SUITS[number];
 export type Rank = typeof RANKS[number];
 
+export type CardEnhancement = 'foil' | 'holographic' | 'polychrome';
+
 export interface Card {
   readonly id: string;
   readonly suit: Suit;
   readonly rank: Rank;
+  readonly enhancement?: CardEnhancement;
 }
 
 let cardIdCounter = 0;
 
-export function createCard(suit: Suit, rank: Rank): Card {
+export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement): Card {
   return {
     id: `${rank}${suit}_${++cardIdCounter}`,
     suit,
     rank,
+    ...(enhancement ? { enhancement } : {}),
   };
 }
 
@@ -26,18 +30,27 @@ export function getCardChipValue(card: Card): number {
     throw new Error(`Invalid rank: ${card.rank}`);
   }
   
+  let baseValue: number;
+  
   // 2-10 have their face value
   if (rankIndex <= 8) {
-    return rankIndex + 2;
+    baseValue = rankIndex + 2;
   }
-  
   // J, Q, K have value 10
-  if (rankIndex <= 11) {
-    return 10;
+  else if (rankIndex <= 11) {
+    baseValue = 10;
+  }
+  // A has value 11
+  else {
+    baseValue = 11;
   }
   
-  // A has value 11
-  return 11;
+  // Apply enhancement bonuses
+  if (card.enhancement === 'foil') {
+    return baseValue + 50; // Foil adds +50 chips
+  }
+  
+  return baseValue;
 }
 
 export function createStandardDeck(): ReadonlyArray<Card> {

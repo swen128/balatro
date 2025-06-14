@@ -64,7 +64,15 @@ export function startNewRun(): GameState {
 }
 
 export function selectBlind(state: SelectingBlindState): PlayingRoundState {
-  const drawPile = createDrawPile(state.runState.deck);
+  // Temporarily add some enhanced cards for testing
+  const deck = state.runState.deck.map((card, index) => {
+    if (index === 0) return { ...card, enhancement: 'foil' as const };
+    if (index === 3) return { ...card, enhancement: 'holographic' as const };
+    if (index === 5) return { ...card, enhancement: 'polychrome' as const };
+    return card;
+  });
+  
+  const drawPile = createDrawPile(deck);
   const scoreGoal = getBlindScoreGoal(state.runState.ante, state.availableBlind);
   const roundState = createRoundState(
     drawPile,

@@ -28,6 +28,7 @@ export function ShopView({
       case 'joker': return '🃏';
       case 'pack': return '📦';
       case 'voucher': return '🎫';
+      case 'spectral': return '👻';
     }
   };
 

@@ -96,3 +96,25 @@ export function scoreHand(context: ScoringContext): number {
   const finalChipMult = applyEffects(context.baseChipMult, context.effects);
   return calculateFinalScore(finalChipMult);
 }
+
+export function getCardEnhancementEffects(cards: ReadonlyArray<Card>): ReadonlyArray<ScoringEffect> {
+  const effects: ScoringEffect[] = [];
+  
+  for (const card of cards) {
+    if (card.enhancement === 'holographic') {
+      effects.push({
+        type: 'addMult',
+        value: 10,
+        source: `Holographic ${card.rank}${card.suit}`,
+      });
+    } else if (card.enhancement === 'polychrome') {
+      effects.push({
+        type: 'multiplyMult',
+        value: 1.5,
+        source: `Polychrome ${card.rank}${card.suit}`,
+      });
+    }
+  }
+  
+  return effects;
+}

@@ -4,7 +4,7 @@ import { drawCards, discardCards } from './drawPile.ts';
 import type { EvaluatedHand } from './pokerHands.ts';
 import { evaluatePokerHand } from './pokerHands.ts';
 import type { ChipMult } from './scoring.ts';
-import { calculateBaseChipMult, calculateFinalScore, applyEffects } from './scoring.ts';
+import { calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects } from './scoring.ts';
 import type { BossBlind } from './blind.ts';
 import type { BossEffectContext } from './bossEffects.ts';
 import { applyBossEffectOnHandSelection, applyBossEffectOnScoring } from './bossEffects.ts';
@@ -153,8 +153,9 @@ export function playSelectedCards(state: SelectingHandState): PlayingState | Sel
 
 export function scoreHand(state: PlayingState): ScoringState {
   const baseChipMult = calculateBaseChipMult(state.evaluatedHand);
-  // In the future, additional effects would be applied here
-  const finalChipMult = applyEffects(baseChipMult, []);
+  // Apply enhancement effects from played cards
+  const enhancementEffects = getCardEnhancementEffects(state.playedCards);
+  const finalChipMult = applyEffects(baseChipMult, enhancementEffects);
   const finalScore = calculateFinalScore(finalChipMult);
   
   return {
