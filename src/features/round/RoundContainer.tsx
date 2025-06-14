@@ -21,6 +21,7 @@ interface RoundContainerProps {
 export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps): React.ReactElement {
   const [roundState, setRoundState] = useState<RoundState>(gameState.roundState);
   const [money, setMoney] = useState<number>(gameState.runState.cash);
+  const [isDiscarding, setIsDiscarding] = useState<boolean>(false);
   
   const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
 
@@ -69,10 +70,14 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
   }, [roundState]);
 
   const handleDiscardCardsCallback = useCallback((): void => {
-    const newState = handleDiscardCards(roundState);
-    if (newState) {
-      setRoundState(newState);
-    }
+    setIsDiscarding(true);
+    setTimeout(() => {
+      const newState = handleDiscardCards(roundState);
+      if (newState) {
+        setRoundState(newState);
+        setIsDiscarding(false);
+      }
+    }, 600); // Wait for discard animation
   }, [roundState]);
 
   return (
@@ -86,6 +91,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
       onDiscardCards={handleDiscardCardsCallback}
       canPlayHand={canPlayHand(roundState)}
       canDiscardCards={canDiscardCards(roundState)}
+      isDiscarding={isDiscarding}
     />
   );
 }

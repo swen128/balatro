@@ -7,16 +7,23 @@ interface CardProps {
   readonly isSelected: boolean;
   readonly onClick: () => void;
   readonly style?: React.CSSProperties;
+  readonly animationClass?: string;
+  readonly animationDelay?: number;
 }
 
-export function Card({ card, isSelected, onClick, style }: CardProps): React.ReactElement {
+export function Card({ card, isSelected, onClick, style, animationClass, animationDelay }: CardProps): React.ReactElement {
   const isRed = isRedSuit(card.suit);
+  
+  const combinedStyle: React.CSSProperties = {
+    ...style,
+    ...(animationDelay !== undefined ? { animationDelay: `${animationDelay}s` } : {}),
+  };
   
   return (
     <div
       onClick={onClick}
-      className={`w-[63px] h-[88px] bg-white border border-gray-800 rounded flex flex-col items-center justify-center cursor-pointer transition-transform duration-200 select-none relative ${isSelected ? '-translate-y-2.5 shadow-lg' : 'shadow-md'}`}
-      style={style}
+      className={`w-[63px] h-[88px] bg-white border border-gray-800 rounded flex flex-col items-center justify-center cursor-pointer transition-transform duration-200 select-none relative ${isSelected ? '-translate-y-2.5 shadow-lg' : 'shadow-md'} ${animationClass !== undefined ? animationClass : ''}`}
+      style={combinedStyle}
     >
       {/* Top left corner */}
       <div className={`absolute top-1 left-1 text-xs font-bold leading-none ${isRed ? 'text-red-500' : 'text-black'}`}>

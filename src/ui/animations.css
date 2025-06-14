@@ -1,0 +1,133 @@
+/* Card animations */
+@keyframes slideInFromLeft {
+  from {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutToRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+}
+
+@keyframes cardDeal {
+  0% {
+    transform: translateX(-200px) translateY(-100px) rotate(-20deg);
+    opacity: 0;
+  }
+  50% {
+    transform: translateX(-50px) translateY(-20px) rotate(-10deg);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateX(0) translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+}
+
+@keyframes cardPlay {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-100px) scale(1.1);
+  }
+  100% {
+    transform: translateY(-200px) scale(1);
+  }
+}
+
+@keyframes cardDiscard {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(50px) rotate(10deg);
+    opacity: 0;
+  }
+}
+
+@keyframes scorePopIn {
+  0% {
+    transform: scale(0) translateY(20px);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2) translateY(-10px);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Utility classes */
+.animate-card-deal {
+  animation: cardDeal 0.6s ease-out forwards;
+}
+
+.animate-card-play {
+  animation: cardPlay 0.5s ease-out forwards;
+}
+
+.animate-card-discard {
+  animation: cardDiscard 0.4s ease-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInFromLeft 0.5s ease-out forwards;
+}
+
+.animate-slide-out-right {
+  animation: slideOutToRight 0.5s ease-out forwards;
+}
+
+.animate-score-pop {
+  animation: scorePopIn 0.6s ease-out forwards;
+}
+
+/* Stagger animations for multiple cards */
+.animate-stagger-1 {
+  animation-delay: 0.1s;
+}
+
+.animate-stagger-2 {
+  animation-delay: 0.2s;
+}
+
+.animate-stagger-3 {
+  animation-delay: 0.3s;
+}
+
+.animate-stagger-4 {
+  animation-delay: 0.4s;
+}
+
+.animate-stagger-5 {
+  animation-delay: 0.5s;
+}
+
+.animate-stagger-6 {
+  animation-delay: 0.6s;
+}
+
+.animate-stagger-7 {
+  animation-delay: 0.7s;
+}
+
+.animate-stagger-8 {
+  animation-delay: 0.8s;
+}

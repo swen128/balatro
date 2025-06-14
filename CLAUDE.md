@@ -92,3 +92,6 @@ Currently no test framework is set up. When adding tests, use Bun's built-in tes
 ## Git Workflow
 - Use conventional commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`)
 - When completing sub-tasks, commit changes after passing tests and linter before proceeding to the next task
+- When making commits, write:
+  1. Overview of the change
+  2. The background context of the change which is not obvious from the diff

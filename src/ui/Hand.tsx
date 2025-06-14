@@ -8,9 +8,19 @@ interface HandProps {
   readonly playedCards: ReadonlyArray<CardType>;
   readonly onCardClick: (cardId: string) => void;
   readonly isPlaying: boolean;
+  readonly isDrawing?: boolean;
+  readonly isDiscarding?: boolean;
 }
 
-export function Hand({ cards, selectedCardIds, playedCards, onCardClick, isPlaying }: HandProps): React.ReactElement {
+export function Hand({ 
+  cards, 
+  selectedCardIds, 
+  playedCards, 
+  onCardClick, 
+  isPlaying,
+  isDrawing = false,
+  isDiscarding = false
+}: HandProps): React.ReactElement {
   const playedCardIds = new Set(playedCards.map(c => c.id));
   
   return (
@@ -19,17 +29,27 @@ export function Hand({ cards, selectedCardIds, playedCards, onCardClick, isPlayi
         const isPlayed = playedCardIds.has(card.id);
         const isSelected = selectedCardIds.has(card.id);
         
+        // Determine animation class
+        let animationClass = '';
+        if (isDrawing) {
+          animationClass = 'animate-card-deal';
+        } else if (isDiscarding && isSelected) {
+          animationClass = 'animate-card-discard';
+        } else if (isPlaying && isPlayed) {
+          animationClass = 'animate-card-play';
+        }
+        
         return (
           <Card
             key={card.id}
             card={card}
             isSelected={isSelected}
-            onClick={() => !isPlaying && onCardClick(card.id)}
+            onClick={() => !isPlaying && !isDiscarding && onCardClick(card.id)}
+            animationClass={animationClass}
+            animationDelay={index * 0.1}
             style={{
-              opacity: isPlayed ? 0 : 1,
-              ...(isPlaying && isPlayed && { transform: 'translateY(-200px)' }),
-              transition: 'all 0.5s ease-out',
-              transitionDelay: isPlayed ? `${index * 0.1}s` : '0s',
+              opacity: (isPlayed && !isPlaying) ? 0 : 1,
+              transition: 'opacity 0.5s ease-out',
             }}
           />
         );

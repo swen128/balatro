@@ -16,6 +16,7 @@ interface RoundViewProps {
   readonly onDiscardCards: () => void;
   readonly canPlayHand: boolean;
   readonly canDiscardCards: boolean;
+  readonly isDiscarding: boolean;
 }
 
 export function RoundView({
@@ -28,6 +29,7 @@ export function RoundView({
   onDiscardCards,
   canPlayHand,
   canDiscardCards,
+  isDiscarding: isDiscardingProp,
 }: RoundViewProps): React.ReactElement {
   const renderStatusText = (): React.ReactNode => {
     switch (roundState.type) {
@@ -61,12 +63,16 @@ export function RoundView({
     if (roundState.type !== 'scoring') return null;
     
     return (
-      <div className="mb-16 text-center">
-        <h3 className="text-2xl mb-4">
+      <div className="mb-16 text-center animate-score-pop">
+        <h3 className="text-2xl mb-4 text-yellow-400">
           {roundState.evaluatedHand.handType.name}
         </h3>
         <div className="text-3xl">
-          {roundState.baseChipMult.chips} × {roundState.baseChipMult.mult} = {roundState.finalScore}
+          <span className="text-blue-400">{roundState.baseChipMult.chips}</span>
+          <span className="text-gray-400"> × </span>
+          <span className="text-red-400">{roundState.baseChipMult.mult}</span>
+          <span className="text-gray-400"> = </span>
+          <span className="text-green-400 text-4xl font-bold">{roundState.finalScore}</span>
         </div>
       </div>
     );
@@ -83,6 +89,8 @@ export function RoundView({
   };
 
   const isPlaying = roundState.type === 'playing' || roundState.type === 'scoring';
+  const isDrawing = roundState.type === 'drawing';
+  const isDiscarding = isDiscardingProp;
 
   return (
     <div className="flex h-screen bg-gray-900">
@@ -111,6 +119,8 @@ export function RoundView({
           playedCards={getPlayedCards()}
           onCardClick={onCardClick}
           isPlaying={isPlaying}
+          isDrawing={isDrawing}
+          isDiscarding={isDiscarding}
         />
 
         {/* Action buttons */}

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { BlindType, BossBlind } from '../domain/blind.ts';
+import { AnimatedScore } from '../features/round/AnimatedScore.tsx';
 
 interface ScoreDisplayProps {
   readonly score: number;
@@ -23,7 +24,9 @@ export function ScoreDisplay({ score, scoreGoal, handsRemaining, discardsRemaini
 
       <div>
         <div className="mb-2">
-          <span className="text-2xl font-bold">{score}</span>
+          <span className="text-2xl font-bold">
+            <AnimatedScore targetScore={score} />
+          </span>
           <span className="text-base text-gray-400"> / {scoreGoal}</span>
         </div>
         
