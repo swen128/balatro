@@ -5,6 +5,7 @@ import type { BlindType, BossBlind } from '../../domain/blind.ts';
 import type { Card } from '../../domain/card.ts';
 import { Hand } from '../../ui/Hand.tsx';
 import { ScoreDisplay } from '../../ui/ScoreDisplay.tsx';
+import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 
 interface RoundViewProps {
   readonly roundState: RoundState;
@@ -105,6 +106,13 @@ export function RoundView({
           blind={blind}
           bossEffect={bossEffect}
         />
+        
+        {/* Selected hand evaluation */}
+        {roundState.type === 'selectingHand' && roundState.selectedCardIds.size > 0 && (
+          <SelectedHandDisplay 
+            selectedCards={roundState.hand.filter(card => roundState.selectedCardIds.has(card.id))}
+          />
+        )}
       </div>
 
       {/* Main game area */}
