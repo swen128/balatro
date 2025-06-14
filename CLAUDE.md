@@ -23,6 +23,12 @@ Use `bun add` for adding dependencies (not npm or yarn).
 
 ## Code Standards
 
+### UI and Logic Architecture
+- Separate UI and logic
+- Maximize pure functions
+- Always check exhaustiveness using switch statement when branching on sum types
+- Use presentation components with no logic and container components
+
 ### TypeScript Requirements
 - **NO `any` types allowed** - ESLint will error
 - **NO type assertions allowed** - Use proper typing and discriminated unions
@@ -48,9 +54,28 @@ src/
 │   ├── blind.ts
 │   ├── scoring.ts
 │   └── drawPile.ts
-├── ui/          # React components
+├── features/    # Feature-based organization
+│   ├── round/   # Everything related to playing rounds
+│   │   ├── RoundContainer.tsx
+│   │   ├── RoundView.tsx
+│   │   └── roundLogic.ts
+│   ├── blind-selection/
+│   │   ├── BlindSelectionContainer.tsx
+│   │   └── BlindSelectionView.tsx
+│   └── shop/
+│       ├── ShopContainer.tsx
+│       └── ShopView.tsx
 └── utils/       # Utility functions
 ```
+
+### Component Architecture
+- **Feature-based organization**: Colocate all files related to a feature in the same directory
+- **Minimize import distance**: Keep dependencies close to where they're used
+- **Separate UI and logic**: Use container/presentation component pattern within each feature
+- **Maximize pure functions**: Extract all logic into pure functions
+- **Exhaustiveness checking**: Always use switch statements with exhaustive checks for sum types
+- **Container components**: Handle state and business logic
+- **Presentation components**: Pure UI with no logic, only props
 
 ### State Management
 The game uses immutable state with discriminated unions:

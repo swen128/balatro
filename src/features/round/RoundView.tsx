@@ -1,0 +1,129 @@
+import React from 'react';
+import type { RoundState } from '../../domain/roundState.ts';
+import type { RunState } from '../../domain/runState.ts';
+import type { BlindType, BossBlind } from '../../domain/blind.ts';
+import type { Card } from '../../domain/card.ts';
+import { Hand } from '../../ui/Hand.tsx';
+import { ScoreDisplay } from '../../ui/ScoreDisplay.tsx';
+
+interface RoundViewProps {
+  readonly roundState: RoundState;
+  readonly runState: RunState;
+  readonly blind: BlindType | BossBlind;
+  readonly bossEffect: string | null;
+  readonly onCardClick: (cardId: string) => void;
+  readonly onPlayHand: () => void;
+  readonly canPlayHand: boolean;
+}
+
+export function RoundView({
+  roundState,
+  runState,
+  blind,
+  bossEffect,
+  onCardClick,
+  onPlayHand,
+  canPlayHand,
+}: RoundViewProps): React.ReactElement {
+  const renderStatusText = (): React.ReactNode => {
+    switch (roundState.type) {
+      case 'drawing':
+        return 'Drawing cards...';
+      case 'selectingHand':
+        return 'Select up to 5 cards';
+      case 'playing':
+        return 'Playing hand...';
+      case 'scoring':
+        return 'Scoring...';
+      case 'played':
+        return `Scored ${roundState.lastHandScore} points!`;
+      case 'roundFinished':
+        return (
+          <div className="text-center">
+            {roundState.won ? (
+              <>
+                <div className="text-3xl text-green-500 mb-4">Round Won!</div>
+                <div className="text-xl">Cash Reward: ${blind.cashReward}</div>
+              </>
+            ) : (
+              <div className="text-3xl text-red-500">Round Lost!</div>
+            )}
+          </div>
+        );
+    }
+  };
+
+  const renderScoringDisplay = (): React.ReactNode => {
+    if (roundState.type !== 'scoring') return null;
+    
+    return (
+      <div className="mb-16 text-center">
+        <h3 className="text-2xl mb-4">
+          {roundState.evaluatedHand.handType.name}
+        </h3>
+        <div className="text-3xl">
+          {roundState.baseChipMult.chips} × {roundState.baseChipMult.mult} = {roundState.finalScore}
+        </div>
+      </div>
+    );
+  };
+
+  const getSelectedCardIds = (): ReadonlySet<string> => {
+    return roundState.type === 'selectingHand' ? roundState.selectedCardIds : new Set();
+  };
+
+  const getPlayedCards = (): ReadonlyArray<Card> => {
+    return (roundState.type === 'playing' || roundState.type === 'scoring') 
+      ? roundState.playedCards 
+      : [];
+  };
+
+  const isPlaying = roundState.type === 'playing' || roundState.type === 'scoring';
+
+  return (
+    <div className="flex h-screen bg-gray-900">
+      {/* Left sidebar */}
+      <div className="w-[200px] bg-gray-950 p-4 flex flex-col gap-4">
+        <ScoreDisplay
+          score={roundState.score}
+          scoreGoal={roundState.scoreGoal}
+          handsRemaining={roundState.handsRemaining}
+          ante={runState.ante}
+          blind={blind}
+          bossEffect={bossEffect}
+        />
+      </div>
+
+      {/* Main game area */}
+      <div className="flex-1 flex flex-col items-center justify-center p-8">
+        {/* Scoring area */}
+        {renderScoringDisplay()}
+
+        {/* Hand display */}
+        <Hand
+          cards={roundState.hand}
+          selectedCardIds={getSelectedCardIds()}
+          playedCards={getPlayedCards()}
+          onCardClick={onCardClick}
+          isPlaying={isPlaying}
+        />
+
+        {/* Play button */}
+        {roundState.type === 'selectingHand' && (
+          <button
+            onClick={onPlayHand}
+            disabled={!canPlayHand}
+            className="mt-8 text-xl px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
+          >
+            Play Hand
+          </button>
+        )}
+
+        {/* Status text */}
+        <div className="mt-8 text-xl text-gray-500">
+          {renderStatusText()}
+        </div>
+      </div>
+    </div>
+  );
+}

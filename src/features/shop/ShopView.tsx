@@ -1,12 +1,12 @@
 import React from 'react';
-import type { RunState } from '../domain/runState.ts';
+import type { RunState } from '../../domain/runState.ts';
 
 interface ShopProps {
   readonly runState: RunState;
   readonly onLeave: () => void;
 }
 
-export function Shop({ runState, onLeave }: ShopProps): React.ReactElement {
+export function ShopView({ runState, onLeave }: ShopProps): React.ReactElement {
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-8">
       <h2 className="text-3xl">Shop</h2>

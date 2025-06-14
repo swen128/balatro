@@ -17,7 +17,7 @@ export type RoundState =
   | PlayedState
   | RoundFinishedState;
 
-export type { SelectingHandState, PlayingState, ScoringState };
+export type { SelectingHandState, PlayingState, ScoringState, RoundFinishedState };
 
 interface BaseRoundState {
   readonly drawPile: DrawPile;

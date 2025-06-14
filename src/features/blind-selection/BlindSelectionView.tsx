@@ -1,8 +1,8 @@
 import React from 'react';
-import type { RunState } from '../domain/runState.ts';
-import type { BlindType, BossBlind } from '../domain/blind.ts';
-import { getBlindScoreGoal } from '../domain/blind.ts';
-import { getCurrentBlindType } from '../domain/runState.ts';
+import type { RunState } from '../../domain/runState.ts';
+import type { BlindType, BossBlind } from '../../domain/blind.ts';
+import { getBlindScoreGoal } from '../../domain/blind.ts';
+import { getCurrentBlindType } from '../../domain/runState.ts';
 
 interface BlindSelectionProps {
   readonly runState: RunState;
@@ -15,7 +15,7 @@ interface BlindSelectionProps {
   readonly onSkip: () => void;
 }
 
-export function BlindSelection({ runState, allBlinds, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
+export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
   const currentBlindType = getCurrentBlindType(runState);
   const canSkip = currentBlindType !== 'boss';
 

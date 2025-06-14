@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import type { GameState } from '../domain/gameState.ts';
 import { createMainMenuState, startNewRun, selectBlind, skipBlind, winRound, loseRound, leaveShop } from '../domain/gameState.ts';
-import { MainMenu } from './MainMenu.tsx';
-import { BlindSelection } from './BlindSelection.tsx';
-import { Round } from './Round.tsx';
-import { Shop } from './Shop.tsx';
+import { MainMenuView } from '../features/main-menu/MainMenuView.tsx';
+import { BlindSelectionView } from '../features/blind-selection/BlindSelectionView.tsx';
+import { RoundContainer } from '../features/round/RoundContainer.tsx';
+import { ShopView } from '../features/shop/ShopView.tsx';
 
 export function App(): React.ReactElement {
   const [gameState, setGameState] = useState<GameState>(createMainMenuState());
@@ -45,11 +45,11 @@ export function App(): React.ReactElement {
 
   switch (gameState.type) {
     case 'mainMenu':
-      return <MainMenu onStartNewRun={handleStartNewRun} />;
+      return <MainMenuView onStartNewRun={handleStartNewRun} />;
     
     case 'selectingBlind':
       return (
-        <BlindSelection
+        <BlindSelectionView
           runState={gameState.runState}
           allBlinds={gameState.allBlinds}
           onSelect={handleSelectBlind}
@@ -59,7 +59,7 @@ export function App(): React.ReactElement {
     
     case 'playingRound':
       return (
-        <Round
+        <RoundContainer
           gameState={gameState}
           onWin={handleWinRound}
           onLose={handleLoseRound}
@@ -68,7 +68,7 @@ export function App(): React.ReactElement {
     
     case 'shop':
       return (
-        <Shop
+        <ShopView
           runState={gameState.runState}
           onLeave={handleLeaveShop}
         />

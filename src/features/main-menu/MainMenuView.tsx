@@ -4,7 +4,7 @@ interface MainMenuProps {
   readonly onStartNewRun: () => void;
 }
 
-export function MainMenu({ onStartNewRun }: MainMenuProps): React.ReactElement {
+export function MainMenuView({ onStartNewRun }: MainMenuProps): React.ReactElement {
   return (
     <div className="flex flex-col items-center justify-center h-screen gap-8">
       <h1 className="text-6xl mb-8">Balatro</h1>

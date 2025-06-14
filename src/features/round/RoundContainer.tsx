@@ -1,0 +1,80 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import type { PlayingRoundState } from '../../domain/gameState.ts';
+import type { RoundState } from '../../domain/roundState.ts';
+import { 
+  getNextRoundState, 
+  canPlayHand, 
+  handleCardClick, 
+  handlePlayHand,
+  isRoundFinished
+} from './roundLogic.ts';
+import { RoundView } from './RoundView.tsx';
+
+interface RoundContainerProps {
+  readonly gameState: PlayingRoundState;
+  readonly onWin: () => void;
+  readonly onLose: () => void;
+}
+
+export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps): React.ReactElement {
+  const [roundState, setRoundState] = useState<RoundState>(gameState.roundState);
+  const [money, setMoney] = useState<number>(gameState.runState.cash);
+  
+  const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
+
+  useEffect(() => {
+    const transition = getNextRoundState(roundState, bossBlind, money);
+    
+    if (transition) {
+      const timeoutId = setTimeout(() => {
+        setRoundState(transition.nextState);
+        
+        if (transition.shouldResetMoney === true) {
+          setMoney(0);
+        }
+        
+        // Handle round finished
+        if (isRoundFinished(transition.nextState)) {
+          const finishedState = transition.nextState;
+          setTimeout(() => {
+            if (finishedState.won) {
+              onWin();
+            } else {
+              onLose();
+            }
+          }, 2000);
+        }
+      }, transition.delayMs);
+      
+      return (): void => { clearTimeout(timeoutId); };
+    }
+    
+    return undefined;
+  }, [roundState, bossBlind, money, onWin, onLose]);
+
+  const handleCardClickCallback = useCallback((cardId: string): void => {
+    const newState = handleCardClick(roundState, cardId);
+    if (newState) {
+      setRoundState(newState);
+    }
+  }, [roundState]);
+
+  const handlePlayHandCallback = useCallback((): void => {
+    const newState = handlePlayHand(roundState);
+    if (newState) {
+      setRoundState(newState);
+    }
+  }, [roundState]);
+
+  return (
+    <RoundView
+      roundState={roundState}
+      runState={gameState.runState}
+      blind={gameState.blind}
+      bossEffect={gameState.bossEffect}
+      onCardClick={handleCardClickCallback}
+      onPlayHand={handlePlayHandCallback}
+      canPlayHand={canPlayHand(roundState)}
+    />
+  );
+}
