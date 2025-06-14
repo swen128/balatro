@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { GameState } from '../domain/gameState.ts';
+import type { RunState } from '../domain/runState.ts';
 import { createMainMenuState, startNewRun, selectBlind, skipBlind, winRound, loseRound, leaveShop } from '../domain/gameState.ts';
 import { saveGame, loadGame, hasSaveGame, deleteSaveGame, getSaveInfo } from '../domain/saveGame.ts';
 import { MainMenuView } from '../features/main-menu/MainMenuView.tsx';
@@ -53,9 +54,14 @@ export function App(): React.ReactElement {
     }
   };
 
-  const handleLeaveShop = (): void => {
+  const handleLeaveShop = (updatedRunState: RunState): void => {
     if (gameState.type === 'shop') {
-      setGameState(leaveShop(gameState));
+      // Update the game state with the new run state before leaving shop
+      const updatedGameState = {
+        ...gameState,
+        runState: updatedRunState,
+      };
+      setGameState(leaveShop(updatedGameState));
     }
   };
 

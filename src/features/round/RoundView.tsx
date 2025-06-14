@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { RoundState } from '../../domain/roundState.ts';
 import type { RunState } from '../../domain/runState.ts';
 import type { BlindType, BossBlind } from '../../domain/blind.ts';
@@ -8,6 +8,7 @@ import { ScoreDisplay } from '../../ui/ScoreDisplay.tsx';
 import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 import { JokerDisplay } from '../../ui/JokerDisplay.tsx';
 import { ScoringBreakdown } from './ScoringBreakdown.tsx';
+import { DeckViewer } from '../../ui/DeckViewer.tsx';
 
 interface RoundViewProps {
   readonly roundState: RoundState;
@@ -34,6 +35,7 @@ export function RoundView({
   canDiscardCards,
   isDiscarding: isDiscardingProp,
 }: RoundViewProps): React.ReactElement {
+  const [showDeckViewer, setShowDeckViewer] = useState(false);
   const renderStatusText = (): React.ReactNode => {
     switch (roundState.type) {
       case 'drawing':
@@ -153,13 +155,28 @@ export function RoundView({
         </div>
       </div>
       
-      {/* Menu button */}
-      <button
-        className="absolute top-4 right-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
-        onClick={() => window.location.reload()}
-      >
-        Return to Menu
-      </button>
+      {/* Menu buttons */}
+      <div className="absolute top-4 right-4 flex gap-2">
+        <button
+          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
+          onClick={() => setShowDeckViewer(true)}
+        >
+          View Deck
+        </button>
+        <button
+          className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
+          onClick={() => window.location.reload()}
+        >
+          Return to Menu
+        </button>
+      </div>
+      
+      {/* Deck Viewer Modal */}
+      <DeckViewer
+        deck={runState.deck}
+        isOpen={showDeckViewer}
+        onClose={() => setShowDeckViewer(false)}
+      />
     </div>
   );
 }

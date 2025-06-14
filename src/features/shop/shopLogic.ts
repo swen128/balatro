@@ -1,12 +1,18 @@
 import type { RunState } from '../../domain/runState.ts';
-import type { ShopItem, UpgradeItem, JokerItem } from '../../domain/shopItems.ts';
+import type { ShopItem, UpgradeItem, JokerItem, PackItem } from '../../domain/shopItems.ts';
 import { generateShopItems } from '../../domain/shopItems.ts';
+import type { Card } from '../../domain/card.ts';
+import type { SpectralCard, ArcanaCard } from '../../domain/cardPacks.ts';
 
 export interface ShopState {
   readonly availableItems: ReadonlyArray<ShopItem>;
   readonly purchasedJokers: ReadonlyArray<JokerItem>;
   readonly rerollCost: number;
   readonly rerollsUsed: number;
+  readonly pendingPack: {
+    readonly type: 'standard' | 'spectral' | 'arcana';
+    readonly cards: ReadonlyArray<Card | SpectralCard | ArcanaCard>;
+  } | null;
 }
 
 export function createShopState(runState: RunState): ShopState {
@@ -15,6 +21,7 @@ export function createShopState(runState: RunState): ShopState {
     purchasedJokers: [],
     rerollCost: 5,
     rerollsUsed: 0,
+    pendingPack: null,
   };
 }
 
@@ -79,9 +86,21 @@ export function purchaseItem(
       break;
     }
     
-    case 'pack':
-      // TODO: Implement pack opening
-      break;
+    case 'pack': {
+      const packItem = item as PackItem;
+      // Generate cards for the pack but don't add them yet
+      // Return the updated state with pending pack
+      return { 
+        shopState: {
+          ...newShopState,
+          pendingPack: {
+            type: packItem.packType,
+            cards: [], // Will be generated when modal opens
+          },
+        }, 
+        runState: newRunState 
+      };
+    }
       
     case 'voucher':
       // TODO: Implement voucher effects
