@@ -56,3 +56,27 @@ interface BossBlind {
 2. Enrich context objects for more complex effect interactions
 3. Add effect ordering/priority system for multiple jokers
 4. Allow dynamic content generation based on game state
+
+## Directory Organization
+
+**Decision**: Organize code by features, not by technical layers.
+
+**Rationale**:
+- Colocates related code for better cohesion
+- Minimizes import distances between related files
+- Makes features self-contained and easier to understand
+- Follows the principle that code that changes together should live together
+
+**Implementation**:
+- Each feature gets its own directory (e.g., `/features/statistics/`)
+- Features contain all related code: UI components, logic, storage, types
+- Domain logic remains pure and separate in `/domain/`
+- Avoid generic folders like `utils`, `helpers`, `services`
+
+**Example**:
+```
+src/features/statistics/
+├── StatisticsView.tsx      # UI component
+├── statisticsStorage.ts    # Persistence logic
+└── statisticsLogic.ts      # Feature-specific logic
+```

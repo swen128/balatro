@@ -3,11 +3,12 @@ import React from 'react';
 interface MainMenuProps {
   readonly onStartNewRun: () => void;
   readonly onContinueRun: () => void;
+  readonly onShowStatistics: () => void;
   readonly hasSaveGame: boolean;
   readonly saveInfo: { timestamp: number } | null;
 }
 
-export function MainMenuView({ onStartNewRun, onContinueRun, hasSaveGame, saveInfo }: MainMenuProps): React.ReactElement {
+export function MainMenuView({ onStartNewRun, onContinueRun, onShowStatistics, hasSaveGame, saveInfo }: MainMenuProps): React.ReactElement {
   const formatSaveDate = (timestamp: number): string => {
     const date = new Date(timestamp);
     return date.toLocaleString();
@@ -36,6 +37,12 @@ export function MainMenuView({ onStartNewRun, onContinueRun, hasSaveGame, saveIn
         className="text-2xl px-8 py-4 bg-blue-500 hover:bg-blue-600 rounded transition-colors"
       >
         New Run
+      </button>
+      <button
+        onClick={onShowStatistics}
+        className="text-xl px-6 py-3 bg-gray-600 hover:bg-gray-700 rounded transition-colors"
+      >
+        Statistics
       </button>
     </div>
   );
