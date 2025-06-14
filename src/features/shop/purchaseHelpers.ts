@@ -1,79 +1,65 @@
 import type { RunState } from '../../domain/runState.ts';
 import type { ShopState } from './shopLogic.ts';
-import type { ShopItem } from '../../domain/shopItems.ts';
+import type { ShopItem, UpgradeItem, VoucherItem, JokerItem, PackItem } from '../../domain/shopItems.ts';
 
 export function applyUpgradeEffect(
   runState: RunState,
-  item: ShopItem
+  item: UpgradeItem
 ): RunState {
-  return item.type !== 'upgrade' 
-    ? runState
-    : ((): RunState => {
-        const upgradeItem = item; // TypeScript knows this is UpgradeItem now
-        switch (upgradeItem.effect.type) {
-          case 'increaseHandSize':
-            return { ...runState, handSize: runState.handSize + upgradeItem.effect.amount };
-            
-          case 'increaseHandsPerRound':
-            return { ...runState, handsCount: runState.handsCount + upgradeItem.effect.amount };
-            
-          case 'increaseDiscards':
-            return { ...runState, discardsCount: runState.discardsCount + upgradeItem.effect.amount };
-        }
-      })();
+  switch (item.effect.type) {
+    case 'increaseHandSize':
+      return { ...runState, handSize: runState.handSize + item.effect.amount };
+      
+    case 'increaseHandsPerRound':
+      return { ...runState, handsCount: runState.handsCount + item.effect.amount };
+      
+    case 'increaseDiscards':
+      return { ...runState, discardsCount: runState.discardsCount + item.effect.amount };
+  }
 }
 
 export function applyVoucherToShop(
   shopState: ShopState,
-  item: ShopItem
+  item: VoucherItem
 ): ShopState {
-  return item.type !== 'voucher'
-    ? shopState
-    : ((): ShopState => {
-        const voucherItem = item; // TypeScript knows this is VoucherItem now
-        switch (voucherItem.effect.type) {
-          case 'rerollCost':
-            return {
-              ...shopState,
-              rerollCost: Math.max(0, shopState.rerollCost - voucherItem.effect.amount),
-            };
-            
-          case 'shopDiscount':
-            // Would need to track discount in shop state
-            return shopState;
-            
-          case 'interestRate':
-            // Would need to track interest rate
-            return shopState;
-        }
-      })();
+  switch (item.effect.type) {
+    case 'rerollCost':
+      return {
+        ...shopState,
+        rerollCost: Math.max(0, shopState.rerollCost - item.effect.amount),
+      };
+      
+    case 'shopDiscount':
+      // Would need to track discount in shop state
+      return shopState;
+      
+    case 'interestRate':
+      // Would need to track interest rate
+      return shopState;
+  }
 }
 
 export function addJokerToShop(
   shopState: ShopState,
-  item: ShopItem
+  item: JokerItem
 ): ShopState {
-  return item.type === 'joker'
-    ? {
-        ...shopState,
-        purchasedJokers: [...shopState.purchasedJokers, item],
-      }
-    : shopState;
+  return {
+    ...shopState,
+    purchasedJokers: [...shopState.purchasedJokers, item],
+  };
 }
 
 export function createPackPendingState(
   shopState: ShopState,
-  item: ShopItem
+  item: PackItem
 ): ShopState {
-  return item.type === 'pack'
-    ? {
-        ...shopState,
-        pendingPack: {
-          type: item.packType,
-          cards: [],
-        },
-      }
-    : shopState;
+  return {
+    ...shopState,
+    pendingPack: {
+      type: item.packType,
+      cards: [],
+    },
+  };
 }
 
 export function createBaseStates(
