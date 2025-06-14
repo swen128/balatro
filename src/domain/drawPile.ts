@@ -29,14 +29,6 @@ function drawCardsRecursive(
 ): [ReadonlyArray<Card>, DrawPile] {
   return remaining === 0
     ? [drawnSoFar, pile]
-    : pile.cards.length === 0
-    ? pile.discardPile.length === 0
-      ? [drawnSoFar, pile] // No more cards to draw
-      : drawCardsRecursive(
-          { cards: shuffleDeck(pile.discardPile), discardPile: [] },
-          remaining,
-          drawnSoFar
-        )
     : ((): [ReadonlyArray<Card>, DrawPile] => {
         const firstCard = pile.cards[0];
         return firstCard !== undefined
@@ -45,7 +37,16 @@ function drawCardsRecursive(
               remaining - 1,
               [...drawnSoFar, firstCard]
             )
-          : [drawnSoFar, pile]; // This shouldn't happen but satisfies type checker
+          : ((): [ReadonlyArray<Card>, DrawPile] => {
+              const firstDiscardCard = pile.discardPile[0];
+              return firstDiscardCard !== undefined
+                ? drawCardsRecursive(
+                    { cards: shuffleDeck(pile.discardPile), discardPile: [] },
+                    remaining,
+                    drawnSoFar
+                  )
+                : [drawnSoFar, pile]; // No more cards to draw
+            })();
       })();
 }
 
@@ -59,11 +60,6 @@ export function discardCards(
   };
 }
 
-export function getRemainingCardCount(pile: DrawPile): number {
-  return pile.cards.length + pile.discardPile.length;
-}
-
-
 export function addToDiscardPile(pile: DrawPile, cards: ReadonlyArray<Card>): DrawPile {
   return discardCards(pile, cards);
 }
@@ -71,10 +67,13 @@ export function addToDiscardPile(pile: DrawPile, cards: ReadonlyArray<Card>): Dr
 export function reshuffleIfNeeded(pile: DrawPile, neededCards: number): DrawPile {
   return pile.cards.length >= neededCards
     ? pile
-    : pile.discardPile.length === 0
-    ? pile
-    : {
-        cards: [...pile.cards, ...shuffleDeck(pile.discardPile)],
-        discardPile: [],
-      };
+    : ((): DrawPile => {
+        const firstDiscardCard = pile.discardPile[0];
+        return firstDiscardCard !== undefined
+          ? {
+              cards: [...pile.cards, ...shuffleDeck(pile.discardPile)],
+              discardPile: [],
+            }
+          : pile;
+      })();
 }
