@@ -1,6 +1,7 @@
 import React from 'react';
 import type { Card as CardType } from '../cards/card.ts';
 import { Card } from '../cards/Card.tsx';
+import { CardScoreOverlay } from './CardScoreOverlay.tsx';
 
 interface HandProps {
   readonly cards: ReadonlyArray<CardType>;
@@ -42,19 +43,20 @@ export function Hand({
         }
         
         return (
-          <Card
-            key={card.id}
-            card={card}
-            isSelected={isSelected}
-            onClick={() => !isPlaying && !isDiscarding && onCardClick(card.id)}
-            animationClass={animationClass}
-            animationDelay={index * 0.1}
-            showScoreOverlay={isScoring && isPlayed}
-            style={{
-              opacity: (isPlayed && !isPlaying) ? 0 : 1,
-              transition: 'opacity 0.5s ease-out',
-            }}
-          />
+          <div key={card.id} className="relative">
+            <Card
+              card={card}
+              isSelected={isSelected}
+              onClick={() => !isPlaying && !isDiscarding && onCardClick(card.id)}
+              animationClass={animationClass}
+              animationDelay={index * 0.1}
+              style={{
+                opacity: (isPlayed && !isPlaying) ? 0 : 1,
+                transition: 'opacity 0.5s ease-out',
+              }}
+            />
+            <CardScoreOverlay card={card} isVisible={isScoring && isPlayed} />
+          </div>
         );
       })}
     </div>

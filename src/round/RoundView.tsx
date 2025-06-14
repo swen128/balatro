@@ -134,47 +134,50 @@ export function RoundView({
       </div>
 
       {/* Main game area */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-        {/* Scoring area - positioned above cards with proper spacing */}
-        <div className="absolute" style={{ bottom: '60%' }}>
+      <div className="flex-1 flex flex-col p-8 relative">
+        {/* Status text - at the top */}
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="text-xl text-gray-500 mb-8">
+            {renderStatusText()}
+          </div>
+          
+          {/* Scoring area - centered in main area */}
           {renderScoringDisplay()}
         </div>
 
-        {/* Hand display */}
-        <Hand
-          cards={roundState.hand}
-          selectedCardIds={getSelectedCardIds()}
-          playedCards={getPlayedCards()}
-          onCardClick={handleCardClick}
-          isPlaying={isPlaying}
-          isDrawing={isDrawing}
-          isDiscarding={isDiscarding}
-          isScoring={roundState.type === 'scoring'}
-        />
+        {/* Bottom area with cards and actions */}
+        <div className="flex flex-col items-center">
+          {/* Action buttons above cards */}
+          {roundState.type === 'selectingHand' && (
+            <div className="flex gap-4 mb-4">
+              <button
+                onClick={handlePlayHand}
+                disabled={!canPlayHand}
+                className="text-xl px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
+              >
+                Play Hand
+              </button>
+              <button
+                onClick={handleDiscardCards}
+                disabled={!canDiscardCards}
+                className="text-xl px-8 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
+              >
+                Discard ({roundState.discardsRemaining})
+              </button>
+            </div>
+          )}
 
-        {/* Action buttons */}
-        {roundState.type === 'selectingHand' && (
-          <div className="flex gap-4 mt-8">
-            <button
-              onClick={handlePlayHand}
-              disabled={!canPlayHand}
-              className="text-xl px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
-            >
-              Play Hand
-            </button>
-            <button
-              onClick={handleDiscardCards}
-              disabled={!canDiscardCards}
-              className="text-xl px-8 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
-            >
-              Discard ({roundState.discardsRemaining})
-            </button>
-          </div>
-        )}
-
-        {/* Status text */}
-        <div className="mt-8 text-xl text-gray-500">
-          {renderStatusText()}
+          {/* Hand display at bottom */}
+          <Hand
+            cards={roundState.hand}
+            selectedCardIds={getSelectedCardIds()}
+            playedCards={getPlayedCards()}
+            onCardClick={handleCardClick}
+            isPlaying={isPlaying}
+            isDrawing={isDrawing}
+            isDiscarding={isDiscarding}
+            isScoring={roundState.type === 'scoring'}
+          />
         </div>
       </div>
       
