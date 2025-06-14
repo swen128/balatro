@@ -2,6 +2,8 @@
 
 A TypeScript implementation of the Balatro card game - a poker-based roguelike where you progress through increasingly difficult challenges by playing poker hands to meet score goals.
 
+🎮 **[Play the game online](https://swen128.github.io/balatro/)**
+
 ## How to Play
 
 **Goal**: Score enough points to defeat each blind by playing poker hands with your cards.
