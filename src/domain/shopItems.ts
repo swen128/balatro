@@ -177,9 +177,11 @@ export const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
   },
 ];
 
-export function generateShopItems(cash: number): ReadonlyArray<ShopItem> {
+export type ShopItemUnion = UpgradeItem | JokerItem | PackItem | VoucherItem | SpectralItem;
+
+export function generateShopItems(cash: number): ReadonlyArray<ShopItemUnion> {
   // For now, return a random selection of items
-  const allItems: ReadonlyArray<ShopItem> = [
+  const allItems: ReadonlyArray<ShopItemUnion> = [
     ...SHOP_UPGRADES,
     ...SHOP_JOKERS,
     ...SHOP_PACKS,

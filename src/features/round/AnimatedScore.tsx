@@ -38,7 +38,7 @@ export function AnimatedScore({ targetScore, duration = 1000 }: AnimatedScorePro
     };
 
     requestAnimationFrame(animate);
-  }, [targetScore, duration]);
+  }, [targetScore, duration, displayScore]);
 
   return (
     <span className={`transition-all ${isAnimating ? 'text-yellow-400 scale-110' : ''}`}>

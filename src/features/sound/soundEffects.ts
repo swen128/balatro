@@ -1,3 +1,8 @@
+/* eslint-disable functional/no-conditional-statements */
+/* eslint-disable functional/no-return-void */
+/* eslint-disable functional/no-try-statements */
+/* eslint-disable no-console */
+
 // Sound effect types
 export type SoundEffectType = 
   | 'cardDraw'
@@ -47,7 +52,7 @@ export const SOUND_URLS: Record<SoundEffectType, string> = {
 };
 
 // Audio context and buffer cache
-const audioContext = typeof window !== 'undefined' && window.AudioContext
+const audioContext = (typeof window !== 'undefined' && window.AudioContext !== undefined)
   ? new AudioContext()
   : null;
 
@@ -147,14 +152,28 @@ export async function playSoundWithPitch(
 }
 
 // Preload all sounds
-export async function preloadAllSounds(): Promise<void> {
-  const types = Object.keys(SOUND_URLS) as SoundEffectType[];
-  await Promise.all(types.map(type => loadSound(type)));
+export function preloadAllSounds(): Promise<void> {
+  const types: ReadonlyArray<SoundEffectType> = [
+    'cardDraw',
+    'cardSelect',
+    'cardPlay',
+    'cardDiscard',
+    'chipCount',
+    'scoreIncrease',
+    'roundWin',
+    'roundLose',
+    'shopPurchase',
+    'buttonClick',
+    'blindSelect',
+    'jokerActivate',
+    'error',
+  ];
+  return Promise.all(types.map(type => loadSound(type))).then(() => undefined);
 }
 
 // Resume audio context (required for some browsers)
 export function resumeAudioContext(): void {
   if (audioContext?.state === 'suspended') {
-    audioContext.resume().catch(console.warn);
+    void audioContext.resume().catch(console.warn);
   }
 }

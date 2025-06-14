@@ -100,7 +100,7 @@ export function SoundSettings({
             <button
               onClick={() => {
                 // In a real implementation, this would play a test sound
-                console.log('Playing test sound...');
+                // Play test sound
               }}
               disabled={!config.enabled || config.muted}
               className={`w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded transition-colors ${

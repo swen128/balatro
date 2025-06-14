@@ -1,7 +1,7 @@
 import React from 'react';
 import type { RunState } from '../../domain/runState.ts';
 import type { ShopState } from './shopLogic.ts';
-import type { ShopItem } from '../../domain/shopItems.ts';
+import type { ShopItemUnion } from '../../domain/shopItems.ts';
 
 interface ShopViewProps {
   readonly runState: RunState;
@@ -9,7 +9,7 @@ interface ShopViewProps {
   readonly onPurchase: (itemId: string) => void;
   readonly onReroll: () => void;
   readonly onLeave: () => void;
-  readonly canAffordItem: (item: ShopItem) => boolean;
+  readonly canAffordItem: (item: ShopItemUnion) => boolean;
   readonly canReroll: () => boolean;
 }
 
@@ -22,7 +22,7 @@ export function ShopView({
   canAffordItem,
   canReroll: canRerollShop
 }: ShopViewProps): React.ReactElement {
-  const renderItemType = (item: ShopItem): string => {
+  const renderItemType = (item: ShopItemUnion): string => {
     switch (item.type) {
       case 'upgrade': return '⬆️';
       case 'joker': return '🃏';

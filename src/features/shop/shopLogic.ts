@@ -1,12 +1,12 @@
 import type { RunState } from '../../domain/runState.ts';
-import type { ShopItem, JokerItem } from '../../domain/shopItems.ts';
+import type { ShopItemUnion, JokerItem } from '../../domain/shopItems.ts';
 import { generateShopItems } from '../../domain/shopItems.ts';
 import type { Card } from '../../domain/card.ts';
 import type { SpectralCard, ArcanaCard } from '../../domain/cardPacks.ts';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 export interface ShopState {
-  readonly availableItems: ReadonlyArray<ShopItem>;
+  readonly availableItems: ReadonlyArray<ShopItemUnion>;
   readonly purchasedJokers: ReadonlyArray<JokerItem>;
   readonly rerollCost: number;
   readonly rerollsUsed: number;
@@ -26,7 +26,7 @@ export function createShopState(runState: RunState): ShopState {
   };
 }
 
-export function canAffordItem(cash: number, item: ShopItem): boolean {
+export function canAffordItem(cash: number, item: ShopItemUnion): boolean {
   return cash >= item.price;
 }
 
@@ -40,9 +40,16 @@ export function purchaseItem(
   itemId: string
 ): { shopState: ShopState; runState: RunState } | null {
   const item = shopState.availableItems.find(i => i.id === itemId);
-  if (!item || !canAffordItem(runState.cash, item)) {
-    return null;
-  }
+  return !item || !canAffordItem(runState.cash, item)
+    ? null
+    : purchaseItemHelper(shopState, runState, item);
+}
+
+function purchaseItemHelper(
+  shopState: ShopState,
+  runState: RunState,
+  item: ShopItemUnion
+): { shopState: ShopState; runState: RunState } {
 
   const { baseRunState, baseShopState } = createBaseStates(shopState, runState, item);
 
@@ -83,9 +90,15 @@ export function rerollShop(
   shopState: ShopState,
   runState: RunState
 ): { shopState: ShopState; runState: RunState } | null {
-  if (!canReroll(runState.cash, shopState.rerollCost)) {
-    return null;
-  }
+  return !canReroll(runState.cash, shopState.rerollCost)
+    ? null
+    : rerollShopHelper(shopState, runState);
+}
+
+function rerollShopHelper(
+  shopState: ShopState,
+  runState: RunState
+): { shopState: ShopState; runState: RunState } {
 
   const newRunState = {
     ...runState,

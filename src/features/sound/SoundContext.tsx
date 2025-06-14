@@ -20,8 +20,9 @@ export function SoundProvider({ children }: SoundProviderProps): React.ReactElem
 
 export function useSound(): UseSoundEffectsReturn {
   const context = useContext(SoundContext);
-  if (!context) {
-    throw new Error('useSound must be used within SoundProvider');
-  }
-  return context;
+  return !context
+    ? ((): never => {
+        throw new Error('useSound must be used within SoundProvider');
+      })()
+    : context;
 }

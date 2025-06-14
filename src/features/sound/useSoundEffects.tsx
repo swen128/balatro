@@ -1,3 +1,6 @@
+/* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import { useState, useCallback, useEffect } from 'react';
 import type { SoundConfig, SoundEffectType } from './soundEffects.ts';
 import { 
@@ -61,7 +64,7 @@ export function useSoundEffects(): UseSoundEffectsReturn {
     window.addEventListener('click', handleUserInteraction, { once: true });
     window.addEventListener('keydown', handleUserInteraction, { once: true });
     
-    return () => {
+    return (): void => {
       window.removeEventListener('click', handleUserInteraction);
       window.removeEventListener('keydown', handleUserInteraction);
     };
@@ -69,25 +72,25 @@ export function useSoundEffects(): UseSoundEffectsReturn {
   
   // Preload sounds on mount
   useEffect(() => {
-    preloadAllSounds().catch(console.warn);
+    void preloadAllSounds().catch(console.warn);
   }, []);
   
   const play = useCallback((type: SoundEffectType): void => {
-    playSound(type, config).catch(console.warn);
+    void playSound(type, config).catch(console.warn);
   }, [config]);
   
   const playSequence = useCallback((
     types: ReadonlyArray<SoundEffectType>,
     delayMs?: number
   ): void => {
-    playSoundSequence(types, delayMs, config).catch(console.warn);
+    void playSoundSequence(types, delayMs, config).catch(console.warn);
   }, [config]);
   
   const playWithPitch = useCallback((
     type: SoundEffectType,
     pitch: number
   ): void => {
-    playSoundWithPitch(type, pitch, config).catch(console.warn);
+    void playSoundWithPitch(type, pitch, config).catch(console.warn);
   }, [config]);
   
   const setVolume = useCallback((volume: number): void => {

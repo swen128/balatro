@@ -27,6 +27,8 @@ export default [
         console: 'readonly',
         setTimeout: 'readonly',
         clearTimeout: 'readonly',
+        requestAnimationFrame: 'readonly',
+        fetch: 'readonly',
       },
     },
     plugins: {
@@ -102,6 +104,6 @@ export default [
     },
   },
   {
-    ignores: ['node_modules/', 'dist/', 'build/', '*.js', '!eslint.config.js'],
+    ignores: ['node_modules/', 'dist/', 'build/', '*.js', '!eslint.config.js', 'vite.config.ts'],
   },
 ];

@@ -64,17 +64,15 @@ export function canPlayHand(state: RoundState): boolean {
 }
 
 export function handleCardClick(state: RoundState, cardId: string): RoundState | null {
-  if (state.type === 'selectingHand') {
-    return toggleCardSelection(state, cardId);
-  }
-  return null;
+  return state.type === 'selectingHand'
+    ? toggleCardSelection(state, cardId)
+    : null;
 }
 
 export function handlePlayHand(state: RoundState): RoundState | null {
-  if (state.type === 'selectingHand') {
-    return playSelectedCards(state);
-  }
-  return null;
+  return state.type === 'selectingHand'
+    ? playSelectedCards(state)
+    : null;
 }
 
 export function isRoundFinished(state: RoundState): state is RoundFinishedState {
@@ -82,10 +80,9 @@ export function isRoundFinished(state: RoundState): state is RoundFinishedState 
 }
 
 export function handleDiscardCards(state: RoundState): RoundState | null {
-  if (state.type === 'selectingHand') {
-    return discardSelectedCards(state);
-  }
-  return null;
+  return state.type === 'selectingHand'
+    ? discardSelectedCards(state)
+    : null;
 }
 
 export function canDiscardCards(state: RoundState): boolean {
