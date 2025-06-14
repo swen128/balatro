@@ -5,6 +5,9 @@ import type { EvaluatedHand } from './pokerHands.ts';
 import { evaluatePokerHand } from './pokerHands.ts';
 import type { ChipMult } from './scoring.ts';
 import { calculateBaseChipMult, calculateFinalScore, applyEffects } from './scoring.ts';
+import type { BossBlind } from './blind.ts';
+import type { BossEffectContext } from './bossEffects.ts';
+import { applyBossEffectOnHandSelection, applyBossEffectOnScoring } from './bossEffects.ts';
 
 export type RoundState = 
   | DrawingState
@@ -14,6 +17,8 @@ export type RoundState =
   | PlayedState
   | RoundFinishedState;
 
+export type { SelectingHandState, PlayingState, ScoringState };
+
 interface BaseRoundState {
   readonly drawPile: DrawPile;
   readonly hand: ReadonlyArray<Card>;
@@ -21,6 +26,7 @@ interface BaseRoundState {
   readonly scoreGoal: number;
   readonly handsRemaining: number;
   readonly handSize: number;
+  readonly handsPlayed: number;
 }
 
 interface DrawingState extends BaseRoundState {
@@ -70,6 +76,7 @@ export function createRoundState(
     scoreGoal,
     handsRemaining: handsCount,
     handSize,
+    handsPlayed: 0,
   };
 }
 
@@ -84,6 +91,25 @@ export function drawCardsToHand(state: DrawingState): SelectingHandState {
     hand: [...state.hand, ...drawnCards],
     selectedCardIds: new Set(),
   };
+}
+
+export function drawCardsToHandWithBossEffect(
+  state: DrawingState,
+  bossBlind: BossBlind | null,
+  totalMoney: number
+): SelectingHandState {
+  let nextState = drawCardsToHand(state);
+  
+  if (bossBlind) {
+    const context: BossEffectContext = {
+      bossBlind,
+      handsPlayed: state.handsPlayed,
+      totalMoney,
+    };
+    nextState = applyBossEffectOnHandSelection(nextState, context);
+  }
+  
+  return nextState;
 }
 
 export function toggleCardSelection(
@@ -136,6 +162,25 @@ export function scoreHand(state: PlayingState): ScoringState {
   };
 }
 
+export function scoreHandWithBossEffect(
+  state: PlayingState,
+  bossBlind: BossBlind | null,
+  totalMoney: number
+): ScoringState {
+  let scoringState = scoreHand(state);
+  
+  if (bossBlind) {
+    const context: BossEffectContext = {
+      bossBlind,
+      handsPlayed: state.handsPlayed,
+      totalMoney,
+    };
+    scoringState = applyBossEffectOnScoring(scoringState, context);
+  }
+  
+  return scoringState;
+}
+
 export function finishScoring(state: ScoringState): PlayedState | RoundFinishedState {
   const newScore = state.score + state.finalScore;
   const remainingCards = state.hand.filter(
@@ -143,6 +188,7 @@ export function finishScoring(state: ScoringState): PlayedState | RoundFinishedS
   );
   const newDrawPile = discardCards(state.drawPile, state.playedCards);
   const newHandsRemaining = state.handsRemaining - 1;
+  const newHandsPlayed = state.handsPlayed + 1;
   
   // Check if round is finished
   if (newScore >= state.scoreGoal) {
@@ -153,6 +199,7 @@ export function finishScoring(state: ScoringState): PlayedState | RoundFinishedS
       hand: remainingCards,
       drawPile: newDrawPile,
       handsRemaining: newHandsRemaining,
+      handsPlayed: newHandsPlayed,
       won: true,
     };
   }
@@ -165,6 +212,7 @@ export function finishScoring(state: ScoringState): PlayedState | RoundFinishedS
       hand: remainingCards,
       drawPile: newDrawPile,
       handsRemaining: 0,
+      handsPlayed: newHandsPlayed,
       won: false,
     };
   }
@@ -176,6 +224,7 @@ export function finishScoring(state: ScoringState): PlayedState | RoundFinishedS
     hand: remainingCards,
     drawPile: newDrawPile,
     handsRemaining: newHandsRemaining,
+    handsPlayed: newHandsPlayed,
     lastHandScore: state.finalScore,
   };
 }
@@ -186,3 +235,5 @@ export function continueToNextHand(state: PlayedState): DrawingState {
     type: 'drawing',
   };
 }
+
+export { shouldResetMoney } from './bossEffects.ts';

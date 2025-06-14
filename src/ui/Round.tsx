@@ -3,11 +3,14 @@ import type { PlayingRoundState } from '../domain/gameState.ts';
 import type { RoundState } from '../domain/roundState.ts';
 import {
   drawCardsToHand,
+  drawCardsToHandWithBossEffect,
   toggleCardSelection,
   playSelectedCards,
   scoreHand,
+  scoreHandWithBossEffect,
   finishScoring,
   continueToNextHand,
+  shouldResetMoney,
 } from '../domain/roundState.ts';
 import { Hand } from './Hand.tsx';
 import { ScoreDisplay } from './ScoreDisplay.tsx';
@@ -20,19 +23,36 @@ interface RoundProps {
 
 export function Round({ gameState, onWin, onLose }: RoundProps): React.ReactElement {
   const [roundState, setRoundState] = useState<RoundState>(gameState.roundState);
+  const [money, setMoney] = useState<number>(gameState.runState.cash);
+  
+  const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
 
   useEffect(() => {
     // Handle automatic state transitions
     if (roundState.type === 'drawing') {
       const timeoutId = setTimeout(() => {
-        setRoundState(drawCardsToHand(roundState));
+        if (bossBlind) {
+          setRoundState(drawCardsToHandWithBossEffect(roundState, bossBlind, money));
+        } else {
+          setRoundState(drawCardsToHand(roundState));
+        }
       }, 500);
       return (): void => { clearTimeout(timeoutId); };
     }
 
     if (roundState.type === 'playing') {
       const timeoutId = setTimeout(() => {
-        setRoundState(scoreHand(roundState));
+        if (bossBlind) {
+          const scoringState = scoreHandWithBossEffect(roundState, bossBlind, money);
+          setRoundState(scoringState);
+          
+          // Check if The Ox effect should reset money
+          if (shouldResetMoney(scoringState, bossBlind)) {
+            setMoney(0);
+          }
+        } else {
+          setRoundState(scoreHand(roundState));
+        }
       }, 1000);
       return (): void => { clearTimeout(timeoutId); };
     }
@@ -61,7 +81,7 @@ export function Round({ gameState, onWin, onLose }: RoundProps): React.ReactElem
     }
     
     return undefined;
-  }, [roundState, onWin, onLose]);
+  }, [roundState, onWin, onLose, bossBlind, money]);
 
   const handleCardClick = (cardId: string): void => {
     if (roundState.type === 'selectingHand') {
