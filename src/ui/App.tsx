@@ -4,7 +4,7 @@ import { createMainMenuState, startNewRun, selectBlind, skipBlind, winRound, los
 import { MainMenuView } from '../features/main-menu/MainMenuView.tsx';
 import { BlindSelectionView } from '../features/blind-selection/BlindSelectionView.tsx';
 import { RoundContainer } from '../features/round/RoundContainer.tsx';
-import { ShopView } from '../features/shop/ShopView.tsx';
+import { ShopContainer } from '../features/shop/ShopContainer.tsx';
 
 export function App(): React.ReactElement {
   const [gameState, setGameState] = useState<GameState>(createMainMenuState());
@@ -68,7 +68,7 @@ export function App(): React.ReactElement {
     
     case 'shop':
       return (
-        <ShopView
+        <ShopContainer
           runState={gameState.runState}
           onLeave={handleLeaveShop}
         />
