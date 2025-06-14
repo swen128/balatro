@@ -23,11 +23,18 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
       const pack = shopState.pendingPack;
       let cards: ReadonlyArray<Card> = [];
       
-      if (pack.type === 'standard') {
-        cards = generateStandardPackCards(3);
-        console.log('Generated cards:', cards);
+      switch (pack.type) {
+        case 'standard':
+          cards = generateStandardPackCards(3);
+          console.log('Generated standard cards:', cards);
+          break;
+        case 'spectral':
+        case 'arcana':
+          // For now, generate standard cards as placeholders
+          cards = generateStandardPackCards(3);
+          console.log(`Generated placeholder cards for ${pack.type}:`, cards);
+          break;
       }
-      // For now, only support standard packs
       
       setPackCards(cards);
     }
