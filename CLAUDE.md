@@ -39,6 +39,12 @@ Use `bun add` for adding dependencies (not npm or yarn).
   - `noImplicitReturns`
   - All function parameters and return types must be explicit
 
+### Array Access Pattern
+- **Don't check length before accessing array elements**
+- Instead of `if (array.length > 0) { const first = array[0]; ... }`
+- Use: `const first = array[0]; if (first !== undefined) { ... }`
+- This preserves type information about non-empty arrays and eliminates redundant checks
+
 ### Import Rules
 - Use `import type` for type-only imports (enforced by `verbatimModuleSyntax`)
 - Use `.ts` extensions in import paths
