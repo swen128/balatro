@@ -8,19 +8,17 @@ import { BlindSelectionView } from '../features/blind-selection/BlindSelectionVi
 import { RoundContainer } from '../features/round/RoundContainer.tsx';
 import { ShopContainer } from '../features/shop/ShopContainer.tsx';
 import { StatisticsView } from '../features/statistics/StatisticsView.tsx';
-import type { GameStatistics } from '../domain/statistics.ts';
-import { updateGameStart, updateGameEnd, updateBossDefeated } from '../domain/statistics.ts';
-import { loadStatistics, saveStatistics } from '../features/statistics/statisticsStorage.ts';
+import { StatisticsProvider, useStatisticsContext } from '../features/statistics/StatisticsContext.tsx';
 import { SoundProvider } from '../features/sound/SoundContext.tsx';
 import { SoundSettings } from '../features/sound/SoundSettings.tsx';
 import { useSound } from '../features/sound/SoundContext.tsx';
 
 function AppContent(): React.ReactElement {
   const [gameState, setGameState] = useState<GameState>(createMainMenuState());
-  const [statistics, setStatistics] = useState<GameStatistics>(loadStatistics());
   const [showStatistics, setShowStatistics] = useState(false);
   const [showSoundSettings, setShowSoundSettings] = useState(false);
   const sound = useSound();
+  const stats = useStatisticsContext();
 
   // Auto-save when game state changes (except main menu)
   useEffect(() => {
@@ -31,9 +29,7 @@ function AppContent(): React.ReactElement {
 
   const handleStartNewRun = (): void => {
     deleteSaveGame(); // Clear any existing save
-    const newStats = updateGameStart(statistics);
-    setStatistics(newStats);
-    saveStatistics(newStats);
+    stats.trackGameStart();
     sound.play('buttonClick');
     setGameState(startNewRun());
   };
@@ -66,10 +62,11 @@ function AppContent(): React.ReactElement {
       
       // Update statistics for boss defeats
       if (gameState.blind.isBoss) {
-        const newStats = updateBossDefeated(statistics, gameState.blind.name);
-        setStatistics(newStats);
-        saveStatistics(newStats);
+        stats.trackBossDefeated(gameState.blind.name);
       }
+      
+      // Track money earned from blind reward
+      stats.trackMoneyEarned(gameState.blind.cashReward);
     }
   };
 
@@ -79,9 +76,7 @@ function AppContent(): React.ReactElement {
         ? gameState.roundState.score 
         : 0;
       sound.play('roundLose');
-      const newStats = updateGameEnd(statistics, false, gameState.runState.ante, finalScore);
-      setStatistics(newStats);
-      saveStatistics(newStats);
+      stats.trackGameEnd(false, gameState.runState.ante, finalScore);
       setGameState(loseRound());
     }
   };
@@ -109,7 +104,7 @@ function AppContent(): React.ReactElement {
             saveInfo={getSaveInfo()}
           />
           <StatisticsView
-            statistics={statistics}
+            statistics={stats.statistics}
             isOpen={showStatistics}
             onClose={() => setShowStatistics(false)}
           />
@@ -163,8 +158,10 @@ function AppContent(): React.ReactElement {
 
 export function App(): React.ReactElement {
   return (
-    <SoundProvider>
-      <AppContent />
-    </SoundProvider>
+    <StatisticsProvider>
+      <SoundProvider>
+        <AppContent />
+      </SoundProvider>
+    </StatisticsProvider>
   );
 }

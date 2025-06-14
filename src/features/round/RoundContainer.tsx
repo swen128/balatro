@@ -11,6 +11,7 @@ import {
   isRoundFinished
 } from './roundLogic.ts';
 import { RoundView } from './RoundView.tsx';
+import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
 
 interface RoundContainerProps {
   readonly gameState: PlayingRoundState;
@@ -22,6 +23,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
   const [roundState, setRoundState] = useState<RoundState>(gameState.roundState);
   const [money, setMoney] = useState<number>(gameState.runState.cash);
   const [isDiscarding, setIsDiscarding] = useState<boolean>(false);
+  const stats = useStatisticsContext();
   
   const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
 
@@ -34,6 +36,15 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
         
         if (transition.shouldResetMoney === true) {
           setMoney(0);
+        }
+        
+        // Track hand statistics when transitioning from scoring to played
+        if (roundState.type === 'scoring' && transition.nextState.type === 'played') {
+          const scoringState = roundState;
+          stats.trackHandPlayed(
+            scoringState.evaluatedHand.handType.name,
+            scoringState.finalScore
+          );
         }
         
         // Handle round finished
@@ -53,7 +64,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
     }
     
     return undefined;
-  }, [roundState, bossBlind, money, gameState.runState.jokers, onWin, onLose]);
+  }, [roundState, bossBlind, money, gameState.runState.jokers, onWin, onLose, stats]);
 
   const handleCardClickCallback = useCallback((cardId: string): void => {
     const newState = handleCardClick(roundState, cardId);

@@ -5,6 +5,7 @@ import { ShopView } from './ShopView.tsx';
 import { CardPackModal } from './CardPackModal.tsx';
 import { generateStandardPackCards } from '../../domain/cardPacks.ts';
 import type { Card } from '../../domain/card.ts';
+import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
 
 interface ShopContainerProps {
   readonly runState: RunState;
@@ -15,6 +16,7 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
   const [runState, setRunState] = useState<RunState>(initialRunState);
   const [shopState, setShopState] = useState(() => createShopState(initialRunState));
   const [packCards, setPackCards] = useState<ReadonlyArray<Card> | null>(null);
+  const stats = useStatisticsContext();
 
   // Generate pack cards when a pack is purchased
   useEffect(() => {
@@ -38,20 +40,30 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
   }, [shopState.pendingPack, packCards]);
 
   const handlePurchase = useCallback((itemId: string): void => {
+    const item = shopState.availableItems.find(i => i.id === itemId);
     const result = purchaseItem(shopState, runState, itemId);
-    if (result) {
+    if (result && item) {
       setShopState(result.shopState);
       setRunState(result.runState);
+      
+      // Track money spent and joker usage
+      stats.trackMoneySpent(item.price);
+      if (item.type === 'joker') {
+        stats.trackJokerUsed(item.id);
+      }
     }
-  }, [shopState, runState]);
+  }, [shopState, runState, stats]);
 
   const handleReroll = useCallback((): void => {
     const result = rerollShop(shopState, runState);
     if (result) {
       setShopState(result.shopState);
       setRunState(result.runState);
+      
+      // Track money spent on reroll
+      stats.trackMoneySpent(shopState.rerollCost);
     }
-  }, [shopState, runState]);
+  }, [shopState, runState, stats]);
 
   const handleSelectCard = useCallback((card: Card): void => {
     // Add the selected card to the deck
