@@ -102,15 +102,6 @@ export default [
     },
   },
   {
-    files: ['**/saveGame.ts', '**/statisticsStorage.ts'],
-    rules: {
-      // Allow try-catch and void returns for localStorage operations
-      'functional/no-try-statements': 'off',
-      'functional/no-return-void': 'off',
-      '@typescript-eslint/consistent-type-assertions': 'off',
-    },
-  },
-  {
     ignores: ['node_modules/', 'dist/', 'build/', '*.js', '!eslint.config.js'],
   },
 ];

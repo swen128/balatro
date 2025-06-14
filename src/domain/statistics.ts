@@ -66,8 +66,11 @@ export function updateHandPlayed(
   // Find the most played hand
   const favoriteHand = Object.entries(newHandCounts).reduce<string | null>(
     (favorite, [hand, count]) => {
-      if (!favorite) return hand;
-      return count > (newHandCounts[favorite] ?? 0) ? hand : favorite;
+      return favorite === null
+        ? hand
+        : count > (newHandCounts[favorite] ?? 0) 
+        ? hand 
+        : favorite;
     },
     stats.favoriteHand
   );
@@ -104,34 +107,34 @@ export function updateJokerUsed(
   stats: GameStatistics,
   jokerId: string
 ): GameStatistics {
-  if (stats.jokersUsed.includes(jokerId)) {
-    return stats;
-  }
-  return {
-    ...stats,
-    jokersUsed: [...stats.jokersUsed, jokerId],
-  };
+  return stats.jokersUsed.includes(jokerId)
+    ? stats
+    : {
+        ...stats,
+        jokersUsed: [...stats.jokersUsed, jokerId],
+      };
 }
 
 export function updateBossDefeated(
   stats: GameStatistics,
   bossName: string
 ): GameStatistics {
-  if (stats.bossesDefeated.includes(bossName)) {
-    return stats;
-  }
-  return {
-    ...stats,
-    bossesDefeated: [...stats.bossesDefeated, bossName],
-  };
+  return stats.bossesDefeated.includes(bossName)
+    ? stats
+    : {
+        ...stats,
+        bossesDefeated: [...stats.bossesDefeated, bossName],
+      };
 }
 
 export function getWinRate(stats: GameStatistics): number {
-  if (stats.gamesPlayed === 0) return 0;
-  return Math.round((stats.gamesWon / stats.gamesPlayed) * 100);
+  return stats.gamesPlayed === 0 
+    ? 0 
+    : Math.round((stats.gamesWon / stats.gamesPlayed) * 100);
 }
 
 export function getAverageScore(stats: GameStatistics): number {
-  if (stats.gamesPlayed === 0) return 0;
-  return Math.round(stats.totalChipsEarned / stats.gamesPlayed);
+  return stats.gamesPlayed === 0 
+    ? 0 
+    : Math.round(stats.totalChipsEarned / stats.gamesPlayed);
 }

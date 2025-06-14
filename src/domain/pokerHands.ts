@@ -138,7 +138,7 @@ function evaluateValidHand(cards: ReadonlyArray<Card>): EvaluatedHand {
   
   // Check for royal flush / straight flush
   return straightFlushCards !== null
-    ? (() => {
+    ? ((): EvaluatedHand => {
         const ranks = straightFlushCards.map(c => c.rank);
         return ranks.includes('10') && ranks.includes('J') && 
             ranks.includes('Q') && ranks.includes('K') && 

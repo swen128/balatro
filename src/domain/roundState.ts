@@ -103,27 +103,21 @@ export function drawCardsToHandWithBossEffect(
 ): SelectingHandState {
   const baseState = drawCardsToHand(state);
   
-  if (!bossBlind) {
-    return baseState;
-  }
-  
-  // Apply The Hook effect - discard random cards
-  if (bossBlind.name === 'The Hook') {
-    const cardsToDiscard = 2;
-    if (baseState.hand.length > cardsToDiscard) {
-      const shuffled = [...baseState.hand].sort(() => Math.random() - 0.5);
-      const remainingHand = shuffled.slice(cardsToDiscard);
-      const discardedCards = shuffled.slice(0, cardsToDiscard);
-      
-      return {
-        ...baseState,
-        hand: remainingHand,
-        drawPile: discardCards(baseState.drawPile, discardedCards),
-      };
-    }
-  }
-  
-  return baseState;
+  return !bossBlind
+    ? baseState
+    : bossBlind.name === 'The Hook' && baseState.hand.length > 2
+    ? ((): SelectingHandState => {
+        const shuffled = [...baseState.hand].sort(() => Math.random() - 0.5);
+        const remainingHand = shuffled.slice(2);
+        const discardedCards = shuffled.slice(0, 2);
+        
+        return {
+          ...baseState,
+          hand: remainingHand,
+          drawPile: discardCards(baseState.drawPile, discardedCards),
+        };
+      })()
+    : baseState;
 }
 
 export function toggleCardSelection(
@@ -132,34 +126,39 @@ export function toggleCardSelection(
 ): SelectingHandState {
   const newSelectedIds = new Set(state.selectedCardIds);
   
-  if (newSelectedIds.has(cardId)) {
-    newSelectedIds.delete(cardId);
-  } else {
-    if (newSelectedIds.size < 5) {
-      newSelectedIds.add(cardId);
-    }
-  }
-  
-  return {
-    ...state,
-    selectedCardIds: newSelectedIds,
-  };
+  return newSelectedIds.has(cardId)
+    ? ((): SelectingHandState => {
+        newSelectedIds.delete(cardId);
+        return {
+          ...state,
+          selectedCardIds: newSelectedIds,
+        };
+      })()
+    : newSelectedIds.size < 5
+    ? ((): SelectingHandState => {
+        newSelectedIds.add(cardId);
+        return {
+          ...state,
+          selectedCardIds: newSelectedIds,
+        };
+      })()
+    : state;
 }
 
 export function playSelectedCards(state: SelectingHandState): PlayingState | SelectingHandState {
-  if (state.selectedCardIds.size === 0) {
-    return state; // Can't play with no cards selected
-  }
-  
-  const playedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
-  const evaluatedHand = evaluatePokerHand(playedCards);
-  
-  return {
-    ...state,
-    type: 'playing',
-    playedCards,
-    evaluatedHand,
-  };
+  return state.selectedCardIds.size === 0
+    ? state // Can't play with no cards selected
+    : ((): PlayingState => {
+        const playedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
+        const evaluatedHand = evaluatePokerHand(playedCards);
+        
+        return {
+          ...state,
+          type: 'playing',
+          playedCards,
+          evaluatedHand,
+        };
+      })();
 }
 
 export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = []): ScoringState {
@@ -216,42 +215,38 @@ export function finishScoring(state: ScoringState): PlayedState | RoundFinishedS
   const newHandsPlayed = state.handsPlayed + 1;
   
   // Check if round is finished
-  if (newScore >= state.scoreGoal) {
-    return {
-      ...state,
-      type: 'roundFinished',
-      score: newScore,
-      hand: remainingCards,
-      drawPile: newDrawPile,
-      handsRemaining: newHandsRemaining,
-      handsPlayed: newHandsPlayed,
-      won: true,
-    };
-  }
-  
-  if (newHandsRemaining <= 0) {
-    return {
-      ...state,
-      type: 'roundFinished',
-      score: newScore,
-      hand: remainingCards,
-      drawPile: newDrawPile,
-      handsRemaining: 0,
-      handsPlayed: newHandsPlayed,
-      won: false,
-    };
-  }
-  
-  return {
-    ...state,
-    type: 'played',
-    score: newScore,
-    hand: remainingCards,
-    drawPile: newDrawPile,
-    handsRemaining: newHandsRemaining,
-    handsPlayed: newHandsPlayed,
-    lastHandScore: state.finalScore,
-  };
+  return newScore >= state.scoreGoal
+    ? {
+        ...state,
+        type: 'roundFinished',
+        score: newScore,
+        hand: remainingCards,
+        drawPile: newDrawPile,
+        handsRemaining: newHandsRemaining,
+        handsPlayed: newHandsPlayed,
+        won: true,
+      }
+    : newHandsRemaining <= 0
+    ? {
+        ...state,
+        type: 'roundFinished',
+        score: newScore,
+        hand: remainingCards,
+        drawPile: newDrawPile,
+        handsRemaining: 0,
+        handsPlayed: newHandsPlayed,
+        won: false,
+      }
+    : {
+        ...state,
+        type: 'played',
+        score: newScore,
+        hand: remainingCards,
+        drawPile: newDrawPile,
+        handsRemaining: newHandsRemaining,
+        handsPlayed: newHandsPlayed,
+        lastHandScore: state.finalScore,
+      };
 }
 
 export function continueToNextHand(state: PlayedState): DrawingState {
@@ -262,24 +257,24 @@ export function continueToNextHand(state: PlayedState): DrawingState {
 }
 
 export function discardSelectedCards(state: SelectingHandState): DrawingState | SelectingHandState {
-  if (state.selectedCardIds.size === 0 || state.discardsRemaining <= 0) {
-    return state; // Can't discard with no cards selected or no discards remaining
-  }
-  
-  // Remove selected cards from hand
-  const remainingCards = state.hand.filter(card => !state.selectedCardIds.has(card.id));
-  const discardedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
-  
-  // Add discarded cards to discard pile
-  const newDrawPile = discardCards(state.drawPile, discardedCards);
-  
-  return {
-    ...state,
-    type: 'drawing',
-    hand: remainingCards,
-    drawPile: newDrawPile,
-    discardsRemaining: state.discardsRemaining - 1,
-  };
+  return state.selectedCardIds.size === 0 || state.discardsRemaining <= 0
+    ? state // Can't discard with no cards selected or no discards remaining
+    : ((): DrawingState => {
+        // Remove selected cards from hand
+        const remainingCards = state.hand.filter(card => !state.selectedCardIds.has(card.id));
+        const discardedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
+        
+        // Add discarded cards to discard pile
+        const newDrawPile = discardCards(state.drawPile, discardedCards);
+        
+        return {
+          ...state,
+          type: 'drawing',
+          hand: remainingCards,
+          drawPile: newDrawPile,
+          discardsRemaining: state.discardsRemaining - 1,
+        };
+      })();
 }
 
 export { shouldResetMoney } from './bossEffects.ts';

@@ -1,3 +1,8 @@
+/* eslint-disable functional/no-try-statements */
+/* eslint-disable functional/no-return-void */
+/* eslint-disable functional/no-conditional-statements */
+/* eslint-disable @typescript-eslint/consistent-type-assertions */
+
 import type { GameStatistics } from '../../domain/statistics.ts';
 import { createEmptyStatistics } from '../../domain/statistics.ts';
 
@@ -14,7 +19,7 @@ export function loadStatistics(): GameStatistics {
     const saved = window.localStorage.getItem(STATS_KEY);
     if (saved !== null) {
       try {
-        return JSON.parse(saved);
+        return JSON.parse(saved) as GameStatistics;
       } catch {
         return createEmptyStatistics();
       }

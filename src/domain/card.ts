@@ -65,7 +65,7 @@ export function getRankValue(rank: Rank): number {
 }
 
 // Fisher-Yates shuffle algorithm requires mutation for efficiency
-/* eslint-disable functional/no-let, functional/immutable-data, functional/no-conditional-statements, functional/no-loop-statements */
+/* eslint-disable functional/no-let, functional/no-conditional-statements */
 export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
   const shuffled = [...deck];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -79,4 +79,4 @@ export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
   }
   return shuffled;
 }
-/* eslint-enable functional/no-let, functional/immutable-data, functional/no-conditional-statements, functional/no-loop-statements */
+/* eslint-enable functional/no-let, functional/no-conditional-statements */
