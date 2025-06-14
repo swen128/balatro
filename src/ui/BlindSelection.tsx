@@ -6,8 +6,6 @@ import { getCurrentBlindType } from '../domain/runState.ts';
 
 interface BlindSelectionProps {
   readonly runState: RunState;
-  readonly blind: BlindType | BossBlind;
-  readonly bossEffect: string | null;
   readonly allBlinds: {
     readonly small: BlindType;
     readonly big: BlindType;
@@ -17,8 +15,7 @@ interface BlindSelectionProps {
   readonly onSkip: () => void;
 }
 
-export function BlindSelection({ runState, blind, bossEffect, allBlinds, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
-  const scoreGoal = getBlindScoreGoal(runState.ante, blind);
+export function BlindSelection({ runState, allBlinds, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
   const currentBlindType = getCurrentBlindType(runState);
   const canSkip = currentBlindType !== 'boss';
 
@@ -99,18 +96,6 @@ export function BlindSelection({ runState, blind, bossEffect, allBlinds, onSelec
             <p className="text-sm text-green-500 mt-2">✓ Completed</p>
           )}
         </div>
-      </div>
-
-      {/* Current blind details */}
-      <div className="border-2 border-yellow-600 rounded-lg p-8 text-center mb-8">
-        <h3 className="text-2xl font-semibold mb-4">Current: {blind.name}</h3>
-        <p className="text-xl mb-2">Score Goal: {scoreGoal}</p>
-        <p className="text-lg mb-2">Reward: ${blind.cashReward}</p>
-        {bossEffect !== null && (
-          <p className="text-sm text-amber-500 mt-4">
-            {bossEffect}
-          </p>
-        )}
       </div>
 
       <div className="flex gap-4">

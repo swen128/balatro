@@ -51,8 +51,6 @@ export function App(): React.ReactElement {
       return (
         <BlindSelection
           runState={gameState.runState}
-          blind={gameState.availableBlind}
-          bossEffect={gameState.bossEffect}
           allBlinds={gameState.allBlinds}
           onSelect={handleSelectBlind}
           onSkip={handleSkipBlind}
