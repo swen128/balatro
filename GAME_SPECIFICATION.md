@@ -18,6 +18,7 @@ A poker-based roguelike card game where players progress through increasingly di
 - **Deck**: Standard 52-card deck (4 suits × 13 ranks)
 - **Hand Size**: 8 cards
 - **Hands Per Round**: 4 attempts
+- **Discards Per Round**: 3 attempts
 - **Starting Cash**: $10
 - **Card Chip Values**:
   - Numbers 2-10: Face value in chips
@@ -38,9 +39,14 @@ A poker-based roguelike card game where players progress through increasingly di
 ### 3. Round Gameplay
 Phases in order:
 1. **Drawing**: Fill hand to 8 cards
-2. **Selecting**: Choose up to 5 cards for poker hand
-3. **Playing**: Evaluate selected cards
-4. **Scoring**: Calculate and display score
+2. **Selecting**: Choose cards for playing or discarding
+   - Can select up to 5 cards to play as poker hand
+   - Can select any number of cards to discard and draw replacements
+   - Limited number of discards per round (default: 3)
+3. **Playing/Discarding**: 
+   - If playing: Evaluate selected cards as poker hand
+   - If discarding: Remove selected cards and draw new ones
+4. **Scoring**: Calculate and display score (only when playing)
 5. **Played**: Update totals, discard played cards
 6. **Round Finished**: Win/loss determination
 

@@ -27,6 +27,7 @@ interface BaseRoundState {
   readonly handsRemaining: number;
   readonly handSize: number;
   readonly handsPlayed: number;
+  readonly discardsRemaining: number;
 }
 
 interface DrawingState extends BaseRoundState {
