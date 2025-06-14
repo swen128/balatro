@@ -135,8 +135,8 @@ export function RoundView({
 
       {/* Main game area */}
       <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
-        {/* Scoring area - positioned higher to avoid occlusion */}
-        <div className="absolute top-20">
+        {/* Scoring area - positioned above cards with proper spacing */}
+        <div className="absolute" style={{ bottom: '60%' }}>
           {renderScoringDisplay()}
         </div>
 
