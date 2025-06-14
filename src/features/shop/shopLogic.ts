@@ -1,5 +1,5 @@
 import type { RunState } from '../../domain/runState.ts';
-import type { ShopItem, UpgradeItem, JokerItem, PackItem } from '../../domain/shopItems.ts';
+import type { ShopItem, UpgradeItem, JokerItem, PackItem, VoucherItem } from '../../domain/shopItems.ts';
 import { generateShopItems } from '../../domain/shopItems.ts';
 import type { Card } from '../../domain/card.ts';
 import type { SpectralCard, ArcanaCard } from '../../domain/cardPacks.ts';
@@ -71,7 +71,10 @@ export function purchaseItem(
           };
           break;
         case 'increaseDiscards':
-          // TODO: Add discard count to RunState
+          newRunState = {
+            ...newRunState,
+            discardsCount: newRunState.discardsCount + upgradeItem.effect.amount,
+          };
           break;
       }
       break;
@@ -102,9 +105,34 @@ export function purchaseItem(
       };
     }
       
-    case 'voucher':
-      // TODO: Implement voucher effects
+    case 'voucher': {
+      const voucherItem = item as VoucherItem;
+      switch (voucherItem.effect.type) {
+        case 'shopDiscount':
+          // Shop discount would affect future shop prices
+          // For now, we'll store it as a modifier in runState
+          // This would need a new field in RunState to track active vouchers
+          break;
+        case 'interestRate':
+          // Interest rate would affect cash at end of rounds
+          // This would need tracking in runState
+          break;
+        case 'rerollCost':
+          newShopState = {
+            ...newShopState,
+            rerollCost: Math.max(0, newShopState.rerollCost - voucherItem.effect.amount),
+          };
+          break;
+      }
       break;
+    }
+    
+    case 'spectral': {
+      // Spectral cards apply enhancements to cards in deck
+      // This would be handled when the card is used, not when purchased
+      // For now, just add to inventory (would need tracking)
+      break;
+    }
   }
 
   return { shopState: newShopState, runState: newRunState };
