@@ -1,17 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import type { GameState } from '../domain/gameState.ts';
-import type { RunState } from '../domain/runState.ts';
-import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScreen, winRound, loseRound, leaveShop } from '../domain/gameState.ts';
-import { saveGame, loadGame, hasSaveGame, deleteSaveGame, getSaveInfo } from '../features/save-game/saveGame.ts';
-import { MainMenuView } from '../features/main-menu/MainMenuView.tsx';
-import { BlindSelectionView } from '../features/blind-selection/BlindSelectionView.tsx';
-import { RoundContainer } from '../features/round/RoundContainer.tsx';
-import { ShopContainer } from '../features/shop/ShopContainer.tsx';
-import { StatisticsView } from '../features/statistics/StatisticsView.tsx';
-import { StatisticsProvider, useStatisticsContext } from '../features/statistics/StatisticsContext.tsx';
-import { SoundProvider } from '../features/sound/SoundContext.tsx';
-import { SoundSettings } from '../features/sound/SoundSettings.tsx';
-import { useSound } from '../features/sound/SoundContext.tsx';
+import type { GameState } from '../game/gameState.ts';
+import type { RunState } from '../game/runState.ts';
+import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScreen, winRound, loseRound, leaveShop } from '../game/gameState.ts';
+import { saveGame, loadGame, hasSaveGame, deleteSaveGame, getSaveInfo } from '../save-game/saveGame.ts';
+import { MainMenuView } from '../game/index.ts';
+import { BlindSelectionView } from '../blinds/index.ts';
+import { RoundContainer } from '../round/index.ts';
+import { ShopContainer } from '../shop/index.ts';
+import { StatisticsView } from '../statistics/StatisticsView.tsx';
+import { StatisticsProvider, useStatisticsContext } from '../statistics/StatisticsContext.tsx';
+import { SoundProvider } from '../sound/SoundContext.tsx';
+import { SoundSettings } from '../sound/SoundSettings.tsx';
+import { useSound } from '../sound/SoundContext.tsx';
 
 function AppContent(): React.ReactElement {
   const [gameState, setGameState] = useState<GameState>(createMainMenuState());
