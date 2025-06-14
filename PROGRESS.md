@@ -1,103 +1,132 @@
 # Progress Report - Balatro Implementation
 
 ## Summary
-The Balatro card game implementation is fully functional with all core game mechanics implemented. The codebase follows strict TypeScript standards with no `any` types, no type assertions, and no type guards allowed.
+The Balatro card game implementation is now feature-complete with all core game mechanics and most planned features implemented. The codebase follows strict TypeScript standards with no `any` types, no type assertions (except for JSON parsing), and no type guards allowed.
 
-## Completed Tasks
+## Completed Features
 
-### 1. ✅ Core Implementation
-- All game mechanics are working (card dealing, poker hand evaluation, scoring, blind progression)
-- Full game flow from main menu → blind selection → rounds → shop
-- TypeScript compilation passes with maximum strictness
-- ESLint passes with no errors
+### Core Game Mechanics ✅
+- **Full game flow**: Main menu → Blind selection → Round gameplay → Shop → Repeat
+- **Poker hand evaluation**: All 10 hand types with proper ranking
+- **Scoring system**: Base chips + multipliers with visual feedback
+- **Blind progression**: Small, Big, and Boss blinds with increasing difficulty
+- **Ante system**: Progressive difficulty scaling
 
-### 2. ✅ Fixed Card Selection Animation
-- **Issue**: Cards weren't animating upward when selected
-- **Root Cause**: The `Hand` component was passing `transform: undefined` in the style prop, which overrode the Card component's transform
-- **Solution**: Changed to use spread syntax to conditionally add transform only when needed:
-  ```tsx
-  ...(isPlaying && isPlayed && { transform: 'translateY(-200px)' })
-  ```
+### Advanced Features ✅
+1. **Boss Blind Effects**
+   - The Window: First hand scores 0 chips
+   - The Hook: Discards 2 random cards per hand
+   - The Ox: Playing the most frequent hand type sets money to $0
 
-### 3. ✅ Attempted Tailwind CSS Integration
-- **Status**: Partially implemented but reverted
-- **Issue**: Cards appeared as black rectangles when using Tailwind classes
-- **Current State**: 
-  - Tailwind is installed and configured
-  - PostCSS is set up with `@tailwindcss/postcss`
-  - Most UI components still use inline styles (working correctly)
-  - Only `BlindSelection.tsx` uses Tailwind classes successfully
-- **Recommendation**: Debug why Tailwind classes aren't applying properly to Card component before continuing migration
+2. **Shop System**
+   - Purchasable upgrades (hand size, hands per round, discards)
+   - Joker cards with 35 different effects
+   - Card packs (Standard, Arcana, Spectral)
+   - Vouchers for shop discounts
+   - Spectral cards for card enhancements
 
-### 4. ✅ Unit Tests Created
-- **Status**: Test files created for all domain logic
-- **Location**: Test files are placed next to their corresponding source files (e.g., `card.test.ts` next to `card.ts`)
-- **Coverage**: Tests written for:
-  - `card.ts` - Card creation, deck shuffling
-  - `pokerHands.ts` - All poker hand evaluations
-  - `blind.ts` - Blind creation and score calculations
-  - `scoring.ts` - Score calculations with effects
-  - `drawPile.ts` - Draw pile management
-- **Issue**: Import paths need fixing (currently using `../` instead of `./`)
-- **To Run**: `bun test` (after fixing imports)
+3. **Card Enhancements**
+   - Foil: +50 chips when scored
+   - Holographic: +10 multiplier when scored
+   - Polychrome: x1.5 multiplier when scored
 
-## Current File Structure
+4. **Game Features**
+   - Discard mechanic (3 discards per round by default)
+   - Skip blind functionality
+   - Card pack selection modal
+   - Deck viewer with filtering
+   - Save/load system using localStorage
+   - Animated score counter
+   - Card animations (dealing, playing, discarding)
+   - Chip/mult bonus overlays
+
+5. **UI/UX Improvements**
+   - Feature-based directory organization
+   - Poker hand evaluation display in sidebar
+   - Three-blind display at selection screen
+   - Stable layout (no shifting when selecting cards)
+   - Visual card states and animations
+
+## Architecture Highlights
+
+### TypeScript Strictness
+- Maximum strictness enabled including `noUncheckedIndexedAccess`
+- No `any` types allowed
+- No type assertions (except saveGame.ts for JSON)
+- No type guards - using discriminated unions instead
+- All function parameters and returns explicitly typed
+
+### Design Patterns
+- **Immutable State**: All state updates create new objects
+- **Discriminated Unions**: Type-safe state transitions
+- **Pure Functions**: All game logic is pure and testable
+- **Container/Presentation**: Clear separation of logic and UI
+- **Feature-based Organization**: Related code colocated
+
+### State Management
 ```
-src/
-├── domain/           # Game logic with tests
-│   ├── card.ts
-│   ├── card.test.ts
-│   ├── pokerHands.ts
-│   ├── pokerHands.test.ts
-│   ├── blind.ts
-│   ├── blind.test.ts
-│   ├── scoring.ts
-│   ├── scoring.test.ts
-│   ├── drawPile.ts
-│   ├── drawPile.test.ts
-│   ├── roundState.ts
-│   ├── runState.ts
-│   └── gameState.ts
-├── ui/               # React components
-│   ├── App.tsx
-│   ├── MainMenu.tsx
-│   ├── BlindSelection.tsx (uses Tailwind)
-│   ├── Card.tsx (inline styles)
-│   ├── Hand.tsx
-│   ├── Round.tsx
-│   ├── ScoreDisplay.tsx
-│   └── Shop.tsx
-└── index.tsx
+GameState (discriminated union)
+├── MainMenuState
+├── SelectingBlindState  
+├── PlayingRoundState
+│   └── RoundState (discriminated union)
+│       ├── DrawingState
+│       ├── SelectingHandState
+│       ├── PlayingHandState
+│       ├── ScoringState
+│       ├── PlayedState
+│       └── RoundFinishedState
+└── ShoppingState
 ```
 
-## Next Steps
+## Remaining Tasks
 
-### Immediate Tasks
-1. **Fix test imports** - Change all test imports from `../` to `./`
-2. **Run tests** - Execute `bun test` to ensure all tests pass
-3. **Debug Tailwind** - Investigate why Tailwind classes don't work properly in Card component
+### Architecture
+- **Boss Effect Refactoring**: Implement typed effect system with timing phases (see DESIGN_DECISIONS.md)
 
-### Future Enhancements
-1. **Boss Blind Effects** - Currently display text but don't affect gameplay
-2. **Shop Implementation** - Add items, upgrades, and joker cards
-3. **Save/Load System** - Persist game state
-4. **Sound Effects** - Add audio feedback
-5. **Better Animations** - Smooth transitions and visual polish
+### Features
+- **Statistics Tracking**: Games played, wins, best scores, most used hands
+- **Achievement System**: Unlockable achievements
+- **Sound Effects**: Audio feedback
+
+### Polish
+- **Performance**: React.memo optimization
+- **Accessibility**: ARIA labels, keyboard navigation
+- **Responsive Design**: Mobile support
+- **Error Handling**: Error boundaries
 
 ## Commands
 - `bun run dev` - Start development server
-- `bun run build` - Build for production
+- `bun run build` - Build for production  
 - `bun run lint` - Run ESLint
-- `bun run typecheck` - Run TypeScript type checking
-- `bun test` - Run unit tests (after fixing imports)
+- `bun run typecheck` - Run TypeScript checking
+- `bun test` - Run unit tests
 
-## Known Issues
-1. **Test imports need fixing** - Currently using wrong relative paths
-2. **Tailwind CSS not fully working** - Only works in some components
-3. **Boss effects not implemented** - Just display text without gameplay impact
+## File Structure
+```
+src/
+├── domain/           # Game logic (pure functions)
+│   ├── card.ts      # Card types and deck
+│   ├── pokerHands.ts # Hand evaluation
+│   ├── blind.ts     # Blind types and bosses
+│   ├── scoring.ts   # Score calculation
+│   ├── joker.ts     # Joker effects
+│   ├── shopItems.ts # Shop inventory
+│   └── ...
+├── features/        # Feature-based UI organization
+│   ├── blind-selection/
+│   ├── round/
+│   └── shop/
+├── ui/             # Shared UI components
+└── utils/          # Utilities
+```
 
-## Architecture Notes
-- Uses discriminated unions for type-safe state management
-- All state transitions are immutable
-- No type guards or assertions per project requirements
-- Boss effects stored directly in state to avoid type checking
+## Recent Major Updates
+1. Implemented all boss blind effects with proper game impact
+2. Created comprehensive shop system with 5 item types
+3. Added save/load functionality
+4. Implemented card pack selection modal
+5. Added deck viewer with filtering
+6. Created 35 different joker cards with unique effects
+7. Added visual animations and score counting
+8. Reorganized to feature-based directory structure

@@ -5,21 +5,36 @@
 2. ✅ Set up new Bun project with TypeScript
 3. ✅ Configured ESLint with strict rules:
    - No `any` types allowed
-   - No type assertions allowed
+   - No type assertions allowed (except in saveGame.ts for JSON parsing)
    - No type guards allowed
    - Maximum TypeScript strictness enabled
 4. ✅ Implemented core domain models:
-   - card.ts - Card types and deck creation
+   - card.ts - Card types, deck creation, and enhancements
    - pokerHands.ts - Poker hand evaluation
    - blind.ts - Blind system (small, big, boss)
-   - scoring.ts - Chip and multiplier calculations
+   - scoring.ts - Chip and multiplier calculations with effects
    - drawPile.ts - Draw pile management
+   - joker.ts - 35 different joker cards with effects
+   - shopItems.ts - Shop items and pack generation
 5. ✅ Implemented game state management:
-   - gameState.ts - Top-level game flow
+   - gameState.ts - Top-level game flow with save/load
    - runState.ts - Run/session state
-   - roundState.ts - Individual round state machine
-6. ✅ Implemented UI components
-7. ✅ Fixed TypeScript errors without using type guards or assertions
+   - roundState.ts - Individual round state machine with discards
+   - saveGame.ts - Save/load functionality with localStorage
+6. ✅ Implemented UI components with animations:
+   - Feature-based directory organization
+   - Card animations (dealing, playing, discarding)
+   - Animated score counter
+   - Chip/mult bonuses display
+   - Poker hand evaluation display
+7. ✅ Implemented all game features:
+   - Boss blind effects (The Window, The Hook, The Ox)
+   - Shop with purchasable items
+   - Card pack selection modal
+   - Deck viewer
+   - Card enhancements (foil, holographic, polychrome)
+   - Discard mechanic (3 discards per round)
+   - Skip blind functionality
 
 ## Implementation Approach
 
@@ -115,18 +130,15 @@ The test files are created but the functions they're trying to import aren't bei
   - Try using Tailwind's CLI to build CSS separately
   - Check browser dev tools to see if classes are being applied
 
-## Future Enhancements (Lower Priority)
+## Remaining Tasks
 
-### Core Features Still Needed
-1. **Boss Blind Effects** - Currently boss blinds show their effect text but don't actually apply the effect during gameplay
-2. **Shop Implementation** - Shop is just a placeholder, needs:
-   - Items to purchase
-   - Upgrades system
-   - Joker cards
-3. **Card Enhancements** - Foil, holographic, etc.
-4. **Save/Load System** - Persist game state between sessions
-5. **Sound Effects** - Add audio feedback
-6. **Better Animations** - Smooth card movements, score counting
+### Architecture Improvements
+1. **Boss Effect Refactoring** - Implement typed effect system with timing phases (see DESIGN_DECISIONS.md)
+
+### Features Not Yet Implemented
+1. **Statistics Tracking** - Track games played, wins, best scores, most used hands
+2. **Achievement System** - Unlock achievements for various accomplishments
+3. **Sound Effects** - Add audio feedback for card movements, scoring, etc.
 
 ### Code Quality Improvements
 1. **Performance** - Optimize re-renders, add React.memo where appropriate
@@ -147,10 +159,17 @@ balatro-bun/
 └── TODO.md          # This file
 ```
 
-## How to Continue
-1. First fix the TypeScript errors by implementing the type guard usage
-2. Run `bun run typecheck` to verify all types pass
-3. Run `bun run dev` to test the game
-4. Continue with UI polish or core feature implementation
+## How to Run
+1. Run `bun install` to install dependencies
+2. Run `bun run dev` to start the development server
+3. Run `bun run lint` to check for linting errors
+4. Run `bun run typecheck` to verify TypeScript types
+5. Run `bun test` to run unit tests
 
-The codebase is set up with maximum TypeScript strictness to ensure type safety throughout development.
+## Current Architecture
+- Feature-based directory organization for better code locality
+- Discriminated unions for type-safe state management
+- Immutable state updates throughout
+- Container/Presentation component pattern
+- Pure functions for all game logic
+- Exhaustive pattern matching with switch statements
