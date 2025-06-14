@@ -115,10 +115,10 @@ export function RoundView({
           bossEffect={bossEffect}
         />
         
-        {/* Selected hand evaluation - always visible during hand selection */}
-        {roundState.type === 'selectingHand' && (
+        {/* Selected hand evaluation - show in sidebar when not playing */}
+        {(roundState.type === 'selectingHand' || roundState.type === 'drawing') && (
           <SelectedHandDisplay 
-            selectedCards={roundState.hand.filter(card => roundState.selectedCardIds.has(card.id))}
+            selectedCards={roundState.type === 'selectingHand' ? roundState.hand.filter(card => roundState.selectedCardIds.has(card.id)) : []}
           />
         )}
         
@@ -133,6 +133,15 @@ export function RoundView({
       <div className="flex-1 flex flex-col items-center justify-center p-8">
         {/* Scoring area */}
         {renderScoringDisplay()}
+        
+        {/* Selected hand evaluation - show above cards during play/scoring */}
+        {(roundState.type === 'playing' || roundState.type === 'scoring') && (
+          <div className="mb-4">
+            <SelectedHandDisplay 
+              selectedCards={roundState.playedCards}
+            />
+          </div>
+        )}
 
         {/* Hand display */}
         <Hand

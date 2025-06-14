@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { RunState } from '../../domain/runState.ts';
 import type { BlindType, BossBlind } from '../../domain/blind.ts';
 import { getBlindScoreGoal } from '../../domain/blind.ts';
 import { getCurrentBlindType } from '../../domain/runState.ts';
+import { DeckViewer } from '../../ui/DeckViewer.tsx';
 
 interface BlindSelectionProps {
   readonly runState: RunState;
@@ -16,6 +17,7 @@ interface BlindSelectionProps {
 }
 
 export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
+  const [showDeck, setShowDeck] = useState(false);
   const currentBlindType = getCurrentBlindType(runState);
   const canSkip = currentBlindType !== 'boss';
 
@@ -110,7 +112,19 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
             Skip
           </button>
         )}
+        <button
+          onClick={() => setShowDeck(true)}
+          className="px-6 py-3 text-xl bg-purple-500 hover:bg-purple-600 rounded transition-colors"
+        >
+          View Deck
+        </button>
       </div>
+      
+      <DeckViewer
+        deck={runState.deck}
+        isOpen={showDeck}
+        onClose={() => setShowDeck(false)}
+      />
     </div>
   );
 }
