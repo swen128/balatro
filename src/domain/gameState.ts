@@ -4,7 +4,7 @@ import type { BlindType, BossBlind } from './blind.ts';
 import { createInitialRunState, getCurrentBlindType, skipSmallBlind, skipBigBlind, defeatSmallBlind, defeatBigBlind, defeatBossBlind } from './runState.ts';
 import { createRoundState } from './roundState.ts';
 import { createDrawPile } from './drawPile.ts';
-import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal } from './blind.ts';
+import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal, getRandomBossBlind } from './blind.ts';
 
 export type GameState =
   | MainMenuState
@@ -21,6 +21,11 @@ interface SelectingBlindState {
   readonly runState: RunState;
   readonly availableBlind: BlindType | BossBlind;
   readonly bossEffect: string | null;
+  readonly allBlinds: {
+    readonly small: BlindType;
+    readonly big: BlindType;
+    readonly boss: BossBlind;
+  };
 }
 
 export interface PlayingRoundState {
@@ -44,11 +49,17 @@ export function createMainMenuState(): GameState {
 
 export function startNewRun(): GameState {
   const runState = createInitialRunState();
+  const bossBlind = getRandomBossBlind();
   return {
     type: 'selectingBlind',
     runState,
     availableBlind: SMALL_BLIND,
     bossEffect: null,
+    allBlinds: {
+      small: SMALL_BLIND,
+      big: BIG_BLIND,
+      boss: bossBlind,
+    },
   };
 }
 
@@ -93,6 +104,10 @@ export function skipBlind(state: SelectingBlindState): SelectingBlindState {
           runState: newRunState,
           availableBlind: bossBlind,
           bossEffect: bossBlind.effect,
+          allBlinds: {
+            ...state.allBlinds,
+            boss: bossBlind,
+          },
         };
       }
       throw new Error('Invalid state after skipping big blind');
@@ -135,6 +150,30 @@ export function leaveShop(state: ShopState): SelectingBlindState {
   
   let availableBlind: BlindType | BossBlind;
   let bossEffect: string | null = null;
+  let allBlinds: { small: BlindType; big: BlindType; boss: BossBlind };
+  
+  // Get or create boss blind for this ante
+  if (state.runState.blindProgression.type === 'bossBlindUpcoming') {
+    allBlinds = {
+      small: SMALL_BLIND,
+      big: BIG_BLIND,
+      boss: state.runState.blindProgression.bossBlind,
+    };
+  } else if (blindType === 'small') {
+    // Beginning of new ante, generate new boss
+    allBlinds = {
+      small: SMALL_BLIND,
+      big: BIG_BLIND,
+      boss: getRandomBossBlind(),
+    };
+  } else {
+    // This shouldn't happen, but provide a fallback
+    allBlinds = {
+      small: SMALL_BLIND,
+      big: BIG_BLIND,
+      boss: getRandomBossBlind(),
+    };
+  }
   
   switch (blindType) {
     case 'small':
@@ -144,13 +183,8 @@ export function leaveShop(state: ShopState): SelectingBlindState {
       availableBlind = BIG_BLIND;
       break;
     case 'boss':
-      if (state.runState.blindProgression.type === 'bossBlindUpcoming') {
-        const bossBlind = state.runState.blindProgression.bossBlind;
-        availableBlind = bossBlind;
-        bossEffect = bossBlind.effect;
-      } else {
-        throw new Error('Invalid state: expected boss blind');
-      }
+      availableBlind = allBlinds.boss;
+      bossEffect = allBlinds.boss.effect;
       break;
   }
   
@@ -159,5 +193,6 @@ export function leaveShop(state: ShopState): SelectingBlindState {
     runState: state.runState,
     availableBlind,
     bossEffect,
+    allBlinds,
   };
 }

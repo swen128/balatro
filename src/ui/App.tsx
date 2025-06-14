@@ -53,6 +53,7 @@ export function App(): React.ReactElement {
           runState={gameState.runState}
           blind={gameState.availableBlind}
           bossEffect={gameState.bossEffect}
+          allBlinds={gameState.allBlinds}
           onSelect={handleSelectBlind}
           onSkip={handleSkipBlind}
         />
