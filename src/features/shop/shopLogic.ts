@@ -1,12 +1,12 @@
 import type { RunState } from '../../domain/runState.ts';
-import type { ShopItemUnion, JokerItem } from '../../domain/shopItems.ts';
+import type { ShopItem, JokerItem } from '../../domain/shopItems.ts';
 import { generateShopItems } from '../../domain/shopItems.ts';
 import type { Card } from '../../domain/card.ts';
 import type { SpectralCard, ArcanaCard } from '../../domain/cardPacks.ts';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 export interface ShopState {
-  readonly availableItems: ReadonlyArray<ShopItemUnion>;
+  readonly availableItems: ReadonlyArray<ShopItem>;
   readonly purchasedJokers: ReadonlyArray<JokerItem>;
   readonly rerollCost: number;
   readonly rerollsUsed: number;
@@ -26,7 +26,7 @@ export function createShopState(runState: RunState): ShopState {
   };
 }
 
-export function canAffordItem(cash: number, item: ShopItemUnion): boolean {
+export function canAffordItem(cash: number, item: ShopItem): boolean {
   return cash >= item.price;
 }
 
@@ -48,7 +48,7 @@ export function purchaseItem(
 function purchaseItemHelper(
   shopState: ShopState,
   runState: RunState,
-  item: ShopItemUnion
+  item: ShopItem
 ): { shopState: ShopState; runState: RunState } {
 
   const { baseRunState, baseShopState } = createBaseStates(shopState, runState, item);

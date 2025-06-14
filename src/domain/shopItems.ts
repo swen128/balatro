@@ -1,6 +1,6 @@
 export type ShopItemType = 'upgrade' | 'joker' | 'pack' | 'voucher' | 'spectral';
 
-export interface ShopItem {
+interface ShopItemBase {
   readonly id: string;
   readonly type: ShopItemType;
   readonly name: string;
@@ -8,28 +8,28 @@ export interface ShopItem {
   readonly price: number;
 }
 
-export interface UpgradeItem extends ShopItem {
+export interface UpgradeItem extends ShopItemBase {
   readonly type: 'upgrade';
   readonly effect: UpgradeEffect;
 }
 
-export interface JokerItem extends ShopItem {
+export interface JokerItem extends ShopItemBase {
   readonly type: 'joker';
   readonly effect: JokerEffect;
 }
 
-export interface PackItem extends ShopItem {
+export interface PackItem extends ShopItemBase {
   readonly type: 'pack';
   readonly packType: 'arcana' | 'spectral' | 'standard';
   readonly cardCount: number;
 }
 
-export interface VoucherItem extends ShopItem {
+export interface VoucherItem extends ShopItemBase {
   readonly type: 'voucher';
   readonly effect: VoucherEffect;
 }
 
-export interface SpectralItem extends ShopItem {
+export interface SpectralItem extends ShopItemBase {
   readonly type: 'spectral';
   readonly effect: SpectralEffect;
 }
@@ -177,11 +177,11 @@ export const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
   },
 ];
 
-export type ShopItemUnion = UpgradeItem | JokerItem | PackItem | VoucherItem | SpectralItem;
+export type ShopItem = UpgradeItem | JokerItem | PackItem | VoucherItem | SpectralItem;
 
-export function generateShopItems(cash: number): ReadonlyArray<ShopItemUnion> {
+export function generateShopItems(cash: number): ReadonlyArray<ShopItem> {
   // For now, return a random selection of items
-  const allItems: ReadonlyArray<ShopItemUnion> = [
+  const allItems: ReadonlyArray<ShopItem> = [
     ...SHOP_UPGRADES,
     ...SHOP_JOKERS,
     ...SHOP_PACKS,

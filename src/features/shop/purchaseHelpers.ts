@@ -1,10 +1,10 @@
 import type { RunState } from '../../domain/runState.ts';
 import type { ShopState } from './shopLogic.ts';
-import type { ShopItemUnion } from '../../domain/shopItems.ts';
+import type { ShopItem } from '../../domain/shopItems.ts';
 
 export function applyUpgradeEffect(
   runState: RunState,
-  item: ShopItemUnion
+  item: ShopItem
 ): RunState {
   return item.type !== 'upgrade' 
     ? runState
@@ -25,7 +25,7 @@ export function applyUpgradeEffect(
 
 export function applyVoucherToShop(
   shopState: ShopState,
-  item: ShopItemUnion
+  item: ShopItem
 ): ShopState {
   return item.type !== 'voucher'
     ? shopState
@@ -51,7 +51,7 @@ export function applyVoucherToShop(
 
 export function addJokerToShop(
   shopState: ShopState,
-  item: ShopItemUnion
+  item: ShopItem
 ): ShopState {
   return item.type === 'joker'
     ? {
@@ -63,7 +63,7 @@ export function addJokerToShop(
 
 export function createPackPendingState(
   shopState: ShopState,
-  item: ShopItemUnion
+  item: ShopItem
 ): ShopState {
   return item.type === 'pack'
     ? {
@@ -79,7 +79,7 @@ export function createPackPendingState(
 export function createBaseStates(
   shopState: ShopState,
   runState: RunState,
-  item: ShopItemUnion
+  item: ShopItem
 ): { baseRunState: RunState; baseShopState: ShopState } {
   return {
     baseRunState: {
