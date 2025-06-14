@@ -75,7 +75,7 @@ export function createRoundState(
 
 export function drawCardsToHand(state: DrawingState): SelectingHandState {
   const cardsNeeded = state.handSize - state.hand.length;
-  const { pile, drawnCards } = drawCards(state.drawPile, cardsNeeded);
+  const [drawnCards, pile] = drawCards(state.drawPile, cardsNeeded);
   
   return {
     ...state,

@@ -1,6 +1,8 @@
 import type { Card, Rank, Suit } from './card.ts';
 import { getRankIndex } from './card.ts';
 
+export { getCardChipValue } from './card.ts';
+
 export interface PokerHandType {
   readonly name: string;
   readonly baseChips: number;
@@ -18,7 +20,7 @@ export const POKER_HANDS = {
   FULL_HOUSE: { name: 'Full House', baseChips: 40, baseMult: 4, level: 6 },
   FOUR_OF_A_KIND: { name: 'Four of a Kind', baseChips: 60, baseMult: 7, level: 7 },
   STRAIGHT_FLUSH: { name: 'Straight Flush', baseChips: 100, baseMult: 8, level: 8 },
-  ROYAL_FLUSH: { name: 'Royal Flush', baseChips: 100, baseMult: 8, level: 9 },
+  ROYAL_FLUSH: { name: 'Royal Straight Flush', baseChips: 100, baseMult: 8, level: 9 },
 } as const;
 
 export interface EvaluatedHand {

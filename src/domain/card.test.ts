@@ -74,7 +74,9 @@ describe('card', () => {
       // Very unlikely to have same order after shuffle
       let sameOrder = true;
       for (let i = 0; i < deck.length; i++) {
-        if (deck[i]!.id !== shuffled[i]!.id) {
+        const deckCard = deck[i];
+        const shuffledCard = shuffled[i];
+        if (deckCard && shuffledCard && deckCard.id !== shuffledCard.id) {
           sameOrder = false;
           break;
         }

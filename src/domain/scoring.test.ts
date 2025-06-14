@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'bun:test';
 import { calculateBaseScore, calculateFinalScore } from './scoring.ts';
+import type { ScoringEffect } from './scoring.ts';
 import { createCard } from './card.ts';
 import { evaluatePokerHand } from './pokerHands.ts';
 
@@ -67,7 +68,7 @@ describe('scoring', () => {
   describe('calculateFinalScore', () => {
     it('should calculate final score without effects', () => {
       const baseChipMult = { chips: 50, mult: 3 };
-      const effects = [];
+      const effects: ScoringEffect[] = [];
       
       const finalScore = calculateFinalScore(baseChipMult, effects);
       expect(finalScore).toBe(150); // 50 * 3
@@ -108,7 +109,7 @@ describe('scoring', () => {
 
     it('should round down to nearest integer', () => {
       const baseChipMult = { chips: 33, mult: 1.5 };
-      const effects = [];
+      const effects: ScoringEffect[] = [];
       
       const finalScore = calculateFinalScore(baseChipMult, effects);
       expect(finalScore).toBe(49); // Math.floor(33 * 1.5) = 49

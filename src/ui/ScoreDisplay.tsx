@@ -1,12 +1,12 @@
 import React from 'react';
-import type { BlindType } from '../domain/blind.ts';
+import type { BlindType, BossBlind } from '../domain/blind.ts';
 
 interface ScoreDisplayProps {
   readonly score: number;
   readonly scoreGoal: number;
   readonly handsRemaining: number;
   readonly ante: number;
-  readonly blind: BlindType;
+  readonly blind: BlindType | BossBlind;
   readonly bossEffect: string | null;
 }
 

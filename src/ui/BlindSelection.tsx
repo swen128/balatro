@@ -1,12 +1,12 @@
 import React from 'react';
 import type { RunState } from '../domain/runState.ts';
-import type { BlindType } from '../domain/blind.ts';
+import type { BlindType, BossBlind } from '../domain/blind.ts';
 import { getBlindScoreGoal } from '../domain/blind.ts';
 import { getCurrentBlindType } from '../domain/runState.ts';
 
 interface BlindSelectionProps {
   readonly runState: RunState;
-  readonly blind: BlindType;
+  readonly blind: BlindType | BossBlind;
   readonly bossEffect: string | null;
   readonly onSelect: () => void;
   readonly onSkip: () => void;

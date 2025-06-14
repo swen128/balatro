@@ -10,9 +10,11 @@ export interface Card {
   readonly rank: Rank;
 }
 
+let cardIdCounter = 0;
+
 export function createCard(suit: Suit, rank: Rank): Card {
   return {
-    id: `${rank}${suit}`,
+    id: `${rank}${suit}_${++cardIdCounter}`,
     suit,
     rank,
   };
@@ -68,4 +70,18 @@ export function getRankValue(rank: Rank): number {
     throw new Error(`Invalid rank: ${rank}`);
   }
   return index + 2; // 2 is rank 0, so value is index + 2
+}
+
+export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
+  const shuffled = [...deck];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = shuffled[i];
+    const jItem = shuffled[j];
+    if (temp !== undefined && jItem !== undefined) {
+      shuffled[i] = jItem;
+      shuffled[j] = temp;
+    }
+  }
+  return shuffled;
 }

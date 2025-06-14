@@ -8,9 +8,9 @@ export interface ChipMult {
 }
 
 export interface ScoringEffect {
-  readonly type: 'addChips' | 'addMult' | 'multMult';
+  readonly type: 'addChips' | 'addMult' | 'multMult' | 'multiplyMult';
   readonly value: number;
-  readonly source: string;
+  readonly source?: string;
 }
 
 export interface ScoringContext {
@@ -23,6 +23,19 @@ export interface ScoringContext {
 export function calculateBaseChipMult(evaluatedHand: EvaluatedHand): ChipMult {
   const handChips = evaluatedHand.handType.baseChips;
   const cardChips = evaluatedHand.scoringCards.reduce(
+    (sum, card) => sum + getCardChipValue(card),
+    0
+  );
+  
+  return {
+    chips: handChips + cardChips,
+    mult: evaluatedHand.handType.baseMult,
+  };
+}
+
+export function calculateBaseScore(evaluatedHand: EvaluatedHand, playedCards: ReadonlyArray<Card>): ChipMult {
+  const handChips = evaluatedHand.handType.baseChips;
+  const cardChips = playedCards.reduce(
     (sum, card) => sum + getCardChipValue(card),
     0
   );
@@ -50,6 +63,7 @@ export function applyEffects(
         mult += effect.value;
         break;
       case 'multMult':
+      case 'multiplyMult':
         mult *= effect.value;
         break;
     }
@@ -58,8 +72,9 @@ export function applyEffects(
   return { chips, mult };
 }
 
-export function calculateFinalScore(chipMult: ChipMult): number {
-  return Math.floor(chipMult.chips * chipMult.mult);
+export function calculateFinalScore(chipMult: ChipMult, effects: ReadonlyArray<ScoringEffect> = []): number {
+  const finalChipMult = applyEffects(chipMult, effects);
+  return Math.floor(finalChipMult.chips * finalChipMult.mult);
 }
 
 export function createScoringContext(

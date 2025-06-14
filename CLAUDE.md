@@ -63,3 +63,7 @@ See GAME_SPECIFICATION.md for detailed game rules and mechanics.
 
 ## Testing
 Currently no test framework is set up. When adding tests, use Bun's built-in test runner.
+
+## Git Workflow
+- Use conventional commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`)
+- When completing sub-tasks, commit changes after passing tests and linter before proceeding to the next task

@@ -1,13 +1,14 @@
 import type { Card } from './card.ts';
+import { createStandardDeck } from './card.ts';
 
 export interface DrawPile {
   readonly cards: ReadonlyArray<Card>;
   readonly discardPile: ReadonlyArray<Card>;
 }
 
-export function createDrawPile(cards: ReadonlyArray<Card>): DrawPile {
+export function createDrawPile(cards?: ReadonlyArray<Card>): DrawPile {
   return {
-    cards: shuffle(cards),
+    cards: shuffle(cards ?? createStandardDeck()),
     discardPile: [],
   };
 }
@@ -15,9 +16,9 @@ export function createDrawPile(cards: ReadonlyArray<Card>): DrawPile {
 export function drawCards(
   pile: DrawPile,
   count: number
-): { pile: DrawPile; drawnCards: ReadonlyArray<Card> } {
+): [ReadonlyArray<Card>, DrawPile] {
   if (count <= 0) {
-    return { pile, drawnCards: [] };
+    return [[], pile];
   }
   
   let availableCards = [...pile.cards];
@@ -40,13 +41,12 @@ export function drawCards(
     }
   }
   
-  return {
-    pile: {
-      cards: availableCards,
-      discardPile,
-    },
-    drawnCards,
+  const newPile: DrawPile = {
+    cards: availableCards,
+    discardPile,
   };
+  
+  return [drawnCards, newPile];
 }
 
 export function discardCards(
@@ -75,4 +75,23 @@ function shuffle<T>(array: ReadonlyArray<T>): T[] {
     }
   }
   return shuffled;
+}
+
+export function addToDiscardPile(pile: DrawPile, cards: ReadonlyArray<Card>): DrawPile {
+  return discardCards(pile, cards);
+}
+
+export function reshuffleIfNeeded(pile: DrawPile, neededCards: number): DrawPile {
+  if (pile.cards.length >= neededCards) {
+    return pile;
+  }
+  
+  if (pile.discardPile.length === 0) {
+    return pile;
+  }
+  
+  return {
+    cards: [...pile.cards, ...shuffle(pile.discardPile)],
+    discardPile: [],
+  };
 }

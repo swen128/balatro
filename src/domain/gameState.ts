@@ -1,6 +1,6 @@
 import type { RunState } from './runState.ts';
 import type { RoundState } from './roundState.ts';
-import type { BlindType } from './blind.ts';
+import type { BlindType, BossBlind } from './blind.ts';
 import { createInitialRunState, getCurrentBlindType, skipSmallBlind, skipBigBlind, defeatSmallBlind, defeatBigBlind, defeatBossBlind } from './runState.ts';
 import { createRoundState } from './roundState.ts';
 import { createDrawPile } from './drawPile.ts';
@@ -19,7 +19,7 @@ interface MainMenuState {
 interface SelectingBlindState {
   readonly type: 'selectingBlind';
   readonly runState: RunState;
-  readonly availableBlind: BlindType;
+  readonly availableBlind: BlindType | BossBlind;
   readonly bossEffect: string | null;
 }
 
@@ -27,7 +27,7 @@ export interface PlayingRoundState {
   readonly type: 'playingRound';
   readonly runState: RunState;
   readonly roundState: RoundState;
-  readonly blind: BlindType;
+  readonly blind: BlindType | BossBlind;
   readonly bossEffect: string | null;
 }
 
@@ -133,7 +133,7 @@ export function loseRound(): GameState {
 export function leaveShop(state: ShopState): SelectingBlindState {
   const blindType = getCurrentBlindType(state.runState);
   
-  let availableBlind: BlindType;
+  let availableBlind: BlindType | BossBlind;
   let bossEffect: string | null = null;
   
   switch (blindType) {

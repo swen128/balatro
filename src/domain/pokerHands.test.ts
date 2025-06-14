@@ -160,7 +160,8 @@ describe('pokerHands', () => {
       const result = evaluatePokerHand(cards);
       expect(result.handType.name).toBe('High Card');
       expect(result.scoringCards.length).toBe(1);
-      expect(result.scoringCards[0]!.rank).toBe('K');
+      const firstCard = result.scoringCards[0];
+      expect(firstCard?.rank).toBe('K');
     });
 
     it('should handle less than 5 cards', () => {

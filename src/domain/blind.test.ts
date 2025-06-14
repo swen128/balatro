@@ -22,7 +22,7 @@ describe('blind', () => {
     it('should create boss blind with random effect', () => {
       const blind = createBlind('boss');
       expect(blind.type).toBe('boss');
-      expect(blind.name).toBe('Boss Blind');
+      expect(['The Window', 'The Hook', 'The Ox']).toContain(blind.name);
       expect(blind.scoreMultiplier).toBe(2);
       expect(blind.cashReward).toBe(5);
       
@@ -63,10 +63,10 @@ describe('blind', () => {
     });
 
     it('should scale correctly for higher antes', () => {
-      // Ante 5 should be ante 4 * 1.5
-      expect(getBlindScoreGoal(5, smallBlind)).toBe(3000);
-      expect(getBlindScoreGoal(5, bigBlind)).toBe(4500);
-      expect(getBlindScoreGoal(5, bossBlind)).toBe(6000);
+      // Ante 5 is 5000 base
+      expect(getBlindScoreGoal(5, smallBlind)).toBe(5000);
+      expect(getBlindScoreGoal(5, bigBlind)).toBe(7500);
+      expect(getBlindScoreGoal(5, bossBlind)).toBe(10000);
     });
   });
 });

@@ -14,7 +14,9 @@ describe('drawPile', () => {
       const standardDeck = createStandardDeck();
       let sameOrder = true;
       for (let i = 0; i < 10; i++) {
-        if (drawPile.cards[i]!.id !== standardDeck[i]!.id) {
+        const drawPileCard = drawPile.cards[i];
+        const standardCard = standardDeck[i];
+        if (drawPileCard && standardCard && drawPileCard.id !== standardCard.id) {
           sameOrder = false;
           break;
         }
@@ -123,7 +125,9 @@ describe('drawPile', () => {
       const reshuffledDiscard = reshuffled.cards.slice(2);
       let sameOrder = true;
       for (let i = 0; i < Math.min(5, reshuffledDiscard.length); i++) {
-        if (reshuffledDiscard[i]!.id !== discard[i]!.id) {
+        const reshuffledCard = reshuffledDiscard[i];
+        const discardCard = discard[i];
+        if (reshuffledCard && discardCard && reshuffledCard.id !== discardCard.id) {
           sameOrder = false;
           break;
         }
