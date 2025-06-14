@@ -6,6 +6,8 @@ import type { Card } from '../../domain/card.ts';
 import { Hand } from '../../ui/Hand.tsx';
 import { ScoreDisplay } from '../../ui/ScoreDisplay.tsx';
 import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
+import { JokerDisplay } from '../../ui/JokerDisplay.tsx';
+import { ScoringBreakdown } from './ScoringBreakdown.tsx';
 
 interface RoundViewProps {
   readonly roundState: RoundState;
@@ -63,20 +65,7 @@ export function RoundView({
   const renderScoringDisplay = (): React.ReactNode => {
     if (roundState.type !== 'scoring') return null;
     
-    return (
-      <div className="mb-16 text-center animate-score-pop">
-        <h3 className="text-2xl mb-4 text-yellow-400">
-          {roundState.evaluatedHand.handType.name}
-        </h3>
-        <div className="text-3xl">
-          <span className="text-blue-400">{roundState.baseChipMult.chips}</span>
-          <span className="text-gray-400"> × </span>
-          <span className="text-red-400">{roundState.baseChipMult.mult}</span>
-          <span className="text-gray-400"> = </span>
-          <span className="text-green-400 text-4xl font-bold">{roundState.finalScore}</span>
-        </div>
-      </div>
-    );
+    return <ScoringBreakdown scoringState={roundState} jokers={runState.jokers} />;
   };
 
   const getSelectedCardIds = (): ReadonlySet<string> => {
@@ -113,6 +102,12 @@ export function RoundView({
             selectedCards={roundState.hand.filter(card => roundState.selectedCardIds.has(card.id))}
           />
         )}
+        
+        {/* Joker display */}
+        <JokerDisplay 
+          jokers={runState.jokers}
+          maxJokers={runState.maxJokers}
+        />
       </div>
 
       {/* Main game area */}

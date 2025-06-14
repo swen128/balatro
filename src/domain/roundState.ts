@@ -8,6 +8,8 @@ import { calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhanc
 import type { BossBlind } from './blind.ts';
 import type { BossEffectContext } from './bossEffects.ts';
 import { applyBossEffectOnHandSelection, applyBossEffectOnScoring } from './bossEffects.ts';
+import type { Joker, JokerContext } from './joker.ts';
+import { evaluateAllJokers } from './joker.ts';
 
 export type RoundState = 
   | DrawingState
@@ -151,11 +153,23 @@ export function playSelectedCards(state: SelectingHandState): PlayingState | Sel
   };
 }
 
-export function scoreHand(state: PlayingState): ScoringState {
+export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = []): ScoringState {
   const baseChipMult = calculateBaseChipMult(state.evaluatedHand);
+  
   // Apply enhancement effects from played cards
   const enhancementEffects = getCardEnhancementEffects(state.playedCards);
-  const finalChipMult = applyEffects(baseChipMult, enhancementEffects);
+  
+  // Apply joker effects
+  const jokerContext: JokerContext = {
+    playedCards: state.playedCards,
+    evaluatedHand: state.evaluatedHand,
+    handsPlayed: state.handsPlayed,
+  };
+  const jokerEffects = evaluateAllJokers(jokers, jokerContext);
+  
+  // Combine all effects
+  const allEffects = [...enhancementEffects, ...jokerEffects];
+  const finalChipMult = applyEffects(baseChipMult, allEffects);
   const finalScore = calculateFinalScore(finalChipMult);
   
   return {
@@ -169,9 +183,10 @@ export function scoreHand(state: PlayingState): ScoringState {
 export function scoreHandWithBossEffect(
   state: PlayingState,
   bossBlind: BossBlind | null,
-  totalMoney: number
+  totalMoney: number,
+  jokers: ReadonlyArray<Joker> = []
 ): ScoringState {
-  let scoringState = scoreHand(state);
+  let scoringState = scoreHand(state, jokers);
   
   if (bossBlind) {
     const context: BossEffectContext = {

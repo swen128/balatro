@@ -1,5 +1,6 @@
 import type { RoundState, RoundFinishedState } from '../../domain/roundState.ts';
 import type { BossBlind } from '../../domain/blind.ts';
+import type { Joker } from '../../domain/joker.ts';
 import {
   drawCardsToHand,
   drawCardsToHandWithBossEffect,
@@ -22,7 +23,8 @@ export interface RoundTransition {
 export function getNextRoundState(
   currentState: RoundState,
   bossBlind: BossBlind | null,
-  money: number
+  money: number,
+  jokers: ReadonlyArray<Joker> = []
 ): RoundTransition | null {
   switch (currentState.type) {
     case 'drawing': {
@@ -37,11 +39,11 @@ export function getNextRoundState(
       let shouldResetMoney = false;
       
       if (bossBlind) {
-        const scoringState = scoreHandWithBossEffect(currentState, bossBlind, money);
+        const scoringState = scoreHandWithBossEffect(currentState, bossBlind, money, jokers);
         nextState = scoringState;
         shouldResetMoney = checkShouldResetMoney(scoringState, bossBlind);
       } else {
-        nextState = scoreHand(currentState);
+        nextState = scoreHand(currentState, jokers);
       }
       
       return { nextState, shouldResetMoney, delayMs: 1000 };

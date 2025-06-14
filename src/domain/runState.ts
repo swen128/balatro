@@ -2,6 +2,7 @@ import type { Card } from './card.ts';
 import { createStandardDeck } from './card.ts';
 import type { BossBlind } from './blind.ts';
 import { getRandomBossBlind } from './blind.ts';
+import type { Joker } from './joker.ts';
 
 export interface RunState {
   readonly ante: number;
@@ -12,6 +13,8 @@ export interface RunState {
   readonly discardsCount: number;
   readonly round: number;
   readonly blindProgression: BlindProgression;
+  readonly jokers: ReadonlyArray<Joker>;
+  readonly maxJokers: number;
 }
 
 export type BlindProgression =
@@ -50,6 +53,8 @@ export function createInitialRunState(): RunState {
     blindProgression: {
       type: 'smallBlindUpcoming',
     },
+    jokers: [],
+    maxJokers: 5,
   };
 }
 
@@ -148,4 +153,22 @@ export function getCurrentBlindType(state: RunState): 'small' | 'big' | 'boss' {
     case 'bossBlindUpcoming':
       return 'boss';
   }
+}
+
+export function addJoker(state: RunState, joker: Joker): RunState {
+  if (state.jokers.length >= state.maxJokers) {
+    throw new Error(`Cannot add more than ${state.maxJokers} jokers`);
+  }
+  
+  return {
+    ...state,
+    jokers: [...state.jokers, joker],
+  };
+}
+
+export function removeJoker(state: RunState, jokerId: string): RunState {
+  return {
+    ...state,
+    jokers: state.jokers.filter(j => j.id !== jokerId),
+  };
 }

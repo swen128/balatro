@@ -26,7 +26,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
   const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
 
   useEffect(() => {
-    const transition = getNextRoundState(roundState, bossBlind, money);
+    const transition = getNextRoundState(roundState, bossBlind, money, gameState.runState.jokers);
     
     if (transition) {
       const timeoutId = setTimeout(() => {
@@ -53,7 +53,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
     }
     
     return undefined;
-  }, [roundState, bossBlind, money, onWin, onLose]);
+  }, [roundState, bossBlind, money, gameState.runState.jokers, onWin, onLose]);
 
   const handleCardClickCallback = useCallback((cardId: string): void => {
     const newState = handleCardClick(roundState, cardId);

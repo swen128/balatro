@@ -1,10 +1,11 @@
 import type { RunState } from './runState.ts';
 import type { RoundState } from './roundState.ts';
 import type { BlindType, BossBlind } from './blind.ts';
-import { createInitialRunState, getCurrentBlindType, skipSmallBlind, skipBigBlind, defeatSmallBlind, defeatBigBlind, defeatBossBlind } from './runState.ts';
+import { createInitialRunState, getCurrentBlindType, skipSmallBlind, skipBigBlind, defeatSmallBlind, defeatBigBlind, defeatBossBlind, addJoker } from './runState.ts';
 import { createRoundState } from './roundState.ts';
 import { createDrawPile } from './drawPile.ts';
 import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal, getRandomBossBlind } from './blind.ts';
+import { JOKERS } from './joker.ts';
 
 export type GameState =
   | MainMenuState
@@ -48,7 +49,14 @@ export function createMainMenuState(): GameState {
 }
 
 export function startNewRun(): GameState {
-  const runState = createInitialRunState();
+  let runState = createInitialRunState();
+  
+  // Add some test jokers for demonstration
+  const joker1 = JOKERS[0];
+  const joker2 = JOKERS[2];
+  if (joker1) runState = addJoker(runState, joker1); // Regular Joker (+4 Mult)
+  if (joker2) runState = addJoker(runState, joker2); // Lusty Joker (Hearts give +20 chips)
+  
   const bossBlind = getRandomBossBlind();
   return {
     type: 'selectingBlind',
