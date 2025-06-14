@@ -3,25 +3,21 @@ import { createCard, SUITS, RANKS } from './card.ts';
 import type { SpectralEffect } from './shopItems.ts';
 
 export function generateStandardPackCards(count: number): ReadonlyArray<Card> {
-  const cards: Card[] = [];
-  
-  for (let i = 0; i < count; i++) {
+  return Array.from({ length: count }, () => {
     const randomSuit = SUITS[Math.floor(Math.random() * SUITS.length)];
     const randomRank = RANKS[Math.floor(Math.random() * RANKS.length)];
     
-    if (randomSuit && randomRank) {
-      // 10% chance for enhancement
-      const enhancements: ReadonlyArray<CardEnhancement> = ['foil', 'holographic', 'polychrome'];
-      const enhancement: CardEnhancement | undefined = 
-        Math.random() < 0.1 
-          ? enhancements[Math.floor(Math.random() * enhancements.length)]
-          : undefined;
-      
-      cards.push(createCard(randomSuit, randomRank, enhancement));
-    }
-  }
-  
-  return cards;
+    // 10% chance for enhancement
+    const enhancements: ReadonlyArray<CardEnhancement> = ['foil', 'holographic', 'polychrome'];
+    const enhancement: CardEnhancement | undefined = 
+      Math.random() < 0.1 
+        ? enhancements[Math.floor(Math.random() * enhancements.length)]
+        : undefined;
+    
+    return randomSuit && randomRank
+      ? createCard(randomSuit, randomRank, enhancement)
+      : null;
+  }).filter((card): card is Card => card !== null);
 }
 
 export interface SpectralCard {

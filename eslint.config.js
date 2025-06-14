@@ -3,6 +3,8 @@ import typescript from '@typescript-eslint/eslint-plugin';
 import typescriptParser from '@typescript-eslint/parser';
 import react from 'eslint-plugin-react';
 import reactHooks from 'eslint-plugin-react-hooks';
+import functional from 'eslint-plugin-functional';
+import unicorn from 'eslint-plugin-unicorn';
 
 export default [
   js.configs.recommended,
@@ -31,6 +33,8 @@ export default [
       '@typescript-eslint': typescript,
       'react': react,
       'react-hooks': reactHooks,
+      'functional': functional,
+      'unicorn': unicorn,
     },
     rules: {
       // TypeScript strict rules - no any types allowed
@@ -74,11 +78,36 @@ export default [
       'no-unused-vars': 'off', // Using @typescript-eslint/no-unused-vars instead
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': 'error',
+      
+      // Additional rules for exhaustive switches
+      '@typescript-eslint/switch-exhaustiveness-check': 'error',
+      'unicorn/prefer-switch': 'error',
     },
     settings: {
       react: {
         version: 'detect',
       },
+    },
+  },
+  {
+    files: ['**/*.ts'],
+    ignores: ['**/*.test.ts'],
+    rules: {
+      'functional/no-conditional-statements': ['error', {
+        allowReturningBranches: 'ifExhaustive',
+      }],
+      'functional/no-return-void': 'error',
+      'functional/no-let': 'error',
+      'functional/no-try-statements': 'error',
+    },
+  },
+  {
+    files: ['**/saveGame.ts', '**/statisticsStorage.ts'],
+    rules: {
+      // Allow try-catch and void returns for localStorage operations
+      'functional/no-try-statements': 'off',
+      'functional/no-return-void': 'off',
+      '@typescript-eslint/consistent-type-assertions': 'off',
     },
   },
   {

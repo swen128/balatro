@@ -64,14 +64,13 @@ export function updateHandPlayed(
   };
   
   // Find the most played hand
-  let favoriteHand = stats.favoriteHand;
-  let maxCount = 0;
-  for (const [hand, count] of Object.entries(newHandCounts)) {
-    if (count > maxCount) {
-      maxCount = count;
-      favoriteHand = hand;
-    }
-  }
+  const favoriteHand = Object.entries(newHandCounts).reduce<string | null>(
+    (favorite, [hand, count]) => {
+      if (!favorite) return hand;
+      return count > (newHandCounts[favorite] ?? 0) ? hand : favorite;
+    },
+    stats.favoriteHand
+  );
   
   return {
     ...stats,

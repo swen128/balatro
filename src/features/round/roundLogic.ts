@@ -28,7 +28,7 @@ export function getNextRoundState(
   switch (currentState.type) {
     case 'drawing': {
       const nextState = bossBlind
-        ? drawCardsToHandWithBossEffect(currentState, bossBlind, money)
+        ? drawCardsToHandWithBossEffect(currentState, bossBlind)
         : drawCardsToHand(currentState);
       return { nextState, delayMs: 500 };
     }

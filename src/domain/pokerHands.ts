@@ -64,71 +64,71 @@ function getRankCounts(cards: ReadonlyArray<Card>): Array<[Rank, number]> {
 }
 
 function checkStraight(cards: ReadonlyArray<Card>): ReadonlyArray<Card> | null {
-  if (cards.length < 5) return null;
-  
-  // Get unique ranks sorted by index
-  const uniqueRanks = Array.from(new Set(cards.map(c => c.rank)))
-    .sort((a, b) => getRankIndex(a) - getRankIndex(b));
-  
-  // Check for regular straights
-  for (let i = 0; i <= uniqueRanks.length - 5; i++) {
-    let isSequential = true;
-    for (let j = 0; j < 4; j++) {
-      const currentRank = uniqueRanks[i + j];
-      const nextRank = uniqueRanks[i + j + 1];
-      if (!currentRank || !nextRank) {
-        isSequential = false;
-        break;
-      }
-      if (getRankIndex(nextRank) !== getRankIndex(currentRank) + 1) {
-        isSequential = false;
-        break;
-      }
-    }
-    
-    if (isSequential) {
-      // Return the 5 cards that form the straight
-      const straightRanks = uniqueRanks.slice(i, i + 5);
-      const straightCards: Card[] = [];
-      for (const rank of straightRanks) {
-        const card = cards.find(c => c.rank === rank);
-        if (card) straightCards.push(card);
-      }
-      return straightCards;
-    }
-  }
-  
-  // Check for A-2-3-4-5 straight
-  if (uniqueRanks.includes('A') && uniqueRanks.includes('2') && 
-      uniqueRanks.includes('3') && uniqueRanks.includes('4') && 
-      uniqueRanks.includes('5')) {
-    const straightCards: Card[] = [];
-    for (const rank of ['A', '2', '3', '4', '5'] as const) {
-      const card = cards.find(c => c.rank === rank);
-      if (card) straightCards.push(card);
-    }
-    return straightCards;
-  }
-  
-  return null;
+  return cards.length < 5 
+    ? null
+    : (() => {
+        // Get unique ranks sorted by index
+        const uniqueRanks = Array.from(new Set(cards.map(c => c.rank)))
+          .sort((a, b) => getRankIndex(a) - getRankIndex(b));
+        
+        // Helper to check if 5 consecutive ranks form a straight
+        const checkSequence = (startIdx: number): boolean =>
+          Array.from({ length: 4 }, (_, j) => {
+            const currentRank = uniqueRanks[startIdx + j];
+            const nextRank = uniqueRanks[startIdx + j + 1];
+            return currentRank && nextRank && 
+              getRankIndex(nextRank) === getRankIndex(currentRank) + 1;
+          }).every(Boolean);
+        
+        // Find first valid straight
+        const straightStartIdx = Array.from(
+          { length: Math.max(0, uniqueRanks.length - 4) }, 
+          (_, i) => i
+        ).find(i => checkSequence(i));
+        
+        // If found, return the straight cards
+        const regularStraight = straightStartIdx !== undefined
+          ? uniqueRanks
+              .slice(straightStartIdx, straightStartIdx + 5)
+              .map(rank => cards.find(c => c.rank === rank))
+              .filter((card): card is Card => card !== undefined)
+          : null;
+        
+        // Check for A-2-3-4-5 straight
+        const wheelStraight = ['A', '2', '3', '4', '5'].every(rank => 
+          uniqueRanks.includes(rank as Rank)
+        )
+          ? (['A', '2', '3', '4', '5'] as const)
+              .map(rank => cards.find(c => c.rank === rank))
+              .filter((card): card is Card => card !== undefined)
+          : null;
+        
+        return regularStraight || wheelStraight;
+      })();
 }
 
 function checkFlush(cards: ReadonlyArray<Card>): ReadonlyArray<Card> | null {
   const suitCounts = countSuits(cards);
   
-  for (const [suit, count] of suitCounts.entries()) {
-    if (count >= 5) {
-      return cards.filter(c => c.suit === suit).slice(0, 5);
-    }
-  }
+  const flushSuit = Array.from(suitCounts.entries())
+    .find(([, count]) => count >= 5)?.[0];
   
-  return null;
+  return flushSuit 
+    ? cards.filter(c => c.suit === flushSuit).slice(0, 5)
+    : null;
 }
 
 export function evaluatePokerHand(cards: ReadonlyArray<Card>): EvaluatedHand {
-  if (cards.length === 0 || cards.length > 5) {
-    throw new Error('Invalid number of cards for poker hand evaluation');
-  }
+  // Return high card for invalid input
+  const defaultHand: EvaluatedHand = {
+    handType: POKER_HANDS.HIGH_CARD,
+    scoringCards: cards.slice(0, 1),
+    kickers: cards.slice(1),
+  };
+  
+  return cards.length === 0 || cards.length > 5
+    ? defaultHand
+    : (() => {
   
   const rankCounts = getRankCounts(cards);
   const flushCards = checkFlush(cards);
@@ -251,4 +251,5 @@ export function evaluatePokerHand(cards: ReadonlyArray<Card>): EvaluatedHand {
     scoringCards: cards.slice(0, 1), // Highest card
     kickers: cards.slice(1),
   };
+    })();
 }

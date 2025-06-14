@@ -50,26 +50,17 @@ export function applyEffects(
   base: ChipMult,
   effects: ReadonlyArray<ScoringEffect>
 ): ChipMult {
-  let chips = base.chips;
-  let mult = base.mult;
-  
-  // Apply effects in order
-  for (const effect of effects) {
+  return effects.reduce((acc, effect) => {
     switch (effect.type) {
       case 'addChips':
-        chips += effect.value;
-        break;
+        return { ...acc, chips: acc.chips + effect.value };
       case 'addMult':
-        mult += effect.value;
-        break;
+        return { ...acc, mult: acc.mult + effect.value };
       case 'multMult':
       case 'multiplyMult':
-        mult *= effect.value;
-        break;
+        return { ...acc, mult: acc.mult * effect.value };
     }
-  }
-  
-  return { chips, mult };
+  }, base);
 }
 
 export function calculateFinalScore(chipMult: ChipMult, effects: ReadonlyArray<ScoringEffect> = []): number {
@@ -98,23 +89,19 @@ export function scoreHand(context: ScoringContext): number {
 }
 
 export function getCardEnhancementEffects(cards: ReadonlyArray<Card>): ReadonlyArray<ScoringEffect> {
-  const effects: ScoringEffect[] = [];
-  
-  for (const card of cards) {
-    if (card.enhancement === 'holographic') {
-      effects.push({
-        type: 'addMult',
-        value: 10,
-        source: `Holographic ${card.rank}${card.suit}`,
-      });
-    } else if (card.enhancement === 'polychrome') {
-      effects.push({
-        type: 'multiplyMult',
-        value: 1.5,
-        source: `Polychrome ${card.rank}${card.suit}`,
-      });
-    }
-  }
-  
-  return effects;
+  return cards.flatMap((card): ReadonlyArray<ScoringEffect> => 
+    card.enhancement === 'holographic'
+      ? [{
+          type: 'addMult',
+          value: 10,
+          source: `Holographic ${card.rank}${card.suit}`,
+        }]
+      : card.enhancement === 'polychrome'
+      ? [{
+          type: 'multiplyMult',
+          value: 1.5,
+          source: `Polychrome ${card.rank}${card.suit}`,
+        }]
+      : []
+  );
 }

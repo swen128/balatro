@@ -6,7 +6,6 @@ import { evaluatePokerHand } from './pokerHands.ts';
 import type { ChipMult } from './scoring.ts';
 import { calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects } from './scoring.ts';
 import type { BossBlind } from './blind.ts';
-import type { BossEffectContext } from './bossEffects.ts';
 import { applyBossEffectOnScoring } from './bossEffects.ts';
 import type { Joker, JokerContext } from './joker.ts';
 import { evaluateAllJokers } from './joker.ts';
@@ -100,8 +99,7 @@ export function drawCardsToHand(state: DrawingState): SelectingHandState {
 
 export function drawCardsToHandWithBossEffect(
   state: DrawingState,
-  bossBlind: BossBlind | null,
-  _totalMoney: number
+  bossBlind: BossBlind | null
 ): SelectingHandState {
   const baseState = drawCardsToHand(state);
   
@@ -197,18 +195,15 @@ export function scoreHandWithBossEffect(
   totalMoney: number,
   jokers: ReadonlyArray<Joker> = []
 ): ScoringState {
-  let scoringState = scoreHand(state, jokers);
+  const baseScoring = scoreHand(state, jokers);
   
-  if (bossBlind) {
-    const context: BossEffectContext = {
-      bossBlind,
-      handsPlayed: state.handsPlayed,
-      totalMoney,
-    };
-    scoringState = applyBossEffectOnScoring(scoringState, context);
-  }
-  
-  return scoringState;
+  return bossBlind
+    ? applyBossEffectOnScoring(baseScoring, {
+        bossBlind,
+        handsPlayed: state.handsPlayed,
+        totalMoney,
+      })
+    : baseScoring;
 }
 
 export function finishScoring(state: ScoringState): PlayedState | RoundFinishedState {

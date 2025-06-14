@@ -1,8 +1,9 @@
 import type { RunState } from '../../domain/runState.ts';
-import type { ShopItem, UpgradeItem, JokerItem, PackItem, VoucherItem } from '../../domain/shopItems.ts';
+import type { ShopItem, JokerItem } from '../../domain/shopItems.ts';
 import { generateShopItems } from '../../domain/shopItems.ts';
 import type { Card } from '../../domain/card.ts';
 import type { SpectralCard, ArcanaCard } from '../../domain/cardPacks.ts';
+import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 export interface ShopState {
   readonly availableItems: ReadonlyArray<ShopItem>;
@@ -43,99 +44,39 @@ export function purchaseItem(
     return null;
   }
 
-  let newRunState = {
-    ...runState,
-    cash: runState.cash - item.price,
-  };
+  const { baseRunState, baseShopState } = createBaseStates(shopState, runState, item);
 
-  let newShopState: ShopState = {
-    ...shopState,
-    availableItems: shopState.availableItems.filter(i => i.id !== itemId),
-  };
-
-  // Apply item effects
   switch (item.type) {
-    case 'upgrade': {
-      const upgradeItem = item as UpgradeItem;
-      switch (upgradeItem.effect.type) {
-        case 'increaseHandSize':
-          newRunState = {
-            ...newRunState,
-            handSize: newRunState.handSize + upgradeItem.effect.amount,
-          };
-          break;
-        case 'increaseHandsPerRound':
-          newRunState = {
-            ...newRunState,
-            handsCount: newRunState.handsCount + upgradeItem.effect.amount,
-          };
-          break;
-        case 'increaseDiscards':
-          newRunState = {
-            ...newRunState,
-            discardsCount: newRunState.discardsCount + upgradeItem.effect.amount,
-          };
-          break;
-      }
-      break;
-    }
-    
-    case 'joker': {
-      const jokerItem = item as JokerItem;
-      newShopState = {
-        ...newShopState,
-        purchasedJokers: [...newShopState.purchasedJokers, jokerItem],
+    case 'upgrade':
+      return {
+        shopState: baseShopState,
+        runState: applyUpgradeEffect(baseRunState, item),
       };
-      break;
-    }
-    
-    case 'pack': {
-      const packItem = item as PackItem;
-      // Generate cards for the pack but don't add them yet
-      // Return the updated state with pending pack
-      return { 
-        shopState: {
-          ...newShopState,
-          pendingPack: {
-            type: packItem.packType,
-            cards: [], // Will be generated when modal opens
-          },
-        }, 
-        runState: newRunState 
-      };
-    }
       
-    case 'voucher': {
-      const voucherItem = item as VoucherItem;
-      switch (voucherItem.effect.type) {
-        case 'shopDiscount':
-          // Shop discount would affect future shop prices
-          // For now, we'll store it as a modifier in runState
-          // This would need a new field in RunState to track active vouchers
-          break;
-        case 'interestRate':
-          // Interest rate would affect cash at end of rounds
-          // This would need tracking in runState
-          break;
-        case 'rerollCost':
-          newShopState = {
-            ...newShopState,
-            rerollCost: Math.max(0, newShopState.rerollCost - voucherItem.effect.amount),
-          };
-          break;
-      }
-      break;
-    }
-    
-    case 'spectral': {
-      // Spectral cards apply enhancements to cards in deck
-      // This would be handled when the card is used, not when purchased
-      // For now, just add to inventory (would need tracking)
-      break;
-    }
+    case 'joker':
+      return {
+        shopState: addJokerToShop(baseShopState, item),
+        runState: baseRunState,
+      };
+      
+    case 'pack':
+      return {
+        shopState: createPackPendingState(baseShopState, item),
+        runState: baseRunState,
+      };
+      
+    case 'voucher':
+      return {
+        shopState: applyVoucherToShop(baseShopState, item),
+        runState: baseRunState,
+      };
+      
+    case 'spectral':
+      return {
+        shopState: baseShopState,
+        runState: baseRunState,
+      };
   }
-
-  return { shopState: newShopState, runState: newRunState };
 }
 
 export function rerollShop(

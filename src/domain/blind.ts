@@ -73,14 +73,9 @@ export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind | T
     35000, // Ante 8
   ];
   
-  let baseScore: number;
-  if (ante <= 8) {
-    const score = baseScores[ante - 1];
-    baseScore = score !== undefined ? score : 100;
-  } else {
-    // Exponential scaling after ante 8
-    baseScore = Math.floor(35000 * Math.pow(1.6, ante - 8));
-  }
+  const baseScore = ante <= 8
+    ? baseScores[ante - 1] ?? 100
+    : Math.floor(35000 * Math.pow(1.6, ante - 8));
   
   return Math.floor(baseScore * blind.scoreMultiplier);
 }
@@ -92,10 +87,14 @@ export function getCashReward(blind: BlindType | BossBlind | TypedBossBlind): nu
 export function getRandomBossBlind(): BossBlind {
   const index = Math.floor(Math.random() * BOSS_BLINDS.length);
   const boss = BOSS_BLINDS[index];
-  if (!boss) {
-    throw new Error('No boss blinds available');
-  }
-  return boss;
+  return boss ?? { 
+    type: 'boss', 
+    name: 'The Wall', 
+    effect: 'No effect', 
+    scoreMultiplier: 2, 
+    cashReward: 8,
+    isBoss: true
+  };
 }
 
 export function createBlind(type: 'small' | 'big' | 'boss'): BlindType | BossBlind {
@@ -117,8 +116,5 @@ export const TYPED_BOSS_BLINDS: ReadonlyArray<TypedBossBlind> = BOSS_BLINDS.map(
 export function getRandomTypedBossBlind(): TypedBossBlind {
   const index = Math.floor(Math.random() * TYPED_BOSS_BLINDS.length);
   const boss = TYPED_BOSS_BLINDS[index];
-  if (!boss) {
-    throw new Error('No typed boss blinds available');
-  }
-  return boss;
+  return boss ?? createTypedBossBlind('The Wall', 'The most played poker hand this round is debuffed', 2, 8);
 }

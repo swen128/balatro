@@ -58,90 +58,78 @@ export function createInitialRunState(): RunState {
   };
 }
 
-export function skipSmallBlind(state: RunState): RunState {
-  if (state.blindProgression.type !== 'smallBlindUpcoming') {
-    throw new Error('Can only skip small blind when it is upcoming');
+
+export function defeatBlind(state: RunState, cashReward: number): RunState {
+  switch (state.blindProgression.type) {
+    case 'smallBlindUpcoming':
+      return {
+        ...state,
+        cash: state.cash + cashReward,
+        round: state.round + 1,
+        blindProgression: {
+          type: 'bigBlindUpcoming',
+          smallBlindSkipped: false,
+          smallBlindDefeated: true,
+        },
+      };
+        
+    case 'bigBlindUpcoming':
+      return {
+        ...state,
+        cash: state.cash + cashReward,
+        round: state.round + 1,
+        blindProgression: {
+          type: 'bossBlindUpcoming',
+          bossBlind: getRandomBossBlind(),
+          smallBlindSkipped: state.blindProgression.smallBlindSkipped,
+          smallBlindDefeated: state.blindProgression.smallBlindDefeated,
+          bigBlindSkipped: false,
+          bigBlindDefeated: true,
+        },
+      };
+        
+    case 'bossBlindUpcoming':
+      return {
+        ...state,
+        ante: state.ante + 1,
+        cash: state.cash + cashReward,
+        round: state.round + 1,
+        blindProgression: {
+          type: 'smallBlindUpcoming',
+        },
+      };
   }
-  
-  return {
-    ...state,
-    blindProgression: {
-      type: 'bigBlindUpcoming',
-      smallBlindSkipped: true,
-      smallBlindDefeated: false,
-    },
-  };
 }
 
-export function defeatSmallBlind(state: RunState, cashReward: number): RunState {
-  if (state.blindProgression.type !== 'smallBlindUpcoming') {
-    throw new Error('Can only defeat small blind when it is upcoming');
+export function skipBlind(state: RunState): RunState {
+  switch (state.blindProgression.type) {
+    case 'smallBlindUpcoming':
+      return {
+        ...state,
+        blindProgression: {
+          type: 'bigBlindUpcoming',
+          smallBlindSkipped: true,
+          smallBlindDefeated: false,
+        },
+      };
+        
+    case 'bigBlindUpcoming':
+      return {
+        ...state,
+        blindProgression: {
+          type: 'bossBlindUpcoming',
+          bossBlind: getRandomBossBlind(),
+          smallBlindSkipped: state.blindProgression.smallBlindSkipped,
+          smallBlindDefeated: state.blindProgression.smallBlindDefeated,
+          bigBlindSkipped: true,
+          bigBlindDefeated: false,
+        },
+      };
+        
+    case 'bossBlindUpcoming':
+      // Cannot skip boss blind, return unchanged state
+      return state;
   }
-  
-  return {
-    ...state,
-    cash: state.cash + cashReward,
-    round: state.round + 1,
-    blindProgression: {
-      type: 'bigBlindUpcoming',
-      smallBlindSkipped: false,
-      smallBlindDefeated: true,
-    },
-  };
-}
-
-export function skipBigBlind(state: RunState): RunState {
-  if (state.blindProgression.type !== 'bigBlindUpcoming') {
-    throw new Error('Can only skip big blind when it is upcoming');
-  }
-  
-  return {
-    ...state,
-    blindProgression: {
-      type: 'bossBlindUpcoming',
-      bossBlind: getRandomBossBlind(),
-      smallBlindSkipped: state.blindProgression.smallBlindSkipped,
-      smallBlindDefeated: state.blindProgression.smallBlindDefeated,
-      bigBlindSkipped: true,
-      bigBlindDefeated: false,
-    },
-  };
-}
-
-export function defeatBigBlind(state: RunState, cashReward: number): RunState {
-  if (state.blindProgression.type !== 'bigBlindUpcoming') {
-    throw new Error('Can only defeat big blind when it is upcoming');
-  }
-  
-  return {
-    ...state,
-    cash: state.cash + cashReward,
-    round: state.round + 1,
-    blindProgression: {
-      type: 'bossBlindUpcoming',
-      bossBlind: getRandomBossBlind(),
-      smallBlindSkipped: state.blindProgression.smallBlindSkipped,
-      smallBlindDefeated: state.blindProgression.smallBlindDefeated,
-      bigBlindSkipped: false,
-      bigBlindDefeated: true,
-    },
-  };
-}
-
-export function defeatBossBlind(state: RunState, cashReward: number): RunState {
-  if (state.blindProgression.type !== 'bossBlindUpcoming') {
-    throw new Error('Can only defeat boss blind when it is upcoming');
-  }
-  
-  return {
-    ...state,
-    ante: state.ante + 1,
-    cash: state.cash + cashReward,
-    round: state.round + 1,
-    blindProgression: {
-      type: 'smallBlindUpcoming',
-    },
-  };
 }
 
 export function getCurrentBlindType(state: RunState): 'small' | 'big' | 'boss' {
@@ -156,14 +144,12 @@ export function getCurrentBlindType(state: RunState): 'small' | 'big' | 'boss' {
 }
 
 export function addJoker(state: RunState, joker: Joker): RunState {
-  if (state.jokers.length >= state.maxJokers) {
-    throw new Error(`Cannot add more than ${state.maxJokers} jokers`);
-  }
-  
-  return {
-    ...state,
-    jokers: [...state.jokers, joker],
-  };
+  return state.jokers.length >= state.maxJokers
+    ? state // Return unchanged state if at max capacity
+    : {
+        ...state,
+        jokers: [...state.jokers, joker],
+      };
 }
 
 export function removeJoker(state: RunState, jokerId: string): RunState {

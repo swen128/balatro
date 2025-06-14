@@ -78,7 +78,7 @@ export function createTypedBossBlind(
   scoreMultiplier: number = 2,
   cashReward: number = 5
 ): TypedBossBlind {
-  const effects = parseBossEffect(name, effect);
+  const effects = parseBossEffect(name);
   
   return {
     type: 'boss',
@@ -91,7 +91,7 @@ export function createTypedBossBlind(
 }
 
 // Parse old effect strings into typed effects
-function parseBossEffect(name: string, _effectText: string): ReadonlyArray<BossEffectType> {
+function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
   switch (name) {
     case 'The Window':
       return [{
@@ -114,6 +114,7 @@ function parseBossEffect(name: string, _effectText: string): ReadonlyArray<BossE
       }];
       
     default:
+      // Unknown boss - return empty array
       return [];
   }
 }
@@ -145,10 +146,9 @@ export function shouldApplyPreScoringEffect(
   effect: PreScoringEffect,
   handsPlayed: number
 ): boolean {
-  if (effect.type === 'firstHandScoresZero') {
-    return handsPlayed === 0;
-  }
-  return true;
+  return effect.type === 'firstHandScoresZero'
+    ? handsPlayed === 0
+    : true;
 }
 
 export function applyPreScoringEffect(
@@ -165,9 +165,6 @@ export function applyPreScoringEffect(
       
     case 'removeAllSuits':
       return Math.floor(baseScore * 0.75);
-      
-    default:
-      return baseScore;
   }
 }
 
@@ -250,7 +247,7 @@ export function applyBossEffectOnScoring<T extends { finalScore: number }>(
     return scoringState;
   }
   
-  const boss = context.bossBlind as TypedBossBlind;
+  const boss = context.bossBlind;
   const preScoringEffects = getBossEffectsForPhase<PreScoringEffect>(boss, 'preScoring');
   
   const modifiedScore = preScoringEffects.reduce(
@@ -281,7 +278,7 @@ export function shouldResetMoney(
       // Find most played hand type
       const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
       const mostPlayedHands = Object.entries(handCounts)
-        .filter(([_, count]) => count === mostPlayedCount)
+        .filter(([, count]) => count === mostPlayedCount)
         .map(([handType]) => handType);
       
       return mostPlayedHands.includes(playedHandType);
@@ -289,14 +286,14 @@ export function shouldResetMoney(
     return false;
   }
   
-  const boss = bossBlind as TypedBossBlind;
+  const boss = bossBlind;
   const postScoringEffects = getBossEffectsForPhase<PostScoringEffect>(boss, 'postScoring');
   
   return postScoringEffects.some(effect => {
     if (effect.type === 'setMoneyToZero' && effect.condition === 'mostPlayedHand') {
       const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
       const mostPlayedHands = Object.entries(handCounts)
-        .filter(([_, count]) => count === mostPlayedCount)
+        .filter(([, count]) => count === mostPlayedCount)
         .map(([handType]) => handType);
       
       return mostPlayedHands.includes(playedHandType);

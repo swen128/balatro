@@ -14,7 +14,6 @@ export function loadStatistics(): GameStatistics {
     const saved = window.localStorage.getItem(STATS_KEY);
     if (saved !== null) {
       try {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
         return JSON.parse(saved);
       } catch {
         return createEmptyStatistics();

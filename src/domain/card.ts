@@ -13,11 +13,11 @@ export interface Card {
   readonly enhancement?: CardEnhancement;
 }
 
-let cardIdCounter = 0;
-
+// Use timestamp and random number for unique IDs
 export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement): Card {
+  const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   return {
-    id: `${rank}${suit}_${++cardIdCounter}`,
+    id: `${rank}${suit}_${uniqueId}`,
     suit,
     rank,
     ...(enhancement ? { enhancement } : {}),
@@ -26,43 +26,25 @@ export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement
 
 export function getCardChipValue(card: Card): number {
   const rankIndex = RANKS.indexOf(card.rank);
-  if (rankIndex < 0) {
-    throw new Error(`Invalid rank: ${card.rank}`);
-  }
   
-  let baseValue: number;
-  
-  // 2-10 have their face value
-  if (rankIndex <= 8) {
-    baseValue = rankIndex + 2;
-  }
-  // J, Q, K have value 10
-  else if (rankIndex <= 11) {
-    baseValue = 10;
-  }
-  // A has value 11
-  else {
-    baseValue = 11;
-  }
+  const baseValue = rankIndex < 0
+    ? 0 // Default for invalid rank
+    : rankIndex <= 8
+    ? rankIndex + 2  // 2-10 have their face value
+    : rankIndex <= 11
+    ? 10  // J, Q, K have value 10
+    : 11; // A has value 11
   
   // Apply enhancement bonuses
-  if (card.enhancement === 'foil') {
-    return baseValue + 50; // Foil adds +50 chips
-  }
-  
-  return baseValue;
+  return card.enhancement === 'foil'
+    ? baseValue + 50 // Foil adds +50 chips
+    : baseValue;
 }
 
 export function createStandardDeck(): ReadonlyArray<Card> {
-  const deck: Card[] = [];
-  
-  for (const suit of SUITS) {
-    for (const rank of RANKS) {
-      deck.push(createCard(suit, rank));
-    }
-  }
-  
-  return deck;
+  return SUITS.flatMap(suit => 
+    RANKS.map(rank => createCard(suit, rank))
+  );
 }
 
 export function isRedSuit(suit: Suit): boolean {
@@ -79,12 +61,11 @@ export function getRankIndex(rank: Rank): number {
 
 export function getRankValue(rank: Rank): number {
   const index = getRankIndex(rank);
-  if (index < 0) {
-    throw new Error(`Invalid rank: ${rank}`);
-  }
-  return index + 2; // 2 is rank 0, so value is index + 2
+  return index < 0 ? 0 : index + 2; // 2 is rank 0, so value is index + 2
 }
 
+// Fisher-Yates shuffle algorithm requires mutation for efficiency
+/* eslint-disable functional/no-let, functional/immutable-data, functional/no-conditional-statements, functional/no-loop-statements */
 export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
   const shuffled = [...deck];
   for (let i = shuffled.length - 1; i > 0; i--) {
@@ -98,3 +79,4 @@ export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
   }
   return shuffled;
 }
+/* eslint-enable functional/no-let, functional/immutable-data, functional/no-conditional-statements, functional/no-loop-statements */

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/consistent-type-assertions */
 import type { GameState } from './gameState.ts';
 
 const SAVE_KEY = 'balatro_save';

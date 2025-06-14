@@ -8,12 +8,14 @@ export function addEnhancementToCard(card: Card, enhancement: CardEnhancement): 
 }
 
 export function addRandomEnhancement(cards: ReadonlyArray<Card>, enhancement: CardEnhancement): ReadonlyArray<Card> {
-  if (cards.length === 0) return cards;
-  
-  const randomIndex = Math.floor(Math.random() * cards.length);
-  return cards.map((card, index) => 
-    index === randomIndex ? addEnhancementToCard(card, enhancement) : card
-  );
+  return cards.length === 0 
+    ? cards
+    : (() => {
+        const randomIndex = Math.floor(Math.random() * cards.length);
+        return cards.map((card, index) => 
+          index === randomIndex ? addEnhancementToCard(card, enhancement) : card
+        );
+      })();
 }
 
 export function addEnhancementToSelectedCard(
