@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Card } from '../cards/card.ts';
-import { Card as CardComponent } from '../ui/Card.tsx';
+import { Card as CardComponent } from '../cards/Card.tsx';
 
 interface CardPackModalProps {
   readonly packType: 'standard' | 'spectral' | 'arcana';

@@ -1,6 +1,6 @@
 import React from 'react';
 import type { Card as CardType } from '../cards/card.ts';
-import { Card } from '../ui/Card.tsx';
+import { Card } from '../cards/Card.tsx';
 
 interface HandProps {
   readonly cards: ReadonlyArray<CardType>;

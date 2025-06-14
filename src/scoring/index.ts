@@ -3,3 +3,6 @@ export { calculateBaseChipMult, calculateBaseScore, applyEffects, calculateFinal
 
 export type { PokerHandType, EvaluatedHand } from './pokerHands.ts';
 export { POKER_HANDS, evaluatePokerHand, getPokerHandByName } from './pokerHands.ts';
+
+export { ScoreDisplay } from './ScoreDisplay.tsx';
+export { ScoringBreakdown } from './ScoringBreakdown.tsx';

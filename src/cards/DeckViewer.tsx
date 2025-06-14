@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { Card } from './card.ts';
-import { Card as CardComponent } from '../ui/Card.tsx';
+import { Card as CardComponent } from './Card.tsx';
 import { SUITS, RANKS } from './card.ts';
 
 interface DeckViewerProps {

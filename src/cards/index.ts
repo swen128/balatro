@@ -6,4 +6,5 @@ export { createDrawPile, drawCards, discardCards, reshuffleIfNeeded } from './dr
 
 export { addEnhancementToCard, addRandomEnhancement, addEnhancementToSelectedCard } from './cardEnhancements.ts';
 
+export { Card as CardComponent } from './Card.tsx';
 export { DeckViewer } from './DeckViewer.tsx';

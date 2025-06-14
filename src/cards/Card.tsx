@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Card as CardType } from '../cards/card.ts';
-import { isRedSuit } from '../cards/card.ts';
+import type { Card as CardType } from './card.ts';
+import { isRedSuit } from './card.ts';
 import { CardScoreOverlay } from '../round/CardScoreOverlay.tsx';
 
 interface CardProps {

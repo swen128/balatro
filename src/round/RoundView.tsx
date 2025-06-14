@@ -4,10 +4,10 @@ import type { RunState } from '../game/runState.ts';
 import type { BlindType, BossBlind } from '../blinds/blind.ts';
 import type { Card } from '../cards/card.ts';
 import { Hand } from './Hand.tsx';
-import { ScoreDisplay } from './ScoreDisplay.tsx';
+import { ScoreDisplay } from '../scoring/ScoreDisplay.tsx';
 import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 import { JokerDisplay } from './JokerDisplay.tsx';
-import { ScoringBreakdown } from './ScoringBreakdown.tsx';
+import { ScoringBreakdown } from '../scoring/ScoringBreakdown.tsx';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
 import { useSound } from '../sound/SoundContext.tsx';
 
