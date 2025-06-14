@@ -1,5 +1,5 @@
 import React from 'react';
-import type { BlindType, BossBlind } from '../blinds/blind.ts';
+import type { BlindType, BossBlind } from '../blinds';
 import { AnimatedScore } from '../round/AnimatedScore.tsx';
 
 interface ScoreDisplayProps {

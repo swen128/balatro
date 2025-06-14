@@ -52,13 +52,14 @@ type RoundEndEffect = {
 };
 
 // Boss blind with typed effects
-export interface TypedBossBlind {
+export interface BossBlind {
   readonly type: 'boss';
   readonly name: string;
   readonly scoreMultiplier: number;
   readonly cashReward: number;
   readonly isBoss: true;
   readonly effects: ReadonlyArray<BossEffectType>;
+  readonly effectDescription: string;
 }
 
 
@@ -94,7 +95,7 @@ function applyPreScoringEffect(
 
 // Get all effects for a specific phase
 function getBossEffectsForPhase<T extends BossEffectType>(
-  boss: TypedBossBlind,
+  boss: BossBlind,
   phase: T['kind']
 ): ReadonlyArray<T> {
   return boss.effects.filter((effect): effect is T => effect.kind === phase);
@@ -102,7 +103,7 @@ function getBossEffectsForPhase<T extends BossEffectType>(
 
 // Context for boss effect application
 interface BossEffectContext {
-  readonly bossBlind: TypedBossBlind | { readonly name: string };
+  readonly bossBlind: BossBlind | { readonly name: string };
   readonly handsPlayed: number;
   readonly totalMoney: number;
 }

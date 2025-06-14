@@ -181,7 +181,7 @@ describe('gameState', () => {
           ...shopState.runState,
           blindProgression: {
             type: 'bossBlindUpcoming' as const,
-            bossBlind: { type: 'boss' as const, name: 'Test Boss', effect: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
+            bossBlind: { type: 'boss' as const, name: 'Test Boss', effects: [], effectDescription: 'Test effect', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
             smallBlindSkipped: false,
             smallBlindDefeated: true,
             bigBlindSkipped: false,

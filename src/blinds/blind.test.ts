@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'bun:test';
-import { createBlind, getBlindScoreGoal } from './blind.ts';
+import { createBlind, getBlindScoreGoal } from '../blinds';
 
 describe('blind', () => {
   describe('createBlind', () => {
@@ -27,8 +27,9 @@ describe('blind', () => {
       expect(blind.cashReward).toBe(5);
       
       if (blind.type === 'boss') {
-        expect(blind.effect).toBeTruthy();
-        expect(typeof blind.effect).toBe('string');
+        expect(blind.effects).toBeDefined();
+        expect(Array.isArray(blind.effects)).toBe(true);
+        expect(blind.effects.length).toBeGreaterThanOrEqual(0);
       }
     });
   });

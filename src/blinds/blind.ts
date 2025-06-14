@@ -22,16 +22,7 @@ export const BIG_BLIND: BlindType = {
   isBoss: false,
 };
 
-import type { TypedBossBlind } from './bossEffects.ts';
-
-export interface BossBlind {
-  readonly type: 'boss';
-  readonly name: string;
-  readonly scoreMultiplier: number;
-  readonly cashReward: number;
-  readonly isBoss: true;
-  readonly effect: string;
-}
+import type { BossBlind } from './bossEffects.ts';
 
 const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
   {
@@ -40,7 +31,11 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     scoreMultiplier: 2,
     cashReward: 5,
     isBoss: true,
-    effect: 'First played hand scores 0 chips',
+    effects: [{
+      kind: 'preScoring',
+      type: 'firstHandScoresZero',
+    }],
+    effectDescription: 'First played hand scores 0 chips',
   },
   {
     type: 'boss',
@@ -48,7 +43,12 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     scoreMultiplier: 2,
     cashReward: 5,
     isBoss: true,
-    effect: 'Discards 2 random cards per hand',
+    effects: [{
+      kind: 'handSelection',
+      type: 'discardRandomCards',
+      count: 2,
+    }],
+    effectDescription: 'Discards 2 random cards per hand',
   },
   {
     type: 'boss',
@@ -56,11 +56,16 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     scoreMultiplier: 2,
     cashReward: 5,
     isBoss: true,
-    effect: 'Playing a #1 hand sets money to $0',
+    effects: [{
+      kind: 'postScoring',
+      type: 'setMoneyToZero',
+      condition: 'mostPlayedHand',
+    }],
+    effectDescription: 'Playing a #1 hand sets money to $0',
   },
 ];
 
-export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind | TypedBossBlind): number {
+export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {
   const baseScores = [
     100,  // Ante 1
     300,  // Ante 2
@@ -83,13 +88,14 @@ export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind | T
 export function getRandomBossBlind(): BossBlind {
   const index = Math.floor(Math.random() * BOSS_BLINDS.length);
   const boss = BOSS_BLINDS[index];
-  return boss ?? { 
-    type: 'boss', 
-    name: 'The Wall', 
-    effect: 'No effect', 
-    scoreMultiplier: 2, 
+  return boss ?? {
+    type: 'boss',
+    name: 'The Wall',
+    scoreMultiplier: 2,
     cashReward: 8,
-    isBoss: true
+    isBoss: true,
+    effects: [],
+    effectDescription: 'No effect',
   };
 }
 

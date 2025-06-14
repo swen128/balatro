@@ -1,10 +1,10 @@
 import type { RunState } from './runState.ts';
 import type { RoundState } from './roundState.ts';
-import type { BlindType, BossBlind } from '../blinds/blind.ts';
+import type { BlindType, BossBlind } from '../blinds';
+import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal, getRandomBossBlind } from '../blinds';
 import { createInitialRunState, getCurrentBlindType, skipBlind, defeatBlind, addJoker } from './runState.ts';
 import { createRoundState } from './roundState.ts';
 import { createDrawPile } from '../cards/drawPile.ts';
-import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal, getRandomBossBlind } from '../blinds/blind.ts';
 import { JOKERS } from '../shop/joker.ts';
 
 export type GameState =
@@ -112,7 +112,7 @@ export function skipBlindFromSelectScreen(state: SelectingBlindState): Selecting
               const bossBlind = newRunState.blindProgression.type === 'bossBlindUpcoming'
                 ? newRunState.blindProgression.bossBlind
                 : state.allBlinds.boss;
-              return { availableBlind: bossBlind, bossEffect: bossBlind.effect };
+              return { availableBlind: bossBlind, bossEffect: bossBlind.effectDescription };
             }
           }
         })();
@@ -169,7 +169,7 @@ export function leaveShop(state: ShopState): SelectingBlindState {
       case 'big':
         return { availableBlind: BIG_BLIND, bossEffect: null };
       case 'boss':
-        return { availableBlind: bossBlind, bossEffect: bossBlind.effect };
+        return { availableBlind: bossBlind, bossEffect: bossBlind.effectDescription };
     }
   })();
   

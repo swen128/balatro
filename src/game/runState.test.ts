@@ -54,7 +54,7 @@ describe('runState', () => {
         ...smallBlindState,
         blindProgression: { 
           type: 'bossBlindUpcoming',
-          bossBlind: { type: 'boss', name: 'Test Boss', effect: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
+          bossBlind: { type: 'boss', name: 'Test Boss', effects: [], effectDescription: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
           smallBlindSkipped: false,
           smallBlindDefeated: true,
           bigBlindSkipped: false,
@@ -104,7 +104,7 @@ describe('runState', () => {
         ...createInitialRunState(),
         blindProgression: { 
           type: 'bossBlindUpcoming',
-          bossBlind: { type: 'boss', name: 'Test Boss', effect: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
+          bossBlind: { type: 'boss', name: 'Test Boss', effects: [], effectDescription: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
           smallBlindSkipped: false,
           smallBlindDefeated: true,
           bigBlindSkipped: false,
@@ -136,7 +136,7 @@ describe('runState', () => {
         ...createInitialRunState(),
         blindProgression: { 
           type: 'bossBlindUpcoming',
-          bossBlind: { type: 'boss', name: 'Test Boss', effect: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
+          bossBlind: { type: 'boss', name: 'Test Boss', effects: [], effectDescription: 'test', cashReward: 5, scoreMultiplier: 2, isBoss: true as const },
           smallBlindSkipped: false,
           smallBlindDefeated: true,
           bigBlindSkipped: false,

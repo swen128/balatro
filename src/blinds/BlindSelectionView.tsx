@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { RunState } from '../game';
-import type { BlindType, BossBlind } from './blind.ts';
+import type { BlindType } from './blind.ts';
+import type { BossBlind } from './bossEffects.ts';
 import { getBlindScoreGoal } from './blind.ts';
 import { getCurrentBlindType } from '../game';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
@@ -93,7 +94,7 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
           <h4 className="text-lg font-semibold mb-2">{allBlinds.boss.name}</h4>
           <p className="text-sm">Goal: {getBlindScoreGoal(runState.ante, allBlinds.boss)}</p>
           <p className="text-sm">Reward: ${allBlinds.boss.cashReward}</p>
-          <p className="text-xs text-amber-500 mt-1">{allBlinds.boss.effect}</p>
+          <p className="text-xs text-amber-500 mt-1">{allBlinds.boss.effectDescription}</p>
           {getBlindStatus('boss') === 'completed' && (
             <p className="text-sm text-green-500 mt-2">✓ Completed</p>
           )}
