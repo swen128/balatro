@@ -9,6 +9,7 @@ import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 import { JokerDisplay } from '../../ui/JokerDisplay.tsx';
 import { ScoringBreakdown } from './ScoringBreakdown.tsx';
 import { DeckViewer } from '../../ui/DeckViewer.tsx';
+import { useSound } from '../sound/SoundContext.tsx';
 
 interface RoundViewProps {
   readonly roundState: RoundState;
@@ -36,6 +37,22 @@ export function RoundView({
   isDiscarding: isDiscardingProp,
 }: RoundViewProps): React.ReactElement {
   const [showDeckViewer, setShowDeckViewer] = useState(false);
+  const sound = useSound();
+  
+  const handleCardClick = (cardId: string): void => {
+    sound.play('cardSelect');
+    onCardClick(cardId);
+  };
+  
+  const handlePlayHand = (): void => {
+    sound.play('cardPlay');
+    onPlayHand();
+  };
+  
+  const handleDiscardCards = (): void => {
+    sound.play('cardDiscard');
+    onDiscardCards();
+  };
   const renderStatusText = (): React.ReactNode => {
     switch (roundState.type) {
       case 'drawing':
@@ -122,7 +139,7 @@ export function RoundView({
           cards={roundState.hand}
           selectedCardIds={getSelectedCardIds()}
           playedCards={getPlayedCards()}
-          onCardClick={onCardClick}
+          onCardClick={handleCardClick}
           isPlaying={isPlaying}
           isDrawing={isDrawing}
           isDiscarding={isDiscarding}
@@ -133,14 +150,14 @@ export function RoundView({
         {roundState.type === 'selectingHand' && (
           <div className="flex gap-4 mt-8">
             <button
-              onClick={onPlayHand}
+              onClick={handlePlayHand}
               disabled={!canPlayHand}
               className="text-xl px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
             >
               Play Hand
             </button>
             <button
-              onClick={onDiscardCards}
+              onClick={handleDiscardCards}
               disabled={!canDiscardCards}
               className="text-xl px-8 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
             >

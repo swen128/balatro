@@ -11,11 +11,16 @@ import { StatisticsView } from '../features/statistics/StatisticsView.tsx';
 import type { GameStatistics } from '../domain/statistics.ts';
 import { updateGameStart, updateGameEnd, updateBossDefeated } from '../domain/statistics.ts';
 import { loadStatistics, saveStatistics } from '../features/statistics/statisticsStorage.ts';
+import { SoundProvider } from '../features/sound/SoundContext.tsx';
+import { SoundSettings } from '../features/sound/SoundSettings.tsx';
+import { useSound } from '../features/sound/SoundContext.tsx';
 
-export function App(): React.ReactElement {
+function AppContent(): React.ReactElement {
   const [gameState, setGameState] = useState<GameState>(createMainMenuState());
   const [statistics, setStatistics] = useState<GameStatistics>(loadStatistics());
   const [showStatistics, setShowStatistics] = useState(false);
+  const [showSoundSettings, setShowSoundSettings] = useState(false);
+  const sound = useSound();
 
   // Auto-save when game state changes (except main menu)
   useEffect(() => {
@@ -29,18 +34,21 @@ export function App(): React.ReactElement {
     const newStats = updateGameStart(statistics);
     setStatistics(newStats);
     saveStatistics(newStats);
+    sound.play('buttonClick');
     setGameState(startNewRun());
   };
 
   const handleContinueRun = (): void => {
     const savedGame = loadGame();
     if (savedGame) {
+      sound.play('buttonClick');
       setGameState(savedGame);
     }
   };
 
   const handleSelectBlind = (): void => {
     if (gameState.type === 'selectingBlind') {
+      sound.play('blindSelect');
       setGameState(selectBlind(gameState));
     }
   };
@@ -53,6 +61,7 @@ export function App(): React.ReactElement {
 
   const handleWinRound = (): void => {
     if (gameState.type === 'playingRound') {
+      sound.play('roundWin');
       setGameState(winRound(gameState));
       
       // Update statistics for boss defeats
@@ -66,9 +75,10 @@ export function App(): React.ReactElement {
 
   const handleLoseRound = (): void => {
     if (gameState.type === 'playingRound') {
-      const finalScore = gameState.roundState.type === 'roundFinished' && gameState.roundState.won === false 
+      const finalScore = gameState.roundState.type === 'roundFinished' && !gameState.roundState.won 
         ? gameState.roundState.score 
         : 0;
+      sound.play('roundLose');
       const newStats = updateGameEnd(statistics, false, gameState.runState.ante, finalScore);
       setStatistics(newStats);
       saveStatistics(newStats);
@@ -103,6 +113,22 @@ export function App(): React.ReactElement {
             isOpen={showStatistics}
             onClose={() => setShowStatistics(false)}
           />
+          <SoundSettings
+            config={sound.config}
+            onVolumeChange={sound.setVolume}
+            onToggleMute={sound.toggleMute}
+            onToggleEnabled={sound.toggleEnabled}
+            isOpen={showSoundSettings}
+            onClose={() => setShowSoundSettings(false)}
+          />
+          {/* Sound Settings Button */}
+          <button
+            onClick={() => setShowSoundSettings(true)}
+            className="fixed bottom-4 right-4 p-3 bg-gray-700 hover:bg-gray-600 rounded-full transition-colors"
+            title="Sound Settings"
+          >
+            🔊
+          </button>
         </>
       );
     
@@ -133,4 +159,12 @@ export function App(): React.ReactElement {
         />
       );
   }
+}
+
+export function App(): React.ReactElement {
+  return (
+    <SoundProvider>
+      <AppContent />
+    </SoundProvider>
+  );
 }
