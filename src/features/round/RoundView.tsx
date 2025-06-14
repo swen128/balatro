@@ -98,8 +98,8 @@ export function RoundView({
           bossEffect={bossEffect}
         />
         
-        {/* Selected hand evaluation */}
-        {roundState.type === 'selectingHand' && roundState.selectedCardIds.size > 0 && (
+        {/* Selected hand evaluation - always visible during hand selection */}
+        {roundState.type === 'selectingHand' && (
           <SelectedHandDisplay 
             selectedCards={roundState.hand.filter(card => roundState.selectedCardIds.has(card.id))}
           />
