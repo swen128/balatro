@@ -99,9 +99,9 @@ export function evaluateJokerEffect(
     }
     
     case 'multPerPair': {
-      // Count pairs in the hand
+      // Count pairs in the scoring cards
       const rankCounts = new Map<string, number>();
-      for (const card of playedCards) {
+      for (const card of evaluatedHand.scoringCards) {
         const count = rankCounts.get(card.rank) ?? 0;
         rankCounts.set(card.rank, count + 1);
       }

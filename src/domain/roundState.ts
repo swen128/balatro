@@ -3,7 +3,7 @@ import type { DrawPile } from './drawPile.ts';
 import { drawCards, discardCards } from './drawPile.ts';
 import type { EvaluatedHand } from './pokerHands.ts';
 import { evaluatePokerHand } from './pokerHands.ts';
-import type { ChipMult } from './scoring.ts';
+import type { ChipMult, ScoringEffect } from './scoring.ts';
 import { calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects } from './scoring.ts';
 import type { BossBlind } from './blind.ts';
 import { applyBossEffectOnScoring } from './bossEffects.ts';
@@ -84,6 +84,20 @@ export function createRoundState(
   };
 }
 
+export function drawNewCards(state: RoundState): SelectingHandState {
+  const currentHand = state.hand ?? [];
+  const cardsNeeded = state.handSize - currentHand.length;
+  const [drawnCards, newDrawPile] = drawCards(state.drawPile, cardsNeeded);
+  
+  return {
+    ...state,
+    type: 'selectingHand',
+    drawPile: newDrawPile,
+    hand: [...currentHand, ...drawnCards],
+    selectedCardIds: new Set(),
+  };
+}
+
 export function drawCardsToHand(state: DrawingState): SelectingHandState {
   const cardsNeeded = state.handSize - state.hand.length;
   const [drawnCards, pile] = drawCards(state.drawPile, cardsNeeded);
@@ -145,6 +159,28 @@ export function toggleCardSelection(
     : state;
 }
 
+export function selectCard(state: SelectingHandState, cardId: string): SelectingHandState {
+  const card = state.hand.find(c => c.id === cardId);
+  
+  return !card || state.selectedCardIds.has(cardId) || state.selectedCardIds.size >= 5
+    ? state
+    : {
+        ...state,
+        selectedCardIds: new Set([...state.selectedCardIds, cardId]),
+      };
+}
+
+export function deselectCard(state: SelectingHandState, cardId: string): SelectingHandState {
+  return state.selectedCardIds.has(cardId)
+    ? {
+        ...state,
+        selectedCardIds: new Set(
+          Array.from(state.selectedCardIds).filter(id => id !== cardId)
+        ),
+      }
+    : state;
+}
+
 export function playSelectedCards(state: SelectingHandState): PlayingState | SelectingHandState {
   return state.selectedCardIds.size === 0
     ? state // Can't play with no cards selected
@@ -161,17 +197,29 @@ export function playSelectedCards(state: SelectingHandState): PlayingState | Sel
       })();
 }
 
-export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = []): ScoringState {
-  const baseChipMult = calculateBaseChipMult(state.evaluatedHand);
+export interface ScoreCalculation {
+  readonly chipMult: ChipMult;
+  readonly effects: ReadonlyArray<ScoringEffect>;
+  readonly finalScore: number;
+}
+
+export function calculateScore(
+  playedCards: ReadonlyArray<Card>,
+  evaluatedHand: EvaluatedHand,
+  jokers: ReadonlyArray<Joker>,
+  _bossBlind: BossBlind | null,
+  handsPlayed: number
+): ScoreCalculation {
+  const baseChipMult = calculateBaseChipMult(evaluatedHand);
   
   // Apply enhancement effects from played cards
-  const enhancementEffects = getCardEnhancementEffects(state.playedCards);
+  const enhancementEffects = getCardEnhancementEffects(playedCards);
   
   // Apply joker effects
   const jokerContext: JokerContext = {
-    playedCards: state.playedCards,
-    evaluatedHand: state.evaluatedHand,
-    handsPlayed: state.handsPlayed,
+    playedCards,
+    evaluatedHand,
+    handsPlayed,
   };
   const jokerEffects = evaluateAllJokers(jokers, jokerContext);
   
@@ -181,10 +229,26 @@ export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = []
   const finalScore = calculateFinalScore(finalChipMult);
   
   return {
+    chipMult: baseChipMult,
+    effects: allEffects,
+    finalScore,
+  };
+}
+
+export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = []): ScoringState {
+  const calculation = calculateScore(
+    state.playedCards,
+    state.evaluatedHand,
+    jokers,
+    null,
+    state.handsPlayed
+  );
+  
+  return {
     ...state,
     type: 'scoring',
-    baseChipMult,
-    finalScore,
+    baseChipMult: calculation.chipMult,
+    finalScore: calculation.finalScore,
   };
 }
 
@@ -278,3 +342,15 @@ export function discardSelectedCards(state: SelectingHandState): DrawingState | 
 }
 
 export { shouldResetMoney } from './bossEffects.ts';
+
+// Aliases for test compatibility
+export const playHand = playSelectedCards;
+
+// Utility functions
+export function isRoundWon(state: RoundState): boolean {
+  return state.score >= state.scoreGoal;
+}
+
+export function isRoundLost(state: RoundState): boolean {
+  return state.score < state.scoreGoal && state.handsRemaining <= 0;
+}

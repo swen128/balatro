@@ -158,3 +158,45 @@ export function removeJoker(state: RunState, jokerId: string): RunState {
     jokers: state.jokers.filter(j => j.id !== jokerId),
   };
 }
+
+export function addCash(state: RunState, amount: number): RunState {
+  return {
+    ...state,
+    cash: state.cash + amount,
+  };
+}
+
+export function removeCash(state: RunState, amount: number): RunState {
+  return {
+    ...state,
+    cash: Math.max(0, state.cash - amount),
+  };
+}
+
+export function setHandSize(state: RunState, handSize: number): RunState {
+  return {
+    ...state,
+    handSize,
+  };
+}
+
+export function setHandsCount(state: RunState, handsCount: number): RunState {
+  return {
+    ...state,
+    handsCount,
+  };
+}
+
+export function setDiscardsCount(state: RunState, discardsCount: number): RunState {
+  return {
+    ...state,
+    discardsCount,
+  };
+}
+
+export function updateDeck(state: RunState, deck: ReadonlyArray<Card>): RunState {
+  return {
+    ...state,
+    deck,
+  };
+}

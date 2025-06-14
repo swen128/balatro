@@ -1,3 +1,6 @@
+import type { Card, CardEnhancement, Suit, Rank } from './card.ts';
+import { createCard } from './card.ts';
+
 export type ShopItemType = 'upgrade' | 'joker' | 'pack' | 'voucher' | 'spectral';
 
 interface ShopItemBase {
@@ -178,6 +181,70 @@ export const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
 ];
 
 export type ShopItem = UpgradeItem | JokerItem | PackItem | VoucherItem | SpectralItem;
+
+export const PACK_DEFINITIONS = {
+  standard: {
+    name: 'Standard Pack',
+    description: 'Choose 1 of 3 playing cards',
+    price: 4,
+    cardCount: 3,
+  },
+  arcana: {
+    name: 'Arcana Pack',
+    description: 'Choose 1 of 3 enhanced cards',
+    price: 6,
+    cardCount: 3,
+  },
+  spectral: {
+    name: 'Spectral Pack',
+    description: 'Choose 1 of 2 special cards',
+    price: 8,
+    cardCount: 2,
+  },
+} as const;
+
+export function createCardPack(packType: 'standard' | 'arcana' | 'spectral', count: number): ReadonlyArray<Card> {
+  const suits: ReadonlyArray<Suit> = ['♠', '♥', '♦', '♣'];
+  const ranks: ReadonlyArray<Rank> = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+  
+  return Array.from({ length: count }, () => {
+    const suitIndex = Math.floor(Math.random() * suits.length);
+    const rankIndex = Math.floor(Math.random() * ranks.length);
+    const suit = suits[suitIndex];
+    const rank = ranks[rankIndex];
+    
+    const finalSuit = suit ?? '♠';
+    const finalRank = rank ?? 'A';
+    
+    const enhancement = ((): CardEnhancement | undefined => {
+      const enhancements: CardEnhancement[] = ['foil', 'holographic', 'polychrome'];
+      const enhancementIndex = Math.floor(Math.random() * enhancements.length);
+      
+      return packType === 'standard'
+        ? undefined
+        : packType === 'arcana' && Math.random() < 0.3
+        ? enhancements[enhancementIndex]
+        : packType === 'spectral' && Math.random() < 0.5
+        ? enhancements[enhancementIndex]
+        : undefined;
+    })();
+    
+    return createCard(finalSuit, finalRank, enhancement);
+  });
+}
+
+export function createRandomShopItems(count: number = 6): ReadonlyArray<ShopItem> {
+  const allItems: ReadonlyArray<ShopItem> = [
+    ...SHOP_UPGRADES,
+    ...SHOP_JOKERS,
+    ...SHOP_PACKS,
+    ...SHOP_VOUCHERS,
+    ...SHOP_SPECTRAL,
+  ];
+  
+  const shuffled = [...allItems].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, count);
+}
 
 export function generateShopItems(cash: number): ReadonlyArray<ShopItem> {
   // For now, return a random selection of items
