@@ -6,6 +6,8 @@ import {
   canPlayHand, 
   handleCardClick, 
   handlePlayHand,
+  handleDiscardCards,
+  canDiscardCards,
   isRoundFinished
 } from './roundLogic.ts';
 import { RoundView } from './RoundView.tsx';
@@ -66,6 +68,13 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
     }
   }, [roundState]);
 
+  const handleDiscardCardsCallback = useCallback((): void => {
+    const newState = handleDiscardCards(roundState);
+    if (newState) {
+      setRoundState(newState);
+    }
+  }, [roundState]);
+
   return (
     <RoundView
       roundState={roundState}
@@ -74,7 +83,9 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
       bossEffect={gameState.bossEffect}
       onCardClick={handleCardClickCallback}
       onPlayHand={handlePlayHandCallback}
+      onDiscardCards={handleDiscardCardsCallback}
       canPlayHand={canPlayHand(roundState)}
+      canDiscardCards={canDiscardCards(roundState)}
     />
   );
 }

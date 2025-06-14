@@ -5,12 +5,13 @@ interface ScoreDisplayProps {
   readonly score: number;
   readonly scoreGoal: number;
   readonly handsRemaining: number;
+  readonly discardsRemaining?: number;
   readonly ante: number;
   readonly blind: BlindType | BossBlind;
   readonly bossEffect: string | null;
 }
 
-export function ScoreDisplay({ score, scoreGoal, handsRemaining, ante, blind, bossEffect }: ScoreDisplayProps): React.ReactElement {
+export function ScoreDisplay({ score, scoreGoal, handsRemaining, discardsRemaining, ante, blind, bossEffect }: ScoreDisplayProps): React.ReactElement {
   const progress = Math.min((score / scoreGoal) * 100, 100);
   
   return (
@@ -41,6 +42,11 @@ export function ScoreDisplay({ score, scoreGoal, handsRemaining, ante, blind, bo
         <p className="text-base">
           Hands: <span className="font-bold">{handsRemaining}</span>
         </p>
+        {discardsRemaining !== undefined && (
+          <p className="text-base">
+            Discards: <span className="font-bold">{discardsRemaining}</span>
+          </p>
+        )}
       </div>
 
       {bossEffect !== null && (

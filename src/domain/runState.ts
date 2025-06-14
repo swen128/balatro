@@ -9,6 +9,7 @@ export interface RunState {
   readonly deck: ReadonlyArray<Card>;
   readonly handSize: number;
   readonly handsCount: number;
+  readonly discardsCount: number;
   readonly round: number;
   readonly blindProgression: BlindProgression;
 }
@@ -44,6 +45,7 @@ export function createInitialRunState(): RunState {
     deck: createStandardDeck(),
     handSize: 8,
     handsCount: 4,
+    discardsCount: 3,
     round: 0,
     blindProgression: {
       type: 'smallBlindUpcoming',

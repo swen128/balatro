@@ -13,7 +13,9 @@ interface RoundViewProps {
   readonly bossEffect: string | null;
   readonly onCardClick: (cardId: string) => void;
   readonly onPlayHand: () => void;
+  readonly onDiscardCards: () => void;
   readonly canPlayHand: boolean;
+  readonly canDiscardCards: boolean;
 }
 
 export function RoundView({
@@ -23,7 +25,9 @@ export function RoundView({
   bossEffect,
   onCardClick,
   onPlayHand,
+  onDiscardCards,
   canPlayHand,
+  canDiscardCards,
 }: RoundViewProps): React.ReactElement {
   const renderStatusText = (): React.ReactNode => {
     switch (roundState.type) {
@@ -88,6 +92,7 @@ export function RoundView({
           score={roundState.score}
           scoreGoal={roundState.scoreGoal}
           handsRemaining={roundState.handsRemaining}
+          discardsRemaining={roundState.discardsRemaining}
           ante={runState.ante}
           blind={blind}
           bossEffect={bossEffect}
@@ -108,15 +113,24 @@ export function RoundView({
           isPlaying={isPlaying}
         />
 
-        {/* Play button */}
+        {/* Action buttons */}
         {roundState.type === 'selectingHand' && (
-          <button
-            onClick={onPlayHand}
-            disabled={!canPlayHand}
-            className="mt-8 text-xl px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
-          >
-            Play Hand
-          </button>
+          <div className="flex gap-4 mt-8">
+            <button
+              onClick={onPlayHand}
+              disabled={!canPlayHand}
+              className="text-xl px-8 py-3 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
+            >
+              Play Hand
+            </button>
+            <button
+              onClick={onDiscardCards}
+              disabled={!canDiscardCards}
+              className="text-xl px-8 py-3 bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 disabled:cursor-not-allowed rounded transition-colors"
+            >
+              Discard ({roundState.discardsRemaining})
+            </button>
+          </div>
         )}
 
         {/* Status text */}

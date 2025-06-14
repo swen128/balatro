@@ -70,7 +70,8 @@ export function selectBlind(state: SelectingBlindState): PlayingRoundState {
     drawPile,
     scoreGoal,
     state.runState.handsCount,
-    state.runState.handSize
+    state.runState.handSize,
+    state.runState.discardsCount
   );
   
   return {

@@ -67,7 +67,8 @@ export function createRoundState(
   drawPile: DrawPile,
   scoreGoal: number,
   handsCount: number,
-  handSize: number
+  handSize: number,
+  discardsCount: number
 ): RoundState {
   return {
     type: 'drawing',
@@ -78,6 +79,7 @@ export function createRoundState(
     handsRemaining: handsCount,
     handSize,
     handsPlayed: 0,
+    discardsRemaining: discardsCount,
   };
 }
 
@@ -234,6 +236,27 @@ export function continueToNextHand(state: PlayedState): DrawingState {
   return {
     ...state,
     type: 'drawing',
+  };
+}
+
+export function discardSelectedCards(state: SelectingHandState): DrawingState | SelectingHandState {
+  if (state.selectedCardIds.size === 0 || state.discardsRemaining <= 0) {
+    return state; // Can't discard with no cards selected or no discards remaining
+  }
+  
+  // Remove selected cards from hand
+  const remainingCards = state.hand.filter(card => !state.selectedCardIds.has(card.id));
+  const discardedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
+  
+  // Add discarded cards to discard pile
+  const newDrawPile = discardCards(state.drawPile, discardedCards);
+  
+  return {
+    ...state,
+    type: 'drawing',
+    hand: remainingCards,
+    drawPile: newDrawPile,
+    discardsRemaining: state.discardsRemaining - 1,
   };
 }
 

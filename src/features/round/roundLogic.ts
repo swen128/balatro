@@ -9,6 +9,7 @@ import {
   scoreHandWithBossEffect,
   finishScoring,
   continueToNextHand,
+  discardSelectedCards,
   shouldResetMoney as checkShouldResetMoney,
 } from '../../domain/roundState.ts';
 
@@ -82,4 +83,17 @@ export function handlePlayHand(state: RoundState): RoundState | null {
 
 export function isRoundFinished(state: RoundState): state is RoundFinishedState {
   return state.type === 'roundFinished';
+}
+
+export function handleDiscardCards(state: RoundState): RoundState | null {
+  if (state.type === 'selectingHand') {
+    return discardSelectedCards(state);
+  }
+  return null;
+}
+
+export function canDiscardCards(state: RoundState): boolean {
+  return state.type === 'selectingHand' && 
+         state.selectedCardIds.size > 0 && 
+         state.discardsRemaining > 0;
 }
