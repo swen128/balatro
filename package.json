@@ -9,7 +9,9 @@
     "preview": "bunx --bun vite preview",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "check": "bun run lint && bun run typecheck && bun test",
+    "prepare": "husky"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.10",
@@ -24,6 +26,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-unicorn": "^59.0.1",
+    "husky": "^9.1.7",
     "postcss": "^8.5.5",
     "tailwindcss": "^4.1.10",
     "typescript": "^5.8.3",

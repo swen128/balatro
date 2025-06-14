@@ -17,6 +17,7 @@ This is a Balatro card game implementation built with:
 - `bun run build` - Build for production
 - `bun run lint` - Run ESLint checks
 - `bun run typecheck` - Run TypeScript type checking
+- `bun run check` - Run all checks (lint, typecheck, and tests) - also runs as pre-commit hook
 
 ### Package Management
 Use `bun add` for adding dependencies (not npm or yarn).
@@ -93,10 +94,15 @@ The game uses immutable state with discriminated unions:
 See GAME_SPECIFICATION.md for detailed game rules and mechanics.
 
 ## Testing
-Currently no test framework is set up. When adding tests, use Bun's built-in test runner.
+- Use Bun's built-in test runner: `bun test`
+- **ALWAYS run tests before committing** to ensure code quality
+- Write tests for all domain logic (pure functions)
+- Test file naming: `<module>.test.ts`
 
 ## Git Workflow
 - Use conventional commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`)
+- The pre-commit hook will automatically run `bun run check` (lint, typecheck, and tests)
+- You can manually run `bun run check` to verify everything passes
 - When completing sub-tasks, commit changes after passing tests and linter before proceeding to the next task
 - When making commits, write:
   1. Overview of the change

@@ -1,30 +1,31 @@
-import { describe, it, expect } from 'bun:test';
-import { evaluatePokerHand } from './pokerHands.ts';
+import { describe, test, expect } from 'bun:test';
+import { evaluatePokerHand, getPokerHandByName } from './pokerHands.ts';
 import { createCard, getCardChipValue } from './card.ts';
+import type { Card } from './card.ts';
 
 describe('pokerHands', () => {
   describe('getCardChipValue', () => {
-    it('should return face value for number cards', () => {
+    test('should return face value for number cards', () => {
       expect(getCardChipValue(createCard('♠', '2'))).toBe(2);
-      expect(getCardChipValue(createCard('♥', '5'))).toBe(5);
-      expect(getCardChipValue(createCard('♦', '9'))).toBe(9);
-      expect(getCardChipValue(createCard('♣', '10'))).toBe(10);
+      expect(getCardChipValue(createCard('♠', '5'))).toBe(5);
+      expect(getCardChipValue(createCard('♠', '9'))).toBe(9);
+      expect(getCardChipValue(createCard('♠', '10'))).toBe(10);
     });
 
-    it('should return 10 for face cards', () => {
+    test('should return 10 for face cards', () => {
       expect(getCardChipValue(createCard('♠', 'J'))).toBe(10);
-      expect(getCardChipValue(createCard('♥', 'Q'))).toBe(10);
-      expect(getCardChipValue(createCard('♦', 'K'))).toBe(10);
+      expect(getCardChipValue(createCard('♠', 'Q'))).toBe(10);
+      expect(getCardChipValue(createCard('♠', 'K'))).toBe(10);
     });
 
-    it('should return 11 for aces', () => {
+    test('should return 11 for aces', () => {
       expect(getCardChipValue(createCard('♠', 'A'))).toBe(11);
     });
   });
 
   describe('evaluatePokerHand', () => {
-    it('should detect royal straight flush', () => {
-      const cards = [
+    test('should detect royal flush', () => {
+      const cards: ReadonlyArray<Card> = [
         createCard('♠', 'A'),
         createCard('♠', 'K'),
         createCard('♠', 'Q'),
@@ -33,11 +34,11 @@ describe('pokerHands', () => {
       ];
       
       const result = evaluatePokerHand(cards);
-      expect(result.handType.name).toBe('Royal Straight Flush');
+      expect(result.handType.name).toBe('Royal Flush');
       expect(result.scoringCards.length).toBe(5);
     });
 
-    it('should detect straight flush', () => {
+    test('should detect straight flush', () => {
       const cards = [
         createCard('♥', '9'),
         createCard('♥', '8'),
@@ -50,7 +51,7 @@ describe('pokerHands', () => {
       expect(result.handType.name).toBe('Straight Flush');
     });
 
-    it('should detect four of a kind', () => {
+    test('should detect four of a kind', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', 'K'),
@@ -64,7 +65,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(4);
     });
 
-    it('should detect full house', () => {
+    test('should detect full house', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', 'K'),
@@ -78,7 +79,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(5);
     });
 
-    it('should detect flush', () => {
+    test('should detect flush', () => {
       const cards = [
         createCard('♦', 'K'),
         createCard('♦', '10'),
@@ -92,7 +93,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(5);
     });
 
-    it('should detect straight', () => {
+    test('should detect straight', () => {
       const cards = [
         createCard('♠', '6'),
         createCard('♥', '5'),
@@ -106,7 +107,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(5);
     });
 
-    it('should detect three of a kind', () => {
+    test('should detect three of a kind', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', 'K'),
@@ -120,7 +121,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(3);
     });
 
-    it('should detect two pair', () => {
+    test('should detect two pair', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', 'K'),
@@ -134,7 +135,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(4);
     });
 
-    it('should detect pair', () => {
+    test('should detect pair', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', 'K'),
@@ -148,7 +149,7 @@ describe('pokerHands', () => {
       expect(result.scoringCards.length).toBe(2);
     });
 
-    it('should detect high card', () => {
+    test('should detect high card', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', '10'),
@@ -164,7 +165,7 @@ describe('pokerHands', () => {
       expect(firstCard?.rank).toBe('K');
     });
 
-    it('should handle less than 5 cards', () => {
+    test('should handle less than 5 cards', () => {
       const cards = [
         createCard('♠', 'K'),
         createCard('♥', 'K'),
@@ -175,7 +176,7 @@ describe('pokerHands', () => {
       expect(result.handType.name).toBe('Pair');
     });
 
-    it('should handle ace-low straight', () => {
+    test('should handle ace-low straight', () => {
       const cards = [
         createCard('♠', 'A'),
         createCard('♥', '2'),
@@ -187,6 +188,20 @@ describe('pokerHands', () => {
       const result = evaluatePokerHand(cards);
       expect(result.handType.name).toBe('Straight');
       expect(result.scoringCards.length).toBe(5);
+    });
+  });
+
+  describe('getPokerHandByName', () => {
+    test('returns correct hand type', () => {
+      const flush = getPokerHandByName('Flush');
+      expect(flush?.name).toBe('Flush');
+      expect(flush?.baseChips).toBe(35);
+      expect(flush?.baseMult).toBe(4);
+    });
+
+    test('returns undefined for invalid name', () => {
+      const result = getPokerHandByName('Invalid Hand');
+      expect(result).toBeUndefined();
     });
   });
 });

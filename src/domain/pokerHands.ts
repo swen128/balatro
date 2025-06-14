@@ -249,6 +249,10 @@ function compareKickers(a: ReadonlyArray<Card>, b: ReadonlyArray<Card>): number 
   return firstDiff ?? 0;
 }
 
+export function getPokerHandByName(name: string): PokerHandType | undefined {
+  return Object.values(POKER_HANDS).find(hand => hand.name === name);
+}
+
 export function hasPokerHand(cards: ReadonlyArray<Card>, handName: string): boolean {
   const evaluated = evaluatePokerHand(cards);
   return evaluated.handType.name === handName;

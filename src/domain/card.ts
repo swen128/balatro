@@ -80,3 +80,26 @@ export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
   return shuffled;
 }
 /* eslint-enable functional/no-let, functional/no-conditional-statements */
+
+export function isSameSuit(card1: Card, card2: Card): boolean {
+  return card1.suit === card2.suit;
+}
+
+export function isSameRank(card1: Card, card2: Card): boolean {
+  return card1.rank === card2.rank;
+}
+
+export function compareRanks(rank1: Rank, rank2: Rank): number {
+  const index1 = getRankIndex(rank1);
+  const index2 = getRankIndex(rank2);
+  return index1 - index2;
+}
+
+export function sortCards(cards: ReadonlyArray<Card>): ReadonlyArray<Card> {
+  return [...cards].sort((a, b) => {
+    const rankCompare = compareRanks(a.rank, b.rank);
+    return rankCompare !== 0
+      ? rankCompare
+      : SUITS.indexOf(a.suit) - SUITS.indexOf(b.suit);
+  });
+}
