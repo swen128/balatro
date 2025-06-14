@@ -162,6 +162,10 @@ export function loseRound(): GameState {
   return createMainMenuState();
 }
 
+export function returnToMenu(): GameState {
+  return createMainMenuState();
+}
+
 export function leaveShop(state: ShopState): SelectingBlindState {
   const blindType = getCurrentBlindType(state.runState);
   

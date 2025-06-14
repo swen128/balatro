@@ -152,6 +152,14 @@ export function RoundView({
           {renderStatusText()}
         </div>
       </div>
+      
+      {/* Menu button */}
+      <button
+        className="absolute top-4 right-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
+        onClick={() => window.location.reload()}
+      >
+        Return to Menu
+      </button>
     </div>
   );
 }
