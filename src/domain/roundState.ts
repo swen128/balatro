@@ -1,165 +1,188 @@
-import { NonEmptyArray, nonEmptyArray } from "../utils/nonEmptyArray";
-import { scoreGoal } from "./blind";
-import { chip, type PlayingCardEntity, type PlayingCardId } from "./card";
-import { ChipMult } from "./chipMult";
-import { DrawPile } from "./drawPile";
-import type { Effect } from "./effect";
-import { HandSelection } from "./handSelection";
-import { evaluate, type PlayedHand } from "./pokerHand";
-import type { RunState } from "./runState";
+import type { Card } from './card.ts';
+import type { DrawPile } from './drawPile.ts';
+import { drawCards, discardCards } from './drawPile.ts';
+import type { EvaluatedHand } from './pokerHands.ts';
+import { evaluatePokerHand } from './pokerHands.ts';
+import type { ChipMult } from './scoring.ts';
+import { calculateBaseChipMult, calculateFinalScore, applyEffects } from './scoring.ts';
 
-export type RoundState = DrawingState | SelectingHandState | PlayingState | ScoringState | PlayedState | RoundFinishedState;
+export type RoundState = 
+  | DrawingState
+  | SelectingHandState
+  | PlayingState
+  | ScoringState
+  | PlayedState
+  | RoundFinishedState;
 
-interface DrawingState extends BaseState {
-    phase: 'drawing';
-    hand: Array<PlayingCardEntity & { state: 'drawing' | 'inHand' }>;
+interface BaseRoundState {
+  readonly drawPile: DrawPile;
+  readonly hand: ReadonlyArray<Card>;
+  readonly score: number;
+  readonly scoreGoal: number;
+  readonly handsRemaining: number;
+  readonly handSize: number;
 }
 
-interface SelectingHandState extends BaseState {
-    phase: 'selectingHand';
-    hand: HandSelection;
+interface DrawingState extends BaseRoundState {
+  readonly type: 'drawing';
 }
 
-interface PlayingState extends BaseState {
-    phase: 'playing';
-    hand: Array<PlayingCardEntity & { state: 'played' | 'staying' }>;
-    playedHand: PlayedHand;
+interface SelectingHandState extends BaseRoundState {
+  readonly type: 'selectingHand';
+  readonly selectedCardIds: ReadonlySet<string>;
 }
 
-interface ScoringState extends BaseState {
-    phase: 'scoring';
-    playedHand: PlayedHand;
-    stayingCards: PlayingCardEntity[];
-    unresolvedEffects: NonEmptyArray<Effect>;
-    chipMult: ChipMult;
+interface PlayingState extends BaseRoundState {
+  readonly type: 'playing';
+  readonly playedCards: ReadonlyArray<Card>;
+  readonly evaluatedHand: EvaluatedHand;
 }
 
-interface PlayedState extends BaseState {
-    phase: 'played';
-    playedHand: PlayedHand;
-    stayingCards: PlayingCardEntity[];
-    chipMult: ChipMult;
+interface ScoringState extends BaseRoundState {
+  readonly type: 'scoring';
+  readonly playedCards: ReadonlyArray<Card>;
+  readonly evaluatedHand: EvaluatedHand;
+  readonly baseChipMult: ChipMult;
+  readonly finalScore: number;
 }
 
-interface RoundFinishedState extends BaseState {
-    phase: 'roundFinished';
-    stayingCards: PlayingCardEntity[];
-    hasPlayerWon: boolean;
+interface PlayedState extends BaseRoundState {
+  readonly type: 'played';
+  readonly lastHandScore: number;
 }
 
-interface BaseState {
-    drawPile: DrawPile;
-    score: number;
-    scoreGoal: number;
-    remainingHands: number;
-    handSize: number;
+interface RoundFinishedState extends BaseRoundState {
+  readonly type: 'roundFinished';
+  readonly won: boolean;
 }
 
-export const initialState = (runState: RunState): RoundState => {
-    const drawPile = DrawPile.init(runState.deck);
-    const { drawn, remaining } = drawPile.draw(runState.handSize);
-
-    const blind = {
-        small: { type: 'small' as const },
-        big: { type: 'big' as const },
-        boss: { type: 'boss' as const, name: runState.bossBlind },
-    }[runState.nextBlind];
-
-    return {
-        phase: 'drawing',
-        hand: drawn.map(card => ({ ...card, state: 'drawing' })),
-        drawPile: remaining,
-        score: 0,
-        scoreGoal: scoreGoal(blind, runState.ante),
-        remainingHands: runState.handsCount,
-        handSize: runState.handSize,
-    };
+export function createRoundState(
+  drawPile: DrawPile,
+  scoreGoal: number,
+  handsCount: number,
+  handSize: number
+): RoundState {
+  return {
+    type: 'drawing',
+    drawPile,
+    hand: [],
+    score: 0,
+    scoreGoal,
+    handsRemaining: handsCount,
+    handSize,
+  };
 }
 
-export const startSelectingHand = (state: DrawingState): SelectingHandState => {
-    return {
-        ...state,
-        phase: 'selectingHand',
-        hand: HandSelection.init(state.hand),
-    };
+export function drawCardsToHand(state: DrawingState): SelectingHandState {
+  const cardsNeeded = state.handSize - state.hand.length;
+  const { pile, drawnCards } = drawCards(state.drawPile, cardsNeeded);
+  
+  return {
+    ...state,
+    type: 'selectingHand',
+    drawPile: pile,
+    hand: [...state.hand, ...drawnCards],
+    selectedCardIds: new Set(),
+  };
 }
 
-export const toggleCardSelection = (state: SelectingHandState, cardId: PlayingCardId): SelectingHandState => {
-    return { ...state, hand: state.hand.toggleCardSelection(cardId) };
-}
-
-export const playSelectedCards = (state: SelectingHandState): PlayingState | undefined => {
-    const selectedCards = nonEmptyArray(state.hand.cards.filter(card => card.isSelected));
-    return selectedCards === undefined
-        ? undefined
-        : {
-            ...state,
-            phase: 'playing',
-            playedHand: evaluate(selectedCards),
-            hand: state.hand.cards.map(card => card.isSelected
-                ? { ...card, state: 'played' }
-                : { ...card, state: 'staying' }
-            ),
-        };
-}
-
-export const startScoring = (state: PlayingState): ScoringState | PlayedState => {
-    const scoredCards = state.playedHand.cards.filter(card => card.isScored);
-    const stayingCards = state.hand.filter(card => card.state === 'staying');
-    const chipMult = ChipMult.init(state.playedHand.pokerHand);
-    const effects = nonEmptyArray(scoredCards.map<Effect>(card => ({
-        type: 'chip',
-        value: chip(card),
-        source: { type: 'playedHand', card },
-    })));
-
-    if (effects === undefined) return {
-        ...state,
-        phase: 'played',
-        stayingCards,
-        chipMult,
-    };
-
-    return {
-        ...state,
-        phase: 'scoring',
-        stayingCards,
-        chipMult,
-        unresolvedEffects: effects,
-    };
-}
-
-export const resolveEffect = (state: ScoringState): { nextState: ScoringState | PlayedState, resolvedEffect: Effect } => {
-    const [resolvedEffect, ...remainingEffect] = state.unresolvedEffects;
-    const unresolvedEffects = nonEmptyArray(remainingEffect);
-    const chipMult = state.chipMult.withEffectApplied(resolvedEffect);
-
-    return unresolvedEffects === undefined
-        ? { resolvedEffect, nextState: { ...state, phase: 'played', chipMult } }
-        : { resolvedEffect, nextState: { ...state, unresolvedEffects, chipMult } };
-}
-
-export const endTurn = (state: PlayedState): DrawingState | RoundFinishedState => {
-    if (state.score >= state.scoreGoal) {
-        return { ...state, phase: 'roundFinished', hasPlayerWon: true };
+export function toggleCardSelection(
+  state: SelectingHandState,
+  cardId: string
+): SelectingHandState {
+  const newSelectedIds = new Set(state.selectedCardIds);
+  
+  if (newSelectedIds.has(cardId)) {
+    newSelectedIds.delete(cardId);
+  } else {
+    if (newSelectedIds.size < 5) {
+      newSelectedIds.add(cardId);
     }
-    if (state.remainingHands === 0) {
-        return { ...state, phase: 'roundFinished', hasPlayerWon: false };
-    }
-
-    const amountToDraw = state.handSize - state.stayingCards.length;
-    const { drawn, remaining } = state.drawPile.draw(amountToDraw);
-
-    const stayingCards = state.stayingCards.map(card => ({ ...card, state: 'inHand' as const }));
-    const drawnCards = drawn.map(card => ({ ...card, state: 'drawing' as const }));
-
-    return {
-        ...state,
-        phase: 'drawing',
-        hand: [...stayingCards, ...drawnCards],
-        score: state.score + state.chipMult.score(),
-        drawPile: remaining,
-        remainingHands: state.remainingHands - 1,
-    };
+  }
+  
+  return {
+    ...state,
+    selectedCardIds: newSelectedIds,
+  };
 }
 
+export function playSelectedCards(state: SelectingHandState): PlayingState | SelectingHandState {
+  if (state.selectedCardIds.size === 0) {
+    return state; // Can't play with no cards selected
+  }
+  
+  const playedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
+  const evaluatedHand = evaluatePokerHand(playedCards);
+  
+  return {
+    ...state,
+    type: 'playing',
+    playedCards,
+    evaluatedHand,
+  };
+}
+
+export function scoreHand(state: PlayingState): ScoringState {
+  const baseChipMult = calculateBaseChipMult(state.evaluatedHand);
+  // In the future, additional effects would be applied here
+  const finalChipMult = applyEffects(baseChipMult, []);
+  const finalScore = calculateFinalScore(finalChipMult);
+  
+  return {
+    ...state,
+    type: 'scoring',
+    baseChipMult,
+    finalScore,
+  };
+}
+
+export function finishScoring(state: ScoringState): PlayedState | RoundFinishedState {
+  const newScore = state.score + state.finalScore;
+  const remainingCards = state.hand.filter(
+    card => !state.playedCards.some(played => played.id === card.id)
+  );
+  const newDrawPile = discardCards(state.drawPile, state.playedCards);
+  const newHandsRemaining = state.handsRemaining - 1;
+  
+  // Check if round is finished
+  if (newScore >= state.scoreGoal) {
+    return {
+      ...state,
+      type: 'roundFinished',
+      score: newScore,
+      hand: remainingCards,
+      drawPile: newDrawPile,
+      handsRemaining: newHandsRemaining,
+      won: true,
+    };
+  }
+  
+  if (newHandsRemaining <= 0) {
+    return {
+      ...state,
+      type: 'roundFinished',
+      score: newScore,
+      hand: remainingCards,
+      drawPile: newDrawPile,
+      handsRemaining: 0,
+      won: false,
+    };
+  }
+  
+  return {
+    ...state,
+    type: 'played',
+    score: newScore,
+    hand: remainingCards,
+    drawPile: newDrawPile,
+    handsRemaining: newHandsRemaining,
+    lastHandScore: state.finalScore,
+  };
+}
+
+export function continueToNextHand(state: PlayedState): DrawingState {
+  return {
+    ...state,
+    type: 'drawing',
+  };
+}

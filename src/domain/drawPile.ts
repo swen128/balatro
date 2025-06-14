@@ -1,24 +1,78 @@
-import { PlayingCardEntity } from "./card";
+import type { Card } from './card.ts';
 
-export class DrawPile {
-    static init(cards: PlayingCardEntity[]): DrawPile {
-        // TODO: Shuffle the cards.
-        return new DrawPile(cards);
+export interface DrawPile {
+  readonly cards: ReadonlyArray<Card>;
+  readonly discardPile: ReadonlyArray<Card>;
+}
+
+export function createDrawPile(cards: ReadonlyArray<Card>): DrawPile {
+  return {
+    cards: shuffle(cards),
+    discardPile: [],
+  };
+}
+
+export function drawCards(
+  pile: DrawPile,
+  count: number
+): { pile: DrawPile; drawnCards: ReadonlyArray<Card> } {
+  if (count <= 0) {
+    return { pile, drawnCards: [] };
+  }
+  
+  let availableCards = [...pile.cards];
+  let discardPile = [...pile.discardPile];
+  const drawnCards: Card[] = [];
+  
+  for (let i = 0; i < count; i++) {
+    if (availableCards.length === 0) {
+      // Reshuffle discard pile if we run out of cards
+      if (discardPile.length === 0) {
+        break; // No more cards to draw
+      }
+      availableCards = shuffle(discardPile);
+      discardPile = [];
     }
-
-    private constructor(private cards: PlayingCardEntity[]) { }
-
-    /**
-     * Draws up to `amount` cards from the top of the draw pile.
-     */
-    draw(amount: number): { drawn: PlayingCardEntity[], remaining: DrawPile } {
-        const clampedAmount = Math.max(0, Math.min(this.cards.length, amount));
-        const drawn = this.cards.slice(0, clampedAmount);
-        const remaining = new DrawPile(this.cards.slice(clampedAmount));
-        return { drawn, remaining }
+    
+    const card = availableCards.shift();
+    if (card) {
+      drawnCards.push(card);
     }
+  }
+  
+  return {
+    pile: {
+      cards: availableCards,
+      discardPile,
+    },
+    drawnCards,
+  };
+}
 
-    count(): number {
-        return this.cards.length;
+export function discardCards(
+  pile: DrawPile,
+  cards: ReadonlyArray<Card>
+): DrawPile {
+  return {
+    cards: pile.cards,
+    discardPile: [...pile.discardPile, ...cards],
+  };
+}
+
+export function getRemainingCardCount(pile: DrawPile): number {
+  return pile.cards.length + pile.discardPile.length;
+}
+
+function shuffle<T>(array: ReadonlyArray<T>): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    const temp = shuffled[i];
+    const jItem = shuffled[j];
+    if (temp !== undefined && jItem !== undefined) {
+      shuffled[i] = jItem;
+      shuffled[j] = temp;
     }
+  }
+  return shuffled;
 }

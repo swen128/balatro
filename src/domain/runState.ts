@@ -1,85 +1,149 @@
-import { BossBlindName } from "./blind";
-import { PlayingCardEntity, allRanks, allSuits } from "./card";
+import type { Card } from './card.ts';
+import { createStandardDeck } from './card.ts';
+import type { BossBlind } from './blind.ts';
+import { getRandomBossBlind } from './blind.ts';
 
-export type RunState = SmallBlindUpcoming | BigBlindUpcoming | BossBlindUpcoming;
-
-interface SmallBlindUpcoming extends RunStateBase {
-    nextBlind: 'small';
-}
-interface BigBlindUpcoming extends RunStateBase {
-    nextBlind: 'big';
-    smallBlind: BlindState;
-}
-
-interface BossBlindUpcoming extends RunStateBase {
-    nextBlind: 'boss';
-    smallBlind: BlindState;
-    bigBlind: BlindState;
+export interface RunState {
+  readonly ante: number;
+  readonly cash: number;
+  readonly deck: ReadonlyArray<Card>;
+  readonly handSize: number;
+  readonly handsCount: number;
+  readonly round: number;
+  readonly blindProgression: BlindProgression;
 }
 
-interface RunStateBase {
-    handSize: number;
-    handsCount: number;
-    cash: number;
-    deck: PlayingCardEntity[];
-    ante: number;
-    round: number;
-    bossBlind: BossBlindName;
+export type BlindProgression =
+  | SmallBlindUpcoming
+  | BigBlindUpcoming
+  | BossBlindUpcoming;
+
+interface SmallBlindUpcoming {
+  readonly type: 'smallBlindUpcoming';
 }
 
-type BlindState = 'skipped' | 'defeated';
+interface BigBlindUpcoming {
+  readonly type: 'bigBlindUpcoming';
+  readonly smallBlindSkipped: boolean;
+  readonly smallBlindDefeated: boolean;
+}
 
-export const initialRunState = (): RunState => ({
+interface BossBlindUpcoming {
+  readonly type: 'bossBlindUpcoming';
+  readonly bossBlind: BossBlind;
+  readonly smallBlindSkipped: boolean;
+  readonly smallBlindDefeated: boolean;
+  readonly bigBlindSkipped: boolean;
+  readonly bigBlindDefeated: boolean;
+}
+
+export function createInitialRunState(): RunState {
+  return {
+    ante: 1,
+    cash: 10,
+    deck: createStandardDeck(),
     handSize: 8,
     handsCount: 4,
-    cash: 10,
-    deck: starterDeck(),
-    ante: 1,
     round: 0,
-    nextBlind: 'small',
-    bossBlind: 'The Window',
-});
-
-const starterDeck = (): PlayingCardEntity[] => {
-    let id = 0;
-    return allSuits.flatMap(suit => allRanks.map(rank => ({
-        id: id++,
-        card: {
-            rank,
-            suit
-        },
-    })));
+    blindProgression: {
+      type: 'smallBlindUpcoming',
+    },
+  };
 }
 
-export const winRound = (state: RunState, earnedCash: number): RunState => {
-    const { handSize, handsCount, deck, ante, round, cash, nextBlind, bossBlind } = state;
+export function skipSmallBlind(state: RunState): RunState {
+  if (state.blindProgression.type !== 'smallBlindUpcoming') {
+    throw new Error('Can only skip small blind when it is upcoming');
+  }
+  
+  return {
+    ...state,
+    blindProgression: {
+      type: 'bigBlindUpcoming',
+      smallBlindSkipped: true,
+      smallBlindDefeated: false,
+    },
+  };
+}
 
-    const nextAnte = {
-        small: ante,
-        big: ante,
-        boss: ante + 1,
-    }[nextBlind];
+export function defeatSmallBlind(state: RunState, cashReward: number): RunState {
+  if (state.blindProgression.type !== 'smallBlindUpcoming') {
+    throw new Error('Can only defeat small blind when it is upcoming');
+  }
+  
+  return {
+    ...state,
+    cash: state.cash + cashReward,
+    round: state.round + 1,
+    blindProgression: {
+      type: 'bigBlindUpcoming',
+      smallBlindSkipped: false,
+      smallBlindDefeated: true,
+    },
+  };
+}
 
-    const stateBase: RunStateBase = {
-        handSize,
-        handsCount,
-        deck,
-        bossBlind,
-        cash: cash + earnedCash,
-        ante: nextAnte,
-        round: round + 1,
-    };
+export function skipBigBlind(state: RunState): RunState {
+  if (state.blindProgression.type !== 'bigBlindUpcoming') {
+    throw new Error('Can only skip big blind when it is upcoming');
+  }
+  
+  return {
+    ...state,
+    blindProgression: {
+      type: 'bossBlindUpcoming',
+      bossBlind: getRandomBossBlind(),
+      smallBlindSkipped: state.blindProgression.smallBlindSkipped,
+      smallBlindDefeated: state.blindProgression.smallBlindDefeated,
+      bigBlindSkipped: true,
+      bigBlindDefeated: false,
+    },
+  };
+}
 
-    switch (state.nextBlind) {
-        case 'small': return { ...stateBase, nextBlind: 'big', smallBlind: 'defeated' };
-        case 'big': return { ...stateBase, nextBlind: 'boss', smallBlind: state.smallBlind, bigBlind: 'defeated' };
-        case 'boss': return { ...stateBase, nextBlind: 'small' };
-    }
-};
+export function defeatBigBlind(state: RunState, cashReward: number): RunState {
+  if (state.blindProgression.type !== 'bigBlindUpcoming') {
+    throw new Error('Can only defeat big blind when it is upcoming');
+  }
+  
+  return {
+    ...state,
+    cash: state.cash + cashReward,
+    round: state.round + 1,
+    blindProgression: {
+      type: 'bossBlindUpcoming',
+      bossBlind: getRandomBossBlind(),
+      smallBlindSkipped: state.blindProgression.smallBlindSkipped,
+      smallBlindDefeated: state.blindProgression.smallBlindDefeated,
+      bigBlindSkipped: false,
+      bigBlindDefeated: true,
+    },
+  };
+}
 
-export const skipBlind = (state: SmallBlindUpcoming | BigBlindUpcoming): RunState => {
-    switch (state.nextBlind) {
-        case 'small': return { ...state, nextBlind: 'big', smallBlind: 'skipped' };
-        case 'big': return { ...state, nextBlind: 'boss', smallBlind: state.smallBlind, bigBlind: 'skipped' };
-    }
-};
+export function defeatBossBlind(state: RunState, cashReward: number): RunState {
+  if (state.blindProgression.type !== 'bossBlindUpcoming') {
+    throw new Error('Can only defeat boss blind when it is upcoming');
+  }
+  
+  return {
+    ...state,
+    ante: state.ante + 1,
+    cash: state.cash + cashReward,
+    round: state.round + 1,
+    blindProgression: {
+      type: 'smallBlindUpcoming',
+    },
+  };
+}
+
+export function getCurrentBlindType(state: RunState): 'small' | 'big' | 'boss' {
+  switch (state.blindProgression.type) {
+    case 'smallBlindUpcoming':
+      return 'small';
+    case 'bigBlindUpcoming':
+      return 'big';
+    case 'bossBlindUpcoming':
+      return 'boss';
+  }
+}
