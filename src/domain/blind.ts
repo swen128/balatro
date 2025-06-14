@@ -22,6 +22,9 @@ export const BIG_BLIND: BlindType = {
   isBoss: false,
 };
 
+import type { TypedBossBlind } from './bossEffects.ts';
+import { createTypedBossBlind } from './bossEffects.ts';
+
 export interface BossBlind {
   readonly type: 'boss';
   readonly name: string;
@@ -58,7 +61,7 @@ export const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
   },
 ];
 
-export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {
+export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind | TypedBossBlind): number {
   const baseScores = [
     100,  // Ante 1
     300,  // Ante 2
@@ -82,7 +85,7 @@ export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): n
   return Math.floor(baseScore * blind.scoreMultiplier);
 }
 
-export function getCashReward(blind: BlindType | BossBlind): number {
+export function getCashReward(blind: BlindType | BossBlind | TypedBossBlind): number {
   return blind.cashReward;
 }
 
@@ -104,4 +107,18 @@ export function createBlind(type: 'small' | 'big' | 'boss'): BlindType | BossBli
     case 'boss':
       return getRandomBossBlind();
   }
+}
+
+// Create typed boss blinds from existing boss blinds
+export const TYPED_BOSS_BLINDS: ReadonlyArray<TypedBossBlind> = BOSS_BLINDS.map(
+  boss => createTypedBossBlind(boss.name, boss.effect, boss.scoreMultiplier, boss.cashReward)
+);
+
+export function getRandomTypedBossBlind(): TypedBossBlind {
+  const index = Math.floor(Math.random() * TYPED_BOSS_BLINDS.length);
+  const boss = TYPED_BOSS_BLINDS[index];
+  if (!boss) {
+    throw new Error('No typed boss blinds available');
+  }
+  return boss;
 }

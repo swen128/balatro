@@ -131,3 +131,4 @@ export function StatisticsView({ statistics, isOpen, onClose }: StatisticsViewPr
     </div>
   );
 }
+ 

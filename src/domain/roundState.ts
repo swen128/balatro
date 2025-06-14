@@ -7,7 +7,7 @@ import type { ChipMult } from './scoring.ts';
 import { calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects } from './scoring.ts';
 import type { BossBlind } from './blind.ts';
 import type { BossEffectContext } from './bossEffects.ts';
-import { applyBossEffectOnHandSelection, applyBossEffectOnScoring } from './bossEffects.ts';
+import { applyBossEffectOnScoring } from './bossEffects.ts';
 import type { Joker, JokerContext } from './joker.ts';
 import { evaluateAllJokers } from './joker.ts';
 
@@ -101,20 +101,31 @@ export function drawCardsToHand(state: DrawingState): SelectingHandState {
 export function drawCardsToHandWithBossEffect(
   state: DrawingState,
   bossBlind: BossBlind | null,
-  totalMoney: number
+  _totalMoney: number
 ): SelectingHandState {
-  let nextState = drawCardsToHand(state);
+  const baseState = drawCardsToHand(state);
   
-  if (bossBlind) {
-    const context: BossEffectContext = {
-      bossBlind,
-      handsPlayed: state.handsPlayed,
-      totalMoney,
-    };
-    nextState = applyBossEffectOnHandSelection(nextState, context);
+  if (!bossBlind) {
+    return baseState;
   }
   
-  return nextState;
+  // Apply The Hook effect - discard random cards
+  if (bossBlind.name === 'The Hook') {
+    const cardsToDiscard = 2;
+    if (baseState.hand.length > cardsToDiscard) {
+      const shuffled = [...baseState.hand].sort(() => Math.random() - 0.5);
+      const remainingHand = shuffled.slice(cardsToDiscard);
+      const discardedCards = shuffled.slice(0, cardsToDiscard);
+      
+      return {
+        ...baseState,
+        hand: remainingHand,
+        drawPile: discardCards(baseState.drawPile, discardedCards),
+      };
+    }
+  }
+  
+  return baseState;
 }
 
 export function toggleCardSelection(

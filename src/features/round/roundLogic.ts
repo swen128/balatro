@@ -11,7 +11,6 @@ import {
   finishScoring,
   continueToNextHand,
   discardSelectedCards,
-  shouldResetMoney as checkShouldResetMoney,
 } from '../../domain/roundState.ts';
 
 export interface RoundTransition {
@@ -35,18 +34,13 @@ export function getNextRoundState(
     }
 
     case 'playing': {
-      let nextState: RoundState;
-      let shouldResetMoney = false;
+      const nextState = bossBlind
+        ? scoreHandWithBossEffect(currentState, bossBlind, money, jokers)
+        : scoreHand(currentState, jokers);
       
-      if (bossBlind) {
-        const scoringState = scoreHandWithBossEffect(currentState, bossBlind, money, jokers);
-        nextState = scoringState;
-        shouldResetMoney = checkShouldResetMoney(scoringState, bossBlind);
-      } else {
-        nextState = scoreHand(currentState, jokers);
-      }
-      
-      return { nextState, shouldResetMoney, delayMs: 1000 };
+      // The Ox effect requires tracking hand counts which isn't available here
+      // For now, we'll handle money reset at a higher level
+      return { nextState, delayMs: 1000 };
     }
 
     case 'scoring': {
