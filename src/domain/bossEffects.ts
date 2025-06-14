@@ -1,23 +1,14 @@
 import type { Card } from './card.ts';
 
-// Effect timing phases
+// Boss effect types organized by when they apply
 export type BossEffectType = 
-  | RoundStartEffect
   | HandSelectionEffect
   | PreScoringEffect
   | ScoringModifierEffect
   | PostScoringEffect
   | RoundEndEffect;
 
-// Round start effects - applied when round begins
-export type RoundStartEffect = {
-  readonly kind: 'roundStart';
-  readonly type: 'removeCardType';
-  readonly cardType: 'face' | 'number' | 'suit';
-  readonly target?: string; // specific rank or suit
-};
-
-// Hand selection effects - affect card selection/drawing
+// Hand selection effects - applied when selecting cards to play
 export type HandSelectionEffect = {
   readonly kind: 'handSelection';
 } & (
@@ -27,16 +18,16 @@ export type HandSelectionEffect = {
   | { readonly type: 'preventCardPlay'; readonly rank: string }
 );
 
-// Pre-scoring effects - modify hand before scoring
+// Pre-scoring effects - modify score before calculation
 export type PreScoringEffect = {
   readonly kind: 'preScoring';
 } & (
+  | { readonly type: 'firstHandScoresZero' }
   | { readonly type: 'debuffAllCardsInHand' }
   | { readonly type: 'removeAllSuits' }
-  | { readonly type: 'firstHandScoresZero' }
 );
 
-// Scoring modifier effects - change how scores are calculated
+// Scoring modifier effects - modify chip/mult calculation
 export type ScoringModifierEffect = {
   readonly kind: 'scoringModifier';
 } & (
@@ -45,7 +36,7 @@ export type ScoringModifierEffect = {
   | { readonly type: 'onlyOneHandType'; readonly handType: string }
 );
 
-// Post-scoring effects - applied after scoring
+// Post-scoring effects - applied after score calculation
 export type PostScoringEffect = {
   readonly kind: 'postScoring';
 } & (
@@ -74,7 +65,7 @@ export interface TypedBossBlind {
 // Convert old boss blinds to new typed system
 export function createTypedBossBlind(
   name: string,
-  effect: string,
+  _effect: string,
   scoreMultiplier: number = 2,
   cashReward: number = 5
 ): TypedBossBlind {
@@ -91,7 +82,7 @@ export function createTypedBossBlind(
 }
 
 // Parse old effect strings into typed effects
-function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
+export function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
   switch (name) {
     case 'The Window':
       return [{
@@ -126,9 +117,12 @@ export function applyHandSelectionEffect(
 ): ReadonlyArray<Card> {
   switch (effect.type) {
     case 'discardRandomCards': {
-      if (hand.length <= effect.count) return [];
-      const shuffled = [...hand].sort(() => Math.random() - 0.5);
-      return shuffled.slice(effect.count);
+      return hand.length <= effect.count
+        ? []
+        : ((): ReadonlyArray<Card> => {
+            const shuffled = [...hand].sort(() => Math.random() - 0.5);
+            return shuffled.slice(effect.count);
+          })();
     }
     
     case 'forceSuit':
@@ -198,9 +192,7 @@ export function getBossEffectsForPhase<T extends BossEffectType>(
   boss: TypedBossBlind,
   phase: T['kind']
 ): ReadonlyArray<T> {
-  return boss.effects.filter(
-    (effect): effect is T => effect.kind === phase
-  );
+  return boss.effects.filter((effect): effect is T => effect.kind === phase);
 }
 
 // Context for boss effect application
@@ -215,19 +207,15 @@ export function applyBossEffectOnHandSelection(
   hand: ReadonlyArray<Card>,
   bossBlind: TypedBossBlind | null
 ): ReadonlyArray<Card> {
-  if (!bossBlind || !('effects' in bossBlind)) {
-    return hand;
-  }
-  
-  const handSelectionEffects = getBossEffectsForPhase<HandSelectionEffect>(
-    bossBlind,
-    'handSelection'
-  );
-  
-  return handSelectionEffects.reduce(
-    (currentHand, effect) => applyHandSelectionEffect(effect, currentHand),
-    hand
-  );
+  return !bossBlind || !('effects' in bossBlind)
+    ? hand
+    : getBossEffectsForPhase<HandSelectionEffect>(
+        bossBlind,
+        'handSelection'
+      ).reduce(
+        (currentHand, effect) => applyHandSelectionEffect(effect, currentHand),
+        hand
+      );
 }
 
 // Apply boss effects during scoring
@@ -236,32 +224,30 @@ export function applyBossEffectOnScoring<T extends { finalScore: number }>(
   context: BossEffectContext
 ): T {
   // Handle old boss blind format
-  if (!('effects' in context.bossBlind)) {
-    // Legacy boss effect handling
-    if (context.bossBlind.name === 'The Window' && context.handsPlayed === 0) {
-      return {
-        ...scoringState,
-        finalScore: 0,
-      };
-    }
-    return scoringState;
-  }
-  
-  const boss = context.bossBlind;
-  const preScoringEffects = getBossEffectsForPhase<PreScoringEffect>(boss, 'preScoring');
-  
-  const modifiedScore = preScoringEffects.reduce(
-    (score, effect) => 
-      shouldApplyPreScoringEffect(effect, context.handsPlayed)
-        ? applyPreScoringEffect(effect, score, context.handsPlayed)
-        : score,
-    scoringState.finalScore
-  );
-  
-  return {
-    ...scoringState,
-    finalScore: modifiedScore,
-  };
+  return !('effects' in context.bossBlind)
+    ? context.bossBlind.name === 'The Window' && context.handsPlayed === 0
+      ? {
+          ...scoringState,
+          finalScore: 0,
+        }
+      : scoringState
+    : ((): T => {
+        const boss = context.bossBlind;
+        const preScoringEffects = getBossEffectsForPhase<PreScoringEffect>(boss, 'preScoring');
+        
+        const modifiedScore = preScoringEffects.reduce(
+          (score, effect) => 
+            shouldApplyPreScoringEffect(effect, context.handsPlayed)
+              ? applyPreScoringEffect(effect, score, context.handsPlayed)
+              : score,
+          scoringState.finalScore
+        );
+        
+        return {
+          ...scoringState,
+          finalScore: modifiedScore,
+        };
+      })();
 }
 
 // Check if money should be reset (for The Ox effect)
@@ -270,34 +256,32 @@ export function shouldResetMoney(
   playedHandType: string,
   handCounts: Record<string, number>
 ): boolean {
-  if (!bossBlind) return false;
-  
-  // Handle old boss blind format
-  if (!('effects' in bossBlind)) {
-    if (bossBlind.name === 'The Ox') {
-      // Find most played hand type
-      const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
-      const mostPlayedHands = Object.entries(handCounts)
-        .filter(([, count]) => count === mostPlayedCount)
-        .map(([handType]) => handType);
-      
-      return mostPlayedHands.includes(playedHandType);
-    }
-    return false;
-  }
-  
-  const boss = bossBlind;
-  const postScoringEffects = getBossEffectsForPhase<PostScoringEffect>(boss, 'postScoring');
-  
-  return postScoringEffects.some(effect => {
-    if (effect.type === 'setMoneyToZero' && effect.condition === 'mostPlayedHand') {
-      const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
-      const mostPlayedHands = Object.entries(handCounts)
-        .filter(([, count]) => count === mostPlayedCount)
-        .map(([handType]) => handType);
-      
-      return mostPlayedHands.includes(playedHandType);
-    }
-    return false;
-  });
+  return !bossBlind
+    ? false
+    : !('effects' in bossBlind)
+    ? bossBlind.name === 'The Ox' && ((): boolean => {
+        const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
+        const mostPlayedHands = Object.entries(handCounts)
+          .filter(([, count]) => count === mostPlayedCount)
+          .map(([handType]) => handType);
+        
+        return mostPlayedHands.includes(playedHandType);
+      })()
+    : ((): boolean => {
+        const boss = bossBlind;
+        const postScoringEffects = getBossEffectsForPhase<PostScoringEffect>(boss, 'postScoring');
+        
+        return postScoringEffects.some(effect => {
+          return effect.type === 'setMoneyToZero' && effect.condition === 'mostPlayedHand'
+            ? ((): boolean => {
+                const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
+                const mostPlayedHands = Object.entries(handCounts)
+                  .filter(([, count]) => count === mostPlayedCount)
+                  .map(([handType]) => handType);
+                
+                return mostPlayedHands.includes(playedHandType);
+              })()
+            : false;
+        });
+      })();
 }

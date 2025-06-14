@@ -58,49 +58,44 @@ export function evaluateJokerEffect(
       
     case 'chipsPerHeart': {
       const heartCount = playedCards.filter(card => card.suit === '♥').length;
-      if (heartCount > 0) {
-        return {
-          type: 'addChips',
-          value: effect.amount * heartCount,
-          source: joker.name,
-        };
-      }
-      return null;
+      return heartCount > 0
+        ? {
+            type: 'addChips',
+            value: effect.amount * heartCount,
+            source: joker.name,
+          }
+        : null;
     }
     
     case 'multPerDiamond': {
       const diamondCount = playedCards.filter(card => card.suit === '♦').length;
-      if (diamondCount > 0) {
-        return {
-          type: 'addMult',
-          value: effect.amount * diamondCount,
-          source: joker.name,
-        };
-      }
-      return null;
+      return diamondCount > 0
+        ? {
+            type: 'addMult',
+            value: effect.amount * diamondCount,
+            source: joker.name,
+          }
+        : null;
     }
     
-    case 'multIfContains': {
-      if (evaluatedHand.handType.name.toLowerCase().includes(effect.handType.toLowerCase())) {
-        return {
-          type: 'addMult',
-          value: effect.amount,
-          source: joker.name,
-        };
-      }
-      return null;
-    }
+    case 'multIfContains':
+      return evaluatedHand.handType.name.toLowerCase().includes(effect.handType.toLowerCase())
+        ? {
+            type: 'addMult',
+            value: effect.amount,
+            source: joker.name,
+          }
+        : null;
     
     case 'chipsIfPlayed': {
       const hasRank = playedCards.some(card => card.rank === effect.rank);
-      if (hasRank) {
-        return {
-          type: 'addChips',
-          value: effect.amount,
-          source: joker.name,
-        };
-      }
-      return null;
+      return hasRank
+        ? {
+            type: 'addChips',
+            value: effect.amount,
+            source: joker.name,
+          }
+        : null;
     }
     
     case 'multPerPair': {
@@ -112,27 +107,24 @@ export function evaluateJokerEffect(
       }
       const pairCount = Array.from(rankCounts.values()).filter(count => count >= 2).length;
       
-      if (pairCount > 0) {
-        return {
-          type: 'addMult',
-          value: effect.amount * pairCount,
-          source: joker.name,
-        };
-      }
-      return null;
+      return pairCount > 0
+        ? {
+            type: 'addMult',
+            value: effect.amount * pairCount,
+            source: joker.name,
+          }
+        : null;
     }
     
-    case 'everyOtherHand': {
+    case 'everyOtherHand':
       // Triggers on even-numbered hands (2nd, 4th, 6th, etc.)
-      if (handsPlayed % 2 === 0) {
-        return {
-          type: 'addMult',
-          value: effect.mult,
-          source: joker.name,
-        };
-      }
-      return null;
-    }
+      return handsPlayed % 2 === 0
+        ? {
+            type: 'addMult',
+            value: effect.mult,
+            source: joker.name,
+          }
+        : null;
   }
 }
 
@@ -140,16 +132,9 @@ export function evaluateAllJokers(
   jokers: ReadonlyArray<Joker>,
   context: JokerContext
 ): ReadonlyArray<ScoringEffect> {
-  const effects: ScoringEffect[] = [];
-  
-  for (const joker of jokers) {
-    const effect = evaluateJokerEffect(joker, context);
-    if (effect) {
-      effects.push(effect);
-    }
-  }
-  
-  return effects;
+  return jokers
+    .map(joker => evaluateJokerEffect(joker, context))
+    .filter((effect): effect is ScoringEffect => effect !== null);
 }
 
 // Predefined jokers

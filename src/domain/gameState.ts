@@ -105,12 +105,12 @@ export function skipBlindFromSelectScreen(state: SelectingBlindState): Selecting
   // Cannot skip boss blind
   return blindType === 'boss' 
     ? state
-    : (() => {
+    : ((): SelectingBlindState => {
         const newRunState = skipBlind(state.runState);
         const newBlindType = getCurrentBlindType(newRunState);
         
         // Get the blind info for the new state
-        const { availableBlind, bossEffect } = ((): { availableBlind: BlindType | BossBlind; bossEffect: string | null } => {
+        const { availableBlind, bossEffect } = ((): { readonly availableBlind: BlindType | BossBlind; readonly bossEffect: string | null } => {
           switch (newBlindType) {
             case 'small':
               return { availableBlind: SMALL_BLIND, bossEffect: null };
@@ -170,7 +170,7 @@ export function leaveShop(state: ShopState): SelectingBlindState {
     boss: bossBlind,
   };
   
-  const { availableBlind, bossEffect } = ((): { availableBlind: BlindType | BossBlind; bossEffect: string | null } => {
+  const { availableBlind, bossEffect } = ((): { readonly availableBlind: BlindType | BossBlind; readonly bossEffect: string | null } => {
     switch (blindType) {
       case 'small':
         return { availableBlind: SMALL_BLIND, bossEffect: null };

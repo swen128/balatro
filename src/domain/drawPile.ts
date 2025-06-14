@@ -37,11 +37,16 @@ function drawCardsRecursive(
           remaining,
           drawnSoFar
         )
-    : drawCardsRecursive(
-        { cards: pile.cards.slice(1), discardPile: pile.discardPile },
-        remaining - 1,
-        [...drawnSoFar, pile.cards[0] as Card]
-      );
+    : ((): [ReadonlyArray<Card>, DrawPile] => {
+        const firstCard = pile.cards[0];
+        return firstCard !== undefined
+          ? drawCardsRecursive(
+              { cards: pile.cards.slice(1), discardPile: pile.discardPile },
+              remaining - 1,
+              [...drawnSoFar, firstCard]
+            )
+          : [drawnSoFar, pile]; // This shouldn't happen but satisfies type checker
+      })();
 }
 
 export function discardCards(
@@ -64,16 +69,12 @@ export function addToDiscardPile(pile: DrawPile, cards: ReadonlyArray<Card>): Dr
 }
 
 export function reshuffleIfNeeded(pile: DrawPile, neededCards: number): DrawPile {
-  if (pile.cards.length >= neededCards) {
-    return pile;
-  }
-  
-  if (pile.discardPile.length === 0) {
-    return pile;
-  }
-  
-  return {
-    cards: [...pile.cards, ...shuffleDeck(pile.discardPile)],
-    discardPile: [],
-  };
+  return pile.cards.length >= neededCards
+    ? pile
+    : pile.discardPile.length === 0
+    ? pile
+    : {
+        cards: [...pile.cards, ...shuffleDeck(pile.discardPile)],
+        discardPile: [],
+      };
 }
