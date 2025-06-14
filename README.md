@@ -1,4 +1,4 @@
-# balatro-bun
+# Balatro.ts
 
 To install dependencies:
 

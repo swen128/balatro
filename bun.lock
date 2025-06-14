@@ -2,7 +2,7 @@
   "lockfileVersion": 1,
   "workspaces": {
     "": {
-      "name": "balatro-bun",
+      "name": "balatro-ts",
       "dependencies": {
         "@types/react": "^19.1.8",
         "@types/react-dom": "^19.1.6",
