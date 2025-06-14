@@ -20,7 +20,7 @@ export function ScoringBreakdown({ scoringState, jokers }: ScoringBreakdownProps
   const jokerEffects = evaluateAllJokers(jokers, jokerContext);
   
   return (
-    <div className="mb-16 text-center animate-score-pop">
+    <div className="text-center animate-score-pop">
       <h3 className="text-2xl mb-4 text-yellow-400">
         {scoringState.evaluatedHand.handType.name}
       </h3>

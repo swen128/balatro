@@ -134,9 +134,11 @@ export function RoundView({
       </div>
 
       {/* Main game area */}
-      <div className="flex-1 flex flex-col items-center justify-center p-8">
-        {/* Scoring area */}
-        {renderScoringDisplay()}
+      <div className="flex-1 flex flex-col items-center justify-center p-8 relative">
+        {/* Scoring area - positioned higher to avoid occlusion */}
+        <div className="absolute top-20">
+          {renderScoringDisplay()}
+        </div>
 
         {/* Hand display */}
         <Hand
