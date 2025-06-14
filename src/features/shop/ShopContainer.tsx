@@ -18,7 +18,6 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
 
   // Generate pack cards when a pack is purchased
   useEffect(() => {
-    console.log('Pack effect - pendingPack:', shopState.pendingPack, 'packCards:', packCards);
     if (shopState.pendingPack && packCards === null) {
       const pack = shopState.pendingPack;
       let cards: ReadonlyArray<Card> = [];
@@ -26,13 +25,11 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
       switch (pack.type) {
         case 'standard':
           cards = generateStandardPackCards(3);
-          console.log('Generated standard cards:', cards);
           break;
         case 'spectral':
         case 'arcana':
           // For now, generate standard cards as placeholders
           cards = generateStandardPackCards(3);
-          console.log(`Generated placeholder cards for ${pack.type}:`, cards);
           break;
       }
       
@@ -41,9 +38,7 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
   }, [shopState.pendingPack, packCards]);
 
   const handlePurchase = useCallback((itemId: string): void => {
-    console.log('Purchasing item:', itemId);
     const result = purchaseItem(shopState, runState, itemId);
-    console.log('Purchase result:', result);
     if (result) {
       setShopState(result.shopState);
       setRunState(result.runState);
@@ -108,7 +103,6 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
         canAffordItem={(item) => canAffordItem(runState.cash, item)}
         canReroll={() => canReroll(runState.cash, shopState.rerollCost)}
       />
-      {console.log('Render check - pendingPack:', shopState.pendingPack, 'packCards:', packCards, 'length:', packCards?.length)}
       {shopState.pendingPack && packCards && packCards.length > 0 && (
         <CardPackModal
           packType={shopState.pendingPack.type}

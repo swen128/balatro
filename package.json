@@ -7,7 +7,7 @@
     "dev": "bunx --bun vite",
     "build": "bunx --bun vite build",
     "preview": "bunx --bun vite preview",
-    "lint": "eslint src/**/*.{ts,tsx}",
+    "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "bun test"
   },
