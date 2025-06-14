@@ -147,9 +147,21 @@ export function RoundView({
 
         {/* Bottom area with cards and actions */}
         <div className="flex flex-col items-center">
-          {/* Action buttons above cards */}
+          {/* Hand display */}
+          <Hand
+            cards={roundState.hand}
+            selectedCardIds={getSelectedCardIds()}
+            playedCards={getPlayedCards()}
+            onCardClick={handleCardClick}
+            isPlaying={isPlaying}
+            isDrawing={isDrawing}
+            isDiscarding={isDiscarding}
+            isScoring={roundState.type === 'scoring'}
+          />
+
+          {/* Action buttons below cards */}
           {roundState.type === 'selectingHand' && (
-            <div className="flex gap-4 mb-4">
+            <div className="flex gap-4 mt-4">
               <button
                 onClick={handlePlayHand}
                 disabled={!canPlayHand}
@@ -166,18 +178,6 @@ export function RoundView({
               </button>
             </div>
           )}
-
-          {/* Hand display at bottom */}
-          <Hand
-            cards={roundState.hand}
-            selectedCardIds={getSelectedCardIds()}
-            playedCards={getPlayedCards()}
-            onCardClick={handleCardClick}
-            isPlaying={isPlaying}
-            isDrawing={isDrawing}
-            isDiscarding={isDiscarding}
-            isScoring={roundState.type === 'scoring'}
-          />
         </div>
       </div>
       

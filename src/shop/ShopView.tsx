@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { RunState } from '../game/runState.ts';
 import type { ShopState } from './shopLogic.ts';
 import type { ShopItem } from './shopItems.ts';
+import { DeckViewer } from '../cards/DeckViewer.tsx';
 
 interface ShopViewProps {
   readonly runState: RunState;
@@ -22,6 +23,8 @@ export function ShopView({
   canAffordItem,
   canReroll: canRerollShop
 }: ShopViewProps): React.ReactElement {
+  const [showDeckViewer, setShowDeckViewer] = useState(false);
+  
   const renderItemType = (item: ShopItem): string => {
     switch (item.type) {
       case 'upgrade': return '⬆️';
@@ -33,7 +36,7 @@ export function ShopView({
   };
 
   return (
-    <div className="flex h-screen bg-gray-900">
+    <div className="flex h-screen bg-gray-900 relative">
       {/* Left sidebar */}
       <div className="w-[200px] bg-gray-950 p-4 flex flex-col gap-4">
         <div>
@@ -102,6 +105,21 @@ export function ShopView({
           </button>
         </div>
       </div>
+      
+      {/* View Deck button at top right */}
+      <button
+        className="absolute top-4 right-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
+        onClick={() => setShowDeckViewer(true)}
+      >
+        View Deck
+      </button>
+      
+      {/* Deck Viewer Modal */}
+      <DeckViewer
+        deck={runState.deck}
+        isOpen={showDeckViewer}
+        onClose={() => setShowDeckViewer(false)}
+      />
     </div>
   );
 }

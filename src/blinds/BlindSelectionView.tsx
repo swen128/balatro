@@ -49,7 +49,7 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4">
+    <div className="flex flex-col items-center justify-center h-screen gap-4 relative">
       <div className="mb-8">
         <h2 className="text-3xl font-bold mb-4">Ante {runState.ante}</h2>
         <p className="text-xl">Cash: ${runState.cash}</p>
@@ -113,13 +113,15 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
             Skip
           </button>
         )}
-        <button
-          onClick={() => setShowDeck(true)}
-          className="px-6 py-3 text-xl bg-purple-500 hover:bg-purple-600 rounded transition-colors"
-        >
-          View Deck
-        </button>
       </div>
+      
+      {/* View Deck button at top right */}
+      <button
+        className="absolute top-4 right-4 px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded transition-colors text-sm"
+        onClick={() => setShowDeck(true)}
+      >
+        View Deck
+      </button>
       
       <DeckViewer
         deck={runState.deck}
