@@ -121,6 +121,7 @@ export function RoundView({
           isPlaying={isPlaying}
           isDrawing={isDrawing}
           isDiscarding={isDiscarding}
+          isScoring={roundState.type === 'scoring'}
         />
 
         {/* Action buttons */}

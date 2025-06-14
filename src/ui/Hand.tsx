@@ -10,6 +10,7 @@ interface HandProps {
   readonly isPlaying: boolean;
   readonly isDrawing?: boolean;
   readonly isDiscarding?: boolean;
+  readonly isScoring?: boolean;
 }
 
 export function Hand({ 
@@ -19,7 +20,8 @@ export function Hand({
   onCardClick, 
   isPlaying,
   isDrawing = false,
-  isDiscarding = false
+  isDiscarding = false,
+  isScoring = false
 }: HandProps): React.ReactElement {
   const playedCardIds = new Set(playedCards.map(c => c.id));
   
@@ -47,6 +49,7 @@ export function Hand({
             onClick={() => !isPlaying && !isDiscarding && onCardClick(card.id)}
             animationClass={animationClass}
             animationDelay={index * 0.1}
+            showScoreOverlay={isScoring && isPlayed}
             style={{
               opacity: (isPlayed && !isPlaying) ? 0 : 1,
               transition: 'opacity 0.5s ease-out',
