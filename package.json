@@ -10,8 +10,9 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "check": "bun run lint && bun run typecheck && bun test",
+    "check": "bun run lint && bun run typecheck && bun test && bun run knip",
     "knip": "knip",
+    "autofix": "bun run lint --fix && bun run knip --fix",
     "prepare": "husky"
   },
   "devDependencies": {

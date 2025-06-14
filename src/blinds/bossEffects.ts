@@ -61,53 +61,7 @@ export interface TypedBossBlind {
   readonly effects: ReadonlyArray<BossEffectType>;
 }
 
-// Convert old boss blinds to new typed system
-export function createTypedBossBlind(
-  name: string,
-  _effect: string,
-  scoreMultiplier: number = 2,
-  cashReward: number = 5
-): TypedBossBlind {
-  const effects = parseBossEffect(name);
-  
-  return {
-    type: 'boss',
-    name,
-    scoreMultiplier,
-    cashReward,
-    isBoss: true,
-    effects,
-  };
-}
 
-// Parse old effect strings into typed effects
-function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
-  switch (name) {
-    case 'The Window':
-      return [{
-        kind: 'preScoring',
-        type: 'firstHandScoresZero',
-      }];
-      
-    case 'The Hook':
-      return [{
-        kind: 'handSelection',
-        type: 'discardRandomCards',
-        count: 2,
-      }];
-      
-    case 'The Ox':
-      return [{
-        kind: 'postScoring',
-        type: 'setMoneyToZero',
-        condition: 'mostPlayedHand',
-      }];
-      
-    default:
-      // Unknown boss - return empty array
-      return [];
-  }
-}
 
 
 function shouldApplyPreScoringEffect(

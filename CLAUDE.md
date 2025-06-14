@@ -17,7 +17,10 @@ This is a Balatro card game implementation built with:
 - `bun run build` - Build for production
 - `bun run lint` - Run ESLint checks
 - `bun run typecheck` - Run TypeScript type checking
-- `bun run check` - Run all checks (lint, typecheck, and tests) - also runs as pre-commit hook
+- `bun run test` - Run unit tests
+- `bun run knip` - Check for unused files, dependencies, and exports
+- `bun run check` - Run all checks (lint, typecheck, tests, and knip) - also runs as pre-commit hook
+- `bun run autofix` - Automatically fix linting issues and remove unused exports
 
 ### Package Management
 Use `bun add` for adding dependencies (not npm or yarn).
@@ -49,6 +52,8 @@ Use `bun add` for adding dependencies (not npm or yarn).
 ### Import Rules
 - Use `import type` for type-only imports (enforced by `verbatimModuleSyntax`)
 - Use `.ts` extensions in import paths
+- **Always import from module directories, not specific files** (e.g., `import { Card } from '../cards'` not `from '../cards/card.ts'`)
+- Each module should have an `index.ts` that exports its public API
 
 ## Architecture
 
@@ -106,4 +111,5 @@ See GAME_SPECIFICATION.md for detailed game rules and mechanics.
 - When completing sub-tasks, commit changes after passing tests and linter before proceeding to the next task
 - When making commits, write:
   1. Overview of the change
-  2. The background context of the change which is not obvious from the diff
+  2. Background context of the change which is not obvious from the diff
+- **Write overview and background context in commit messages**
