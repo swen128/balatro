@@ -1,7 +1,7 @@
-import type { Card, Rank, Suit } from '../cards/card.ts';
-import { getRankIndex } from '../cards/card.ts';
+import type { Card, Rank, Suit } from '../cards';
+import { getRankIndex } from '../cards';
 
-export interface PokerHandType {
+interface PokerHandType {
   readonly name: string;
   readonly rank: number;
   readonly baseChips: number;
@@ -228,32 +228,9 @@ function evaluateNonStraightFlush(
       };
 }
 
-export function compareHands(a: EvaluatedHand, b: EvaluatedHand): number {
-  const rankDiff = a.handType.rank - b.handType.rank;
-  return rankDiff !== 0
-    ? rankDiff
-    : compareKickers([...a.scoringCards, ...a.kickers], [...b.scoringCards, ...b.kickers]);
-}
 
-function compareKickers(a: ReadonlyArray<Card>, b: ReadonlyArray<Card>): number {
-  const minLength = Math.min(a.length, b.length);
-  
-  const firstDiff = Array.from({ length: minLength }, (_, i) => {
-    const aCard = a[i];
-    const bCard = b[i];
-    return aCard !== undefined && bCard !== undefined
-      ? getRankIndex(aCard.rank) - getRankIndex(bCard.rank)
-      : 0;
-  }).find(diff => diff !== 0);
-  
-  return firstDiff ?? 0;
-}
 
 export function getPokerHandByName(name: string): PokerHandType | undefined {
   return Object.values(POKER_HANDS).find(hand => hand.name === name);
 }
 
-export function hasPokerHand(cards: ReadonlyArray<Card>, handName: string): boolean {
-  const evaluated = evaluatePokerHand(cards);
-  return evaluated.handType.name === handName;
-}

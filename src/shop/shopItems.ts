@@ -1,7 +1,7 @@
-import type { Card, CardEnhancement, Suit, Rank } from '../cards/card.ts';
-import { createCard } from '../cards/card.ts';
+import type { Card, CardEnhancement, Suit, Rank } from '../cards';
+import { createCard } from '../cards';
 
-export type ShopItemType = 'upgrade' | 'joker' | 'pack' | 'voucher' | 'spectral';
+type ShopItemType = 'upgrade' | 'joker' | 'pack' | 'voucher' | 'spectral';
 
 interface ShopItemBase {
   readonly id: string;
@@ -32,22 +32,22 @@ export interface VoucherItem extends ShopItemBase {
   readonly effect: VoucherEffect;
 }
 
-export interface SpectralItem extends ShopItemBase {
+interface SpectralItem extends ShopItemBase {
   readonly type: 'spectral';
   readonly effect: SpectralEffect;
 }
 
-export type UpgradeEffect = 
+type UpgradeEffect = 
   | { readonly type: 'increaseHandSize'; readonly amount: number }
   | { readonly type: 'increaseHandsPerRound'; readonly amount: number }
   | { readonly type: 'increaseDiscards'; readonly amount: number };
 
-export type JokerEffect =
+type JokerEffect =
   | { readonly type: 'addChips'; readonly amount: number; readonly condition?: string }
   | { readonly type: 'addMult'; readonly amount: number; readonly condition?: string }
   | { readonly type: 'multMult'; readonly amount: number; readonly condition?: string };
 
-export type VoucherEffect =
+type VoucherEffect =
   | { readonly type: 'shopDiscount'; readonly percent: number }
   | { readonly type: 'interestRate'; readonly percent: number }
   | { readonly type: 'rerollCost'; readonly amount: number };
@@ -58,7 +58,7 @@ export type SpectralEffect =
   | { readonly type: 'addPolychrome'; readonly count: number }
   | { readonly type: 'duplicateCard'; readonly count: number };
 
-export const SHOP_UPGRADES: ReadonlyArray<UpgradeItem> = [
+const SHOP_UPGRADES: ReadonlyArray<UpgradeItem> = [
   {
     id: 'hand-size-1',
     type: 'upgrade',
@@ -85,7 +85,7 @@ export const SHOP_UPGRADES: ReadonlyArray<UpgradeItem> = [
   },
 ];
 
-export const SHOP_JOKERS: ReadonlyArray<JokerItem> = [
+const SHOP_JOKERS: ReadonlyArray<JokerItem> = [
   {
     id: 'joker-chips-20',
     type: 'joker',
@@ -112,7 +112,7 @@ export const SHOP_JOKERS: ReadonlyArray<JokerItem> = [
   },
 ];
 
-export const SHOP_PACKS: ReadonlyArray<PackItem> = [
+const SHOP_PACKS: ReadonlyArray<PackItem> = [
   {
     id: 'pack-standard',
     type: 'pack',
@@ -142,7 +142,7 @@ export const SHOP_PACKS: ReadonlyArray<PackItem> = [
   },
 ];
 
-export const SHOP_VOUCHERS: ReadonlyArray<VoucherItem> = [
+const SHOP_VOUCHERS: ReadonlyArray<VoucherItem> = [
   {
     id: 'voucher-clearance',
     type: 'voucher',
@@ -153,7 +153,7 @@ export const SHOP_VOUCHERS: ReadonlyArray<VoucherItem> = [
   },
 ];
 
-export const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
+const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
   {
     id: 'spectral-aura',
     type: 'spectral',

@@ -9,7 +9,7 @@ import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 import { JokerDisplay } from './JokerDisplay.tsx';
 import { ScoringBreakdown } from '../scoring/ScoringBreakdown.tsx';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
-import { useSound } from '../sound/SoundContext.tsx';
+import { useSound } from '../sound';
 
 interface RoundViewProps {
   readonly roundState: RoundState;

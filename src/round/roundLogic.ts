@@ -1,6 +1,6 @@
-import type { RoundState, RoundFinishedState } from '../game/roundState.ts';
-import type { BossBlind } from '../blinds/blind.ts';
-import type { Joker } from '../shop/joker.ts';
+import type { RoundState, RoundFinishedState } from '../game';
+import type { BossBlind } from '../blinds';
+import type { Joker } from '../shop';
 import {
   drawCardsToHand,
   drawCardsToHandWithBossEffect,
@@ -13,7 +13,7 @@ import {
   discardSelectedCards,
 } from '../game/roundState.ts';
 
-export interface RoundTransition {
+interface RoundTransition {
   readonly nextState: RoundState;
   readonly shouldResetMoney?: boolean;
   readonly delayMs: number;

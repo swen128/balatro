@@ -1,7 +1,6 @@
-import type { Card } from '../cards/card.ts';
 
 // Boss effect types organized by when they apply
-export type BossEffectType = 
+type BossEffectType = 
   | HandSelectionEffect
   | PreScoringEffect
   | ScoringModifierEffect
@@ -9,7 +8,7 @@ export type BossEffectType =
   | RoundEndEffect;
 
 // Hand selection effects - applied when selecting cards to play
-export type HandSelectionEffect = {
+type HandSelectionEffect = {
   readonly kind: 'handSelection';
 } & (
   | { readonly type: 'discardRandomCards'; readonly count: number }
@@ -19,7 +18,7 @@ export type HandSelectionEffect = {
 );
 
 // Pre-scoring effects - modify score before calculation
-export type PreScoringEffect = {
+type PreScoringEffect = {
   readonly kind: 'preScoring';
 } & (
   | { readonly type: 'firstHandScoresZero' }
@@ -28,7 +27,7 @@ export type PreScoringEffect = {
 );
 
 // Scoring modifier effects - modify chip/mult calculation
-export type ScoringModifierEffect = {
+type ScoringModifierEffect = {
   readonly kind: 'scoringModifier';
 } & (
   | { readonly type: 'capChips'; readonly max: number }
@@ -37,7 +36,7 @@ export type ScoringModifierEffect = {
 );
 
 // Post-scoring effects - applied after score calculation
-export type PostScoringEffect = {
+type PostScoringEffect = {
   readonly kind: 'postScoring';
 } & (
   | { readonly type: 'setMoneyToZero'; readonly condition: 'mostPlayedHand' }
@@ -45,7 +44,7 @@ export type PostScoringEffect = {
 );
 
 // Round end effects - applied at end of round
-export type RoundEndEffect = {
+type RoundEndEffect = {
   readonly kind: 'roundEnd';
   readonly type: 'gainMoneyIfCondition';
   readonly condition: string;
@@ -82,7 +81,7 @@ export function createTypedBossBlind(
 }
 
 // Parse old effect strings into typed effects
-export function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
+function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
   switch (name) {
     case 'The Window':
       return [{
@@ -110,33 +109,8 @@ export function parseBossEffect(name: string): ReadonlyArray<BossEffectType> {
   }
 }
 
-// Effect application functions
-export function applyHandSelectionEffect(
-  effect: HandSelectionEffect,
-  hand: ReadonlyArray<Card>
-): ReadonlyArray<Card> {
-  switch (effect.type) {
-    case 'discardRandomCards': {
-      return hand.length <= effect.count
-        ? []
-        : ((): ReadonlyArray<Card> => {
-            const shuffled = [...hand].sort(() => Math.random() - 0.5);
-            return shuffled.slice(effect.count);
-          })();
-    }
-    
-    case 'forceSuit':
-      return hand.filter(card => card.suit === effect.suit);
-      
-    case 'maxCardSelection':
-      return hand.slice(0, effect.max);
-      
-    case 'preventCardPlay':
-      return hand.filter(card => card.rank !== effect.rank);
-  }
-}
 
-export function shouldApplyPreScoringEffect(
+function shouldApplyPreScoringEffect(
   effect: PreScoringEffect,
   handsPlayed: number
 ): boolean {
@@ -145,7 +119,7 @@ export function shouldApplyPreScoringEffect(
     : true;
 }
 
-export function applyPreScoringEffect(
+function applyPreScoringEffect(
   effect: PreScoringEffect,
   baseScore: number,
   handsPlayed: number
@@ -162,33 +136,10 @@ export function applyPreScoringEffect(
   }
 }
 
-export function applyScoringModifierEffect(
-  effect: ScoringModifierEffect,
-  chips: number,
-  mult: number
-): { chips: number; mult: number } {
-  switch (effect.type) {
-    case 'capChips':
-      return { chips: Math.min(chips, effect.max), mult };
-      
-    case 'noFaceCardBonus':
-      return { chips, mult };
-      
-    case 'onlyOneHandType':
-      return { chips, mult };
-  }
-}
 
-// Check if a boss has effects for a specific phase
-export function hasBossEffectForPhase(
-  boss: TypedBossBlind,
-  phase: BossEffectType['kind']
-): boolean {
-  return boss.effects.some(effect => effect.kind === phase);
-}
 
 // Get all effects for a specific phase
-export function getBossEffectsForPhase<T extends BossEffectType>(
+function getBossEffectsForPhase<T extends BossEffectType>(
   boss: TypedBossBlind,
   phase: T['kind']
 ): ReadonlyArray<T> {
@@ -196,27 +147,12 @@ export function getBossEffectsForPhase<T extends BossEffectType>(
 }
 
 // Context for boss effect application
-export interface BossEffectContext {
+interface BossEffectContext {
   readonly bossBlind: TypedBossBlind | { readonly name: string };
   readonly handsPlayed: number;
   readonly totalMoney: number;
 }
 
-// Apply boss effects during hand selection
-export function applyBossEffectOnHandSelection(
-  hand: ReadonlyArray<Card>,
-  bossBlind: TypedBossBlind | null
-): ReadonlyArray<Card> {
-  return !bossBlind || !('effects' in bossBlind)
-    ? hand
-    : getBossEffectsForPhase<HandSelectionEffect>(
-        bossBlind,
-        'handSelection'
-      ).reduce(
-        (currentHand, effect) => applyHandSelectionEffect(effect, currentHand),
-        hand
-      );
-}
 
 // Apply boss effects during scoring
 export function applyBossEffectOnScoring<T extends { finalScore: number }>(
@@ -250,38 +186,3 @@ export function applyBossEffectOnScoring<T extends { finalScore: number }>(
       })();
 }
 
-// Check if money should be reset (for The Ox effect)
-export function shouldResetMoney(
-  bossBlind: TypedBossBlind | { readonly name: string } | null,
-  playedHandType: string,
-  handCounts: Record<string, number>
-): boolean {
-  return !bossBlind
-    ? false
-    : !('effects' in bossBlind)
-    ? bossBlind.name === 'The Ox' && ((): boolean => {
-        const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
-        const mostPlayedHands = Object.entries(handCounts)
-          .filter(([, count]) => count === mostPlayedCount)
-          .map(([handType]) => handType);
-        
-        return mostPlayedHands.includes(playedHandType);
-      })()
-    : ((): boolean => {
-        const boss = bossBlind;
-        const postScoringEffects = getBossEffectsForPhase<PostScoringEffect>(boss, 'postScoring');
-        
-        return postScoringEffects.some(effect => {
-          return effect.type === 'setMoneyToZero' && effect.condition === 'mostPlayedHand'
-            ? ((): boolean => {
-                const mostPlayedCount = Math.max(...Object.values(handCounts), 0);
-                const mostPlayedHands = Object.entries(handCounts)
-                  .filter(([, count]) => count === mostPlayedCount)
-                  .map(([handType]) => handType);
-                
-                return mostPlayedHands.includes(playedHandType);
-              })()
-            : false;
-        });
-      })();
-}

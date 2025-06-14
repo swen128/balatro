@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Card as CardType } from '../cards/card.ts';
+import type { Card as CardType } from '../cards';
 import { Card } from '../cards/Card.tsx';
 import { CardScoreOverlay } from './CardScoreOverlay.tsx';
 

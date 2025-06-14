@@ -1,4 +1,4 @@
-import type { RunState } from '../game/runState.ts';
+import type { RunState } from '../game';
 import type { ShopState } from './shopLogic.ts';
 import type { ShopItem, UpgradeItem, VoucherItem, JokerItem, PackItem } from './shopItems.ts';
 

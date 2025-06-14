@@ -3,7 +3,7 @@ import {
   createRoundState,
   selectCard,
   deselectCard,
-  playHand,
+  playSelectedCards,
   calculateScore,
   scoreHand,
   discardSelectedCards,
@@ -138,7 +138,7 @@ describe('roundState', () => {
     });
   });
 
-  describe('playHand', () => {
+  describe('playSelectedCards', () => {
     test('plays selected cards', () => {
       const drawPile = createTestDrawPile();
       const state = drawNewCards(createRoundState(drawPile, 300, 4, 5, 3));
@@ -152,7 +152,7 @@ describe('roundState', () => {
         }
       }
       
-      const playingState = playHand(selectedState);
+      const playingState = playSelectedCards(selectedState);
       
       expect(playingState.type).toBe('playing');
       if (playingState.type === 'playing') {
@@ -166,7 +166,7 @@ describe('roundState', () => {
       const drawPile = createTestDrawPile();
       const state = drawNewCards(createRoundState(drawPile, 300, 4, 5, 3));
       
-      const result = playHand(state);
+      const result = playSelectedCards(state);
       expect(result).toBe(state); // Should return same state
     });
   });
@@ -242,7 +242,7 @@ describe('roundState', () => {
         }
       }
       
-      const playingState = playHand(selectedState);
+      const playingState = playSelectedCards(selectedState);
       if (playingState.type !== 'playing') {
         throw new Error('Expected playing state');
       }

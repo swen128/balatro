@@ -51,18 +51,11 @@ export function isRedSuit(suit: Suit): boolean {
   return suit === '♥' || suit === '♦';
 }
 
-export function isBlackSuit(suit: Suit): boolean {
-  return suit === '♠' || suit === '♣';
-}
 
 export function getRankIndex(rank: Rank): number {
   return RANKS.indexOf(rank);
 }
 
-export function getRankValue(rank: Rank): number {
-  const index = getRankIndex(rank);
-  return index < 0 ? 0 : index + 2; // 2 is rank 0, so value is index + 2
-}
 
 // Fisher-Yates shuffle algorithm requires mutation for efficiency
 /* eslint-disable functional/no-let, functional/no-conditional-statements */

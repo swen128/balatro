@@ -1,7 +1,7 @@
-import type { RunState } from '../game/runState.ts';
+import type { RunState } from '../game';
 import type { ShopItem, JokerItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
-import type { Card } from '../cards/card.ts';
+import type { Card } from '../cards';
 import type { SpectralCard, ArcanaCard } from './cardPacks.ts';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 

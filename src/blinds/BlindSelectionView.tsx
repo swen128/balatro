@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import type { RunState } from '../game/runState.ts';
+import type { RunState } from '../game';
 import type { BlindType, BossBlind } from './blind.ts';
 import { getBlindScoreGoal } from './blind.ts';
-import { getCurrentBlindType } from '../game/runState.ts';
+import { getCurrentBlindType } from '../game';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
 
 interface BlindSelectionProps {

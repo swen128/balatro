@@ -13,11 +13,11 @@ export type GameState =
   | PlayingRoundState
   | ShopState;
 
-export interface MainMenuState {
+interface MainMenuState {
   readonly type: 'mainMenu';
 }
 
-export interface SelectingBlindState {
+interface SelectingBlindState {
   readonly type: 'selectingBlind';
   readonly runState: RunState;
   readonly availableBlind: BlindType | BossBlind;
@@ -37,7 +37,7 @@ export interface PlayingRoundState {
   readonly bossEffect: string | null;
 }
 
-export interface ShopState {
+interface ShopState {
   readonly type: 'shop';
   readonly runState: RunState;
 }

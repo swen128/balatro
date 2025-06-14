@@ -3,8 +3,8 @@
 /* eslint-disable functional/no-conditional-statements */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import type { GameStatistics } from '../game/statistics.ts';
-import { createEmptyStatistics } from '../game/statistics.ts';
+import type { GameStatistics } from '../game';
+import { createEmptyStatistics } from '../game';
 
 const STATS_KEY = 'balatro-statistics';
 
@@ -28,8 +28,3 @@ export function loadStatistics(): GameStatistics {
   return createEmptyStatistics();
 }
 
-export function clearStatistics(): void {
-  if (typeof window !== 'undefined' && window.localStorage !== undefined) {
-    window.localStorage.removeItem(STATS_KEY);
-  }
-}

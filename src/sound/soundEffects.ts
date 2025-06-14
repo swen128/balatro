@@ -35,7 +35,7 @@ export const DEFAULT_SOUND_CONFIG: SoundConfig = {
 
 // Sound URLs - using placeholder paths for now
 // In a real implementation, these would point to actual audio files
-export const SOUND_URLS: Record<SoundEffectType, string> = {
+const SOUND_URLS: Record<SoundEffectType, string> = {
   cardDraw: '/sounds/card-draw.mp3',
   cardSelect: '/sounds/card-select.mp3',
   cardPlay: '/sounds/card-play.mp3',

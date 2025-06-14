@@ -1,6 +1,5 @@
-import type { Card } from '../cards/card.ts';
-import type { EvaluatedHand } from '../scoring/pokerHands.ts';
-import type { ScoringEffect } from '../scoring/scoring.ts';
+import type { Card } from '../cards';
+import type { EvaluatedHand, ScoringEffect } from '../scoring';
 
 export interface Joker {
   readonly id: string;
@@ -10,7 +9,7 @@ export interface Joker {
   readonly effect: JokerEffect;
 }
 
-export type JokerEffect =
+type JokerEffect =
   | { readonly type: 'flatChips'; readonly amount: number }
   | { readonly type: 'flatMult'; readonly amount: number }
   | { readonly type: 'multMult'; readonly amount: number }

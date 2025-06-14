@@ -1,8 +1,8 @@
-import type { Card } from '../cards/card.ts';
-import { createStandardDeck } from '../cards/card.ts';
-import type { BossBlind } from '../blinds/blind.ts';
-import { getRandomBossBlind } from '../blinds/blind.ts';
-import type { Joker } from '../shop/joker.ts';
+import type { Card } from '../cards';
+import { createStandardDeck } from '../cards';
+import type { BossBlind } from '../blinds';
+import { getRandomBossBlind } from '../blinds';
+import type { Joker } from '../shop';
 
 export interface RunState {
   readonly ante: number;
@@ -17,7 +17,7 @@ export interface RunState {
   readonly maxJokers: number;
 }
 
-export type BlindProgression =
+type BlindProgression =
   | SmallBlindUpcoming
   | BigBlindUpcoming
   | BossBlindUpcoming;

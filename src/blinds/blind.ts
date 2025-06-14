@@ -23,7 +23,6 @@ export const BIG_BLIND: BlindType = {
 };
 
 import type { TypedBossBlind } from './bossEffects.ts';
-import { createTypedBossBlind } from './bossEffects.ts';
 
 export interface BossBlind {
   readonly type: 'boss';
@@ -34,7 +33,7 @@ export interface BossBlind {
   readonly effect: string;
 }
 
-export const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
+const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
   {
     type: 'boss',
     name: 'The Window',
@@ -80,9 +79,6 @@ export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind | T
   return Math.floor(baseScore * blind.scoreMultiplier);
 }
 
-export function getCashReward(blind: BlindType | BossBlind | TypedBossBlind): number {
-  return blind.cashReward;
-}
 
 export function getRandomBossBlind(): BossBlind {
   const index = Math.floor(Math.random() * BOSS_BLINDS.length);
@@ -108,13 +104,4 @@ export function createBlind(type: 'small' | 'big' | 'boss'): BlindType | BossBli
   }
 }
 
-// Create typed boss blinds from existing boss blinds
-export const TYPED_BOSS_BLINDS: ReadonlyArray<TypedBossBlind> = BOSS_BLINDS.map(
-  boss => createTypedBossBlind(boss.name, boss.effect, boss.scoreMultiplier, boss.cashReward)
-);
 
-export function getRandomTypedBossBlind(): TypedBossBlind {
-  const index = Math.floor(Math.random() * TYPED_BOSS_BLINDS.length);
-  const boss = TYPED_BOSS_BLINDS[index];
-  return boss ?? createTypedBossBlind('The Wall', 'The most played poker hand this round is debuffed', 2, 8);
-}

@@ -3,7 +3,7 @@
 /* eslint-disable functional/no-conditional-statements */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import type { GameState } from '../game/gameState.ts';
+import type { GameState } from '../game';
 
 const SAVE_KEY = 'balatro_save';
 const SAVE_VERSION = 1;

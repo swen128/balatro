@@ -1,6 +1,6 @@
 import React from 'react';
-import type { Card } from '../cards/card.ts';
-import { getCardChipValue } from '../cards/card.ts';
+import type { Card } from '../cards';
+import { getCardChipValue } from '../cards';
 
 interface CardScoreOverlayProps {
   readonly card: Card;
