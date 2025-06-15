@@ -1,4 +1,5 @@
 import type { RunState } from '../game';
+import { addConsumable } from '../game';
 import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
 import type { AnyCard } from '../cards';
@@ -136,6 +137,12 @@ export function selectCardFromPack(
   runState: RunState,
   card: AnyCard
 ): { shopState: BrowsingShopState; runState: RunState } {
+  const updatedRunState = card.type === 'playing'
+    ? { ...runState, deck: [...runState.deck, card] }
+    : card.type === 'spectral' || card.type === 'arcana'
+    ? addConsumable(runState, card)
+    : runState;
+    
   return {
     shopState: {
       type: 'browsing',
@@ -144,10 +151,7 @@ export function selectCardFromPack(
       rerollCost: shopState.rerollCost,
       rerollsUsed: shopState.rerollsUsed,
     },
-    runState: {
-      ...runState,
-      deck: card.type === 'playing' ? [...runState.deck, card] : runState.deck,
-    },
+    runState: updatedRunState,
   };
 }
 

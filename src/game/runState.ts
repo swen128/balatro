@@ -1,4 +1,4 @@
-import type { Card } from '../cards';
+import type { Card, SpectralCard, ArcanaCard } from '../cards';
 import { createStandardDeck } from '../cards';
 import type { BossBlind } from '../blinds';
 import { getRandomBossBlind } from '../blinds';
@@ -17,6 +17,8 @@ export interface RunState {
   readonly blindProgression: BlindProgression;
   readonly jokers: ReadonlyArray<Joker>;
   readonly maxJokers: number;
+  readonly consumables: ReadonlyArray<SpectralCard | ArcanaCard>;
+  readonly maxConsumables: number;
 }
 
 type BlindProgression =
@@ -57,6 +59,8 @@ export function createInitialRunState(): RunState {
     },
     jokers: [],
     maxJokers: 5,
+    consumables: [],
+    maxConsumables: 2,
   };
 }
 
@@ -200,5 +204,21 @@ export function updateDeck(state: RunState, deck: ReadonlyArray<Card>): RunState
   return {
     ...state,
     deck,
+  };
+}
+
+export function addConsumable(state: RunState, consumable: SpectralCard | ArcanaCard): RunState {
+  return state.consumables.length >= state.maxConsumables
+    ? state
+    : {
+        ...state,
+        consumables: [...state.consumables, consumable],
+      };
+}
+
+export function removeConsumable(state: RunState, consumableId: string): RunState {
+  return {
+    ...state,
+    consumables: state.consumables.filter(c => c.id !== consumableId),
   };
 }

@@ -7,6 +7,7 @@ import { Hand } from './Hand.tsx';
 import { ScoreDisplay } from '../scoring/ScoreDisplay.tsx';
 import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 import { JokerDisplay } from './JokerDisplay.tsx';
+import { ConsumablesDisplay } from './ConsumablesDisplay.tsx';
 import { ScoringBreakdown } from '../scoring/ScoringBreakdown.tsx';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
 import { useSound } from '../sound';
@@ -19,6 +20,7 @@ interface RoundViewProps {
   readonly onCardClick: (cardId: string) => void;
   readonly onPlayHand: () => void;
   readonly onDiscardCards: () => void;
+  readonly onUseConsumable: (consumableId: string) => void;
   readonly canPlayHand: boolean;
   readonly canDiscardCards: boolean;
   readonly isDiscarding: boolean;
@@ -32,6 +34,7 @@ export function RoundView({
   onCardClick,
   onPlayHand,
   onDiscardCards,
+  onUseConsumable,
   canPlayHand,
   canDiscardCards,
   isDiscarding: isDiscardingProp,
@@ -130,6 +133,14 @@ export function RoundView({
         <JokerDisplay 
           jokers={runState.jokers}
           maxJokers={runState.maxJokers}
+        />
+        
+        {/* Consumables display */}
+        <ConsumablesDisplay
+          consumables={runState.consumables}
+          maxConsumables={runState.maxConsumables}
+          onUseConsumable={onUseConsumable}
+          disabled={roundState.type !== 'selectingHand'}
         />
       </div>
 

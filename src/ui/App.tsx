@@ -158,6 +158,12 @@ function AppContent(): React.ReactElement {
           gameState={gameState}
           onWin={handleWinRound}
           onLose={handleLoseRound}
+          onUpdateRunState={(updater) => {
+            setGameState({
+              ...gameState,
+              runState: updater(gameState.runState),
+            });
+          }}
         />
       );
     
