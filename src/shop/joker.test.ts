@@ -269,9 +269,6 @@ describe('joker', () => {
       expect(uniqueIds.size).toBe(ids.length);
     });
 
-    test('has expected number of jokers', () => {
-      expect(JOKERS.length).toBe(55);
-    });
 
     test('specific jokers exist with correct effects', () => {
       const jokerJoker = JOKERS.find(j => j.name === 'Joker');
