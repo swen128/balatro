@@ -1,5 +1,5 @@
 import type { RunState } from '../game';
-import type { ShopState } from './shopLogic.ts';
+import type { ShopState, BrowsingShopState } from './shopLogic.ts';
 import type { ShopItem, UpgradeItem, VoucherItem, JokerItem, PackItem } from './shopItems.ts';
 
 export function applyUpgradeEffect(
@@ -19,9 +19,9 @@ export function applyUpgradeEffect(
 }
 
 export function applyVoucherToShop(
-  shopState: ShopState,
+  shopState: BrowsingShopState,
   item: VoucherItem
-): ShopState {
+): BrowsingShopState {
   switch (item.effect.type) {
     case 'rerollCost':
       return {
@@ -40,9 +40,9 @@ export function applyVoucherToShop(
 }
 
 export function addJokerToShop(
-  shopState: ShopState,
+  shopState: BrowsingShopState,
   item: JokerItem
-): ShopState {
+): BrowsingShopState {
   return {
     ...shopState,
     purchasedJokers: [...shopState.purchasedJokers, item],
@@ -53,30 +53,39 @@ export function createPackPendingState(
   shopState: ShopState,
   item: PackItem
 ): ShopState {
-  return {
-    ...shopState,
-    pendingPack: {
-      type: item.packType,
-      cards: [],
-      price: item.price,
-      originalItem: item,
-    },
-  };
+  return shopState.type !== 'browsing'
+    ? shopState
+    : {
+        type: 'selectingCard',
+        availableItems: shopState.availableItems,
+        purchasedJokers: shopState.purchasedJokers,
+        rerollCost: shopState.rerollCost,
+        rerollsUsed: shopState.rerollsUsed,
+        pendingPack: {
+          packType: item.packType,
+          cards: [],
+          price: item.price,
+          originalItem: item,
+        },
+      };
 }
 
 export function createBaseStates(
   shopState: ShopState,
   runState: RunState,
   item: ShopItem
-): { baseRunState: RunState; baseShopState: ShopState } {
+): { baseRunState: RunState; baseShopState: BrowsingShopState } {
   return {
     baseRunState: {
       ...runState,
       cash: runState.cash - item.price,
     },
     baseShopState: {
-      ...shopState,
+      type: 'browsing',
       availableItems: shopState.availableItems.filter(i => i.id !== item.id),
+      purchasedJokers: shopState.purchasedJokers,
+      rerollCost: shopState.rerollCost,
+      rerollsUsed: shopState.rerollsUsed,
     },
   };
 }

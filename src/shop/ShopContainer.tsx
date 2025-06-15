@@ -20,11 +20,11 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
 
   // Generate pack cards when a pack is purchased
   useEffect(() => {
-    if (shopState.pendingPack && packCards === null) {
+    if (shopState.type === 'selectingCard' && packCards === null) {
       const pack = shopState.pendingPack;
       let cards: ReadonlyArray<Card> = [];
       
-      switch (pack.type) {
+      switch (pack.packType) {
         case 'standard':
           cards = generateStandardPackCards(3);
           break;
@@ -37,7 +37,7 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
       
       setPackCards(cards);
     }
-  }, [shopState.pendingPack, packCards]);
+  }, [shopState, packCards]);
 
   const handlePurchase = useCallback((itemId: string): void => {
     const item = shopState.availableItems.find(i => i.id === itemId);
@@ -66,8 +66,8 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
   }, [shopState, runState, stats]);
 
   const handleSelectCard = useCallback((card: Card): void => {
-    const result = selectCardFromPack(shopState, runState, card);
-    if (result) {
+    if (shopState.type === 'selectingCard') {
+      const result = selectCardFromPack(shopState, runState, card);
       setShopState(result.shopState);
       setRunState(result.runState);
       setPackCards(null);
@@ -75,8 +75,8 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
   }, [shopState, runState]);
 
   const handleCancelPack = useCallback((): void => {
-    const result = cancelPackSelection(shopState, runState);
-    if (result) {
+    if (shopState.type === 'selectingCard') {
+      const result = cancelPackSelection(shopState, runState);
       setShopState(result.shopState);
       setRunState(result.runState);
       setPackCards(null);
@@ -98,9 +98,9 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
         canAffordItem={(item) => canAffordItem(runState.cash, item)}
         canReroll={() => canReroll(runState.cash, shopState.rerollCost)}
       />
-      {shopState.pendingPack && packCards && packCards.length > 0 && (
+      {shopState.type === 'selectingCard' && packCards && packCards.length > 0 && (
         <CardPackModal
-          packType={shopState.pendingPack.type}
+          packType={shopState.pendingPack.packType}
           cards={packCards}
           onSelectCard={handleSelectCard}
           onCancel={handleCancelPack}

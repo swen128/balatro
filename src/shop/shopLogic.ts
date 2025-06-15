@@ -5,26 +5,37 @@ import type { Card } from '../cards';
 import type { SpectralCard, ArcanaCard } from './cardPacks.ts';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
-export interface ShopState {
-  readonly availableItems: ReadonlyArray<ShopItem>;
+interface BaseShopState {
   readonly purchasedJokers: ReadonlyArray<JokerItem>;
   readonly rerollCost: number;
   readonly rerollsUsed: number;
+}
+
+export interface BrowsingShopState extends BaseShopState {
+  readonly type: 'browsing';
+  readonly availableItems: ReadonlyArray<ShopItem>;
+}
+
+interface SelectingCardState extends BaseShopState {
+  readonly type: 'selectingCard';
+  readonly availableItems: ReadonlyArray<ShopItem>;
   readonly pendingPack: {
-    readonly type: 'standard' | 'spectral' | 'arcana';
+    readonly packType: 'standard' | 'spectral' | 'arcana';
     readonly cards: ReadonlyArray<Card | SpectralCard | ArcanaCard>;
     readonly price: number;
     readonly originalItem: PackItem;
-  } | null;
+  };
 }
+
+export type ShopState = BrowsingShopState | SelectingCardState;
 
 export function createShopState(runState: RunState): ShopState {
   return {
+    type: 'browsing',
     availableItems: generateShopItems(runState.cash),
     purchasedJokers: [],
     rerollCost: 5,
     rerollsUsed: 0,
-    pendingPack: null,
   };
 }
 
@@ -101,56 +112,61 @@ function rerollShopHelper(
   shopState: ShopState,
   runState: RunState
 ): { shopState: ShopState; runState: RunState } {
+  // Reroll only works in browsing state
+  return shopState.type !== 'browsing'
+    ? { shopState, runState }
+    : ((): { shopState: ShopState; runState: RunState } => {
+        const newRunState = {
+          ...runState,
+          cash: runState.cash - shopState.rerollCost,
+        };
 
-  const newRunState = {
-    ...runState,
-    cash: runState.cash - shopState.rerollCost,
-  };
+        const newShopState: BrowsingShopState = {
+          ...shopState,
+          availableItems: generateShopItems(newRunState.cash),
+          rerollCost: shopState.rerollCost + 1, // Increase cost each time
+          rerollsUsed: shopState.rerollsUsed + 1,
+        };
 
-  const newShopState: ShopState = {
-    ...shopState,
-    availableItems: generateShopItems(newRunState.cash),
-    rerollCost: shopState.rerollCost + 1, // Increase cost each time
-    rerollsUsed: shopState.rerollsUsed + 1,
-  };
-
-  return { shopState: newShopState, runState: newRunState };
+        return { shopState: newShopState, runState: newRunState };
+      })();
 }
 
 export function selectCardFromPack(
-  shopState: ShopState,
+  shopState: SelectingCardState,
   runState: RunState,
   card: Card
-): { shopState: ShopState; runState: RunState } | null {
-  return !shopState.pendingPack
-    ? null
-    : {
-        shopState: {
-          ...shopState,
-          pendingPack: null,
-        },
-        runState: {
-          ...runState,
-          deck: [...runState.deck, card],
-        },
-      };
+): { shopState: BrowsingShopState; runState: RunState } {
+  return {
+    shopState: {
+      type: 'browsing',
+      availableItems: shopState.availableItems,
+      purchasedJokers: shopState.purchasedJokers,
+      rerollCost: shopState.rerollCost,
+      rerollsUsed: shopState.rerollsUsed,
+    },
+    runState: {
+      ...runState,
+      deck: [...runState.deck, card],
+    },
+  };
 }
 
 export function cancelPackSelection(
-  shopState: ShopState,
+  shopState: SelectingCardState,
   runState: RunState
-): { shopState: ShopState; runState: RunState } | null {
-  return !shopState.pendingPack
-    ? null
-    : {
-        shopState: {
-          ...shopState,
-          availableItems: [...shopState.availableItems, shopState.pendingPack.originalItem],
-          pendingPack: null,
-        },
-        runState: {
-          ...runState,
-          cash: runState.cash + shopState.pendingPack.price,
-        },
-      };
+): { shopState: BrowsingShopState; runState: RunState } {
+  return {
+    shopState: {
+      type: 'browsing',
+      availableItems: [...shopState.availableItems, shopState.pendingPack.originalItem],
+      purchasedJokers: shopState.purchasedJokers,
+      rerollCost: shopState.rerollCost,
+      rerollsUsed: shopState.rerollsUsed,
+    },
+    runState: {
+      ...runState,
+      cash: runState.cash + shopState.pendingPack.price,
+    },
+  };
 }
