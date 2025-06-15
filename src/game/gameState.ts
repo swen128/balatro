@@ -12,7 +12,8 @@ export type GameState =
   | SelectingBlindState
   | PlayingRoundState
   | ShopState
-  | VictoryState;
+  | VictoryState
+  | GameOverState;
 
 interface MainMenuState {
   readonly type: 'mainMenu';
@@ -45,6 +46,12 @@ interface ShopState {
 
 export interface VictoryState {
   readonly type: 'victory';
+  readonly runState: RunState;
+  readonly finalScore: number;
+}
+
+interface GameOverState {
+  readonly type: 'gameOver';
   readonly runState: RunState;
   readonly finalScore: number;
 }
@@ -153,9 +160,17 @@ export function winRound(state: PlayingRoundState): ShopState | VictoryState {
       };
 }
 
-export function loseRound(): GameState {
-  // In the future, we might show game over stats here
-  return createMainMenuState();
+export function loseRound(state: PlayingRoundState): GameOverState {
+  // Calculate final score based on current score when losing
+  const finalScore = state.roundState.type === 'roundFinished' && !state.roundState.won
+    ? state.roundState.score
+    : state.roundState.score;
+    
+  return {
+    type: 'gameOver',
+    runState: state.runState,
+    finalScore,
+  };
 }
 
 export function returnToMenu(): GameState {

@@ -113,18 +113,29 @@ describe('gameState', () => {
       }
       
       const playingState = selectBlind(selectingState);
-      const shopState = winRound(playingState);
+      const nextState = winRound(playingState);
       
-      expect(shopState.type).toBe('shop');
-      expect(shopState.runState.cash).toBeGreaterThan(selectingState.runState.cash);
-      expect(shopState.runState.blindProgression.type).toBe('bigBlindUpcoming');
+      expect(nextState.type).toBe('shop');
+      if (nextState.type === 'shop') {
+        expect(nextState.runState.cash).toBeGreaterThan(selectingState.runState.cash);
+        expect(nextState.runState.blindProgression.type).toBe('bigBlindUpcoming');
+      }
     });
   });
 
   describe('loseRound', () => {
-    test('returns to main menu on loss', () => {
-      const state = loseRound();
-      expect(state.type).toBe('mainMenu');
+    test('returns game over state on loss', () => {
+      const selectingState = startNewRun();
+      if (selectingState.type !== 'selectingBlind') {
+        throw new Error('Expected selectingBlind state');
+      }
+      
+      const playingState = selectBlind(selectingState);
+      const gameOverState = loseRound(playingState);
+      
+      expect(gameOverState.type).toBe('gameOver');
+      expect(gameOverState.runState).toBe(playingState.runState);
+      expect(gameOverState.finalScore).toBeDefined();
     });
   });
 

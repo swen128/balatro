@@ -8,6 +8,7 @@ import { BlindSelectionView } from '../blinds';
 import { RoundContainer } from '../round';
 import { ShopContainer } from '../shop';
 import { VictoryView } from './VictoryView.tsx';
+import { GameOverView } from './GameOverView.tsx';
 import { StatisticsView, StatisticsProvider, useStatisticsContext } from '../statistics';
 import { SoundProvider, SoundSettings, useSound } from '../sound';
 
@@ -76,12 +77,10 @@ function AppContent(): React.ReactElement {
 
   const handleLoseRound = (): void => {
     if (gameState.type === 'playingRound') {
-      const finalScore = gameState.roundState.type === 'roundFinished' && !gameState.roundState.won 
-        ? gameState.roundState.score 
-        : 0;
       sound.play('roundLose');
-      stats.trackGameEnd(false, gameState.runState.ante, finalScore);
-      setGameState(loseRound());
+      const nextState = loseRound(gameState);
+      stats.trackGameEnd(false, gameState.runState.ante, nextState.finalScore);
+      setGameState(nextState);
     }
   };
 
@@ -167,6 +166,15 @@ function AppContent(): React.ReactElement {
       return (
         <VictoryView
           gameState={gameState}
+          onReturnToMenu={handleReturnToMenu}
+        />
+      );
+    
+    case 'gameOver':
+      return (
+        <GameOverView
+          runState={gameState.runState}
+          finalScore={gameState.finalScore}
           onReturnToMenu={handleReturnToMenu}
         />
       );
