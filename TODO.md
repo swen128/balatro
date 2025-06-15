@@ -7,7 +7,7 @@ The core game is functional with:
 - ✅ Poker hand evaluation and scoring
 - ✅ Shop system with jokers and card packs
 - ✅ Save/load functionality
-- ✅ Boss blinds (3 implemented: The Window, The Hook, The Ox)
+- ✅ Boss blinds (8 implemented: The Window, The Hook, The Ox, The Wall, The Needle, The Goad, The Psychic, The Fish)
 - ✅ Card enhancements (foil, holographic, polychrome)
 - ✅ Discard mechanics
 - ✅ Statistics tracking
@@ -15,6 +15,8 @@ The core game is functional with:
 - ✅ Pre-commit hooks with `bun check` command
 - ✅ GitHub Actions deployment to GitHub Pages
 - ✅ Responsive build configuration for web deployment
+- ✅ Consumables system (spectral and arcana cards)
+- ✅ Glass card enhancement with breaking mechanic
 
 ## High Priority Tasks
 
@@ -25,10 +27,10 @@ The core game is functional with:
 - [x] Implement ante progression beyond ante 8 (endless mode)
 
 ### 2. Boss Blinds
-Currently 7 boss blinds implemented. Add more variety:
+Currently 8 boss blinds implemented. Add more variety:
 - [x] The Wall (all cards are debuffed)
 - [x] The Needle (only one hand type scores)
-- [ ] The Fish (cards start face down)
+- [x] The Fish (cards start face down)
 - [ ] The Club/Diamond/Heart/Spade (suit restrictions)
 - [x] The Goad (spades give no chips)
 - [ ] The Arm (decrease level of played poker hands)
@@ -46,14 +48,15 @@ Current jokers are basic. Add:
 - [ ] Poker hand leveling system (increase base chips/mult)
 - [ ] Tarot cards (enhance other cards)
 - [ ] Planet cards (level up specific poker hands)
-- [ ] Spectral cards (rare powerful effects)
+- [x] Spectral cards (rare powerful effects) - implemented with consumables system
+- [x] Arcana cards - implemented with consumables system
 
 ## Medium Priority Tasks
 
 ### 5. Card Enhancements
 Basic enhancements exist but missing:
 - [ ] Seals (Red, Blue, Gold, Purple with special effects)
-- [ ] Glass cards (high mult but chance to break)
+- [x] Glass cards (high mult but chance to break)
 - [ ] Stone cards (high chips but no rank/suit)
 - [ ] Wild cards (can be any suit)
 - [ ] Steel cards (remain in hand after playing)
@@ -68,7 +71,7 @@ Basic enhancements exist but missing:
 
 ### 7. Shop Improvements
 - [ ] Reroll cost should increase with each use
-- [ ] More diverse card pack types
+- [x] More diverse card pack types (Standard, Arcana, Spectral)
 - [ ] Shop item tooltips
 - [ ] Purchase animations
 
@@ -128,6 +131,7 @@ Basic enhancements exist but missing:
 - Container/Presentation component pattern
 - Pure functions for game logic
 - No type guards or type assertions (except in saveGame.ts)
+- HandState discriminated union instead of boolean flags
 
 ### Commands
 - `bun run dev` - Start development server
@@ -143,19 +147,18 @@ Basic enhancements exist but missing:
 - Only deploys when source files change (not documentation)
 
 ### Recent Updates
-- Fixed failing unit tests (import paths and suit symbols)
-- Added missing utility functions to card.ts
-- Added getPokerHandByName function
-- Set up pre-commit hooks with husky
-- Added GitHub Actions deployment workflow
-- Updated Vite config for relative paths (GitHub Pages compatibility)
-- Refactored getCardChipValue for clarity
+- Implemented The Fish boss blind (cards start face down and reveal on selection)
+- Added consumables system for spectral and arcana cards
+- Created ConsumablesDisplay component with size variants
+- Added glass card enhancement with 1/4 chance to break
+- Refactored Hand component to use HandState discriminated union
+- Implemented all spectral and arcana card effects
+- Added card selection modal for effects requiring target selection
 
 ### Next Steps for Development
-Game progression features completed! Next priorities:
-1. Additional boss blinds for variety (currently only 3 implemented)
+1. Implement remaining boss blinds (The Club/Diamond/Heart/Spade, The Arm)
 2. Expanded joker system with conditional/scaling jokers
-3. Core missing features: vouchers, hand leveling, special cards
+3. Core missing features: vouchers, hand leveling, planet cards
 4. UI/UX improvements: tooltips, tutorials, better visual feedback
 
 The game state management is in `src/game/gameState.ts` and ante progression is handled in `src/game/runState.ts`.
