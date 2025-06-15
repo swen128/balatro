@@ -1,6 +1,6 @@
 import type { Card, CardEnhancement } from '../cards';
 import { createCard, SUITS, RANKS } from '../cards';
-import type { SpectralEffect } from './shopItems.ts';
+// import type { SpectralEffect } from './shopItems.ts';
 
 export function generateStandardPackCards(count: number): ReadonlyArray<Card> {
   return Array.from({ length: count }, (): Card => {
@@ -25,26 +25,25 @@ export function generateStandardPackCards(count: number): ReadonlyArray<Card> {
   });
 }
 
-export interface SpectralCard {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string;
-  readonly effect: SpectralEffect;
-}
+// TODO: Implement special card types for spectral and arcana packs
+// interface SpectralCard {
+//   readonly id: string;
+//   readonly name: string;
+//   readonly description: string;
+//   readonly effect: SpectralEffect;
+// }
 
+// interface ArcanaCard {
+//   readonly id: string;
+//   readonly name: string;
+//   readonly description: string;
+//   readonly effect: ArcanaEffect;
+// }
 
-
-export interface ArcanaCard {
-  readonly id: string;
-  readonly name: string;
-  readonly description: string;
-  readonly effect: ArcanaEffect;
-}
-
-type ArcanaEffect = 
-  | { readonly type: 'enhanceHand'; readonly enhancement: CardEnhancement; readonly count: number }
-  | { readonly type: 'createJoker'; readonly rarity: string }
-  | { readonly type: 'createMoney'; readonly amount: number }
-  | { readonly type: 'createPlanet'; readonly handType: string };
+// type ArcanaEffect = 
+//   | { readonly type: 'enhanceHand'; readonly enhancement: CardEnhancement; readonly count: number }
+//   | { readonly type: 'createJoker'; readonly rarity: string }
+//   | { readonly type: 'createMoney'; readonly amount: number }
+//   | { readonly type: 'createPlanet'; readonly handType: string };
 
 

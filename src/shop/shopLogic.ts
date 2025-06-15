@@ -2,7 +2,7 @@ import type { RunState } from '../game';
 import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
 import type { Card } from '../cards';
-import type { SpectralCard, ArcanaCard } from './cardPacks.ts';
+// import type { SpectralCard, ArcanaCard } from './cardPacks.ts';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 interface BaseShopState {
@@ -21,7 +21,7 @@ interface SelectingCardState extends BaseShopState {
   readonly availableItems: ReadonlyArray<ShopItem>;
   readonly pendingPack: {
     readonly packType: 'standard' | 'spectral' | 'arcana';
-    readonly cards: ReadonlyArray<Card | SpectralCard | ArcanaCard>;
+    readonly cards: ReadonlyArray<Card>; // TODO: Support SpectralCard | ArcanaCard
     readonly price: number;
     readonly originalItem: PackItem;
   };

@@ -34,7 +34,11 @@ export interface VoucherItem extends ShopItemBase {
 
 interface SpectralItem extends ShopItemBase {
   readonly type: 'spectral';
-  readonly effect: SpectralEffect;
+  readonly effect: 
+    | { readonly type: 'addFoil'; readonly count: number }
+    | { readonly type: 'addHolographic'; readonly count: number }
+    | { readonly type: 'addPolychrome'; readonly count: number }
+    | { readonly type: 'duplicateCard'; readonly count: number };
 }
 
 type UpgradeEffect = 
@@ -52,11 +56,12 @@ type VoucherEffect =
   | { readonly type: 'interestRate'; readonly percent: number }
   | { readonly type: 'rerollCost'; readonly amount: number };
 
-export type SpectralEffect =
-  | { readonly type: 'addFoil'; readonly count: number }
-  | { readonly type: 'addHolographic'; readonly count: number }
-  | { readonly type: 'addPolychrome'; readonly count: number }
-  | { readonly type: 'duplicateCard'; readonly count: number };
+// TODO: Uncomment when spectral cards are implemented
+// export type SpectralEffect =
+//   | { readonly type: 'addFoil'; readonly count: number }
+//   | { readonly type: 'addHolographic'; readonly count: number }
+//   | { readonly type: 'addPolychrome'; readonly count: number }
+//   | { readonly type: 'duplicateCard'; readonly count: number };
 
 const SHOP_UPGRADES: ReadonlyArray<UpgradeItem> = [
   {

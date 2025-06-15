@@ -1,9 +1,8 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { RunState } from '../game/runState.ts';
 import { createShopState, purchaseItem, rerollShop, canAffordItem, canReroll, selectCardFromPack, cancelPackSelection } from './shopLogic.ts';
 import { ShopView } from './ShopView.tsx';
 import { CardPackModal } from './CardPackModal.tsx';
-import { generateStandardPackCards } from './cardPacks.ts';
 import type { Card } from '../cards/card.ts';
 import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
 
@@ -15,29 +14,7 @@ interface ShopContainerProps {
 export function ShopContainer({ runState: initialRunState, onLeave }: ShopContainerProps): React.ReactElement {
   const [runState, setRunState] = useState<RunState>(initialRunState);
   const [shopState, setShopState] = useState(() => createShopState(initialRunState));
-  const [packCards, setPackCards] = useState<ReadonlyArray<Card> | null>(null);
   const stats = useStatisticsContext();
-
-  // Generate pack cards when a pack is purchased
-  useEffect(() => {
-    if (shopState.type === 'selectingCard' && packCards === null) {
-      const pack = shopState.pendingPack;
-      let cards: ReadonlyArray<Card> = [];
-      
-      switch (pack.packType) {
-        case 'standard':
-          cards = generateStandardPackCards(3);
-          break;
-        case 'spectral':
-        case 'arcana':
-          // For now, generate standard cards as placeholders
-          cards = generateStandardPackCards(3);
-          break;
-      }
-      
-      setPackCards(cards);
-    }
-  }, [shopState, packCards]);
 
   const handlePurchase = useCallback((itemId: string): void => {
     const item = shopState.availableItems.find(i => i.id === itemId);
@@ -70,7 +47,6 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
       const result = selectCardFromPack(shopState, runState, card);
       setShopState(result.shopState);
       setRunState(result.runState);
-      setPackCards(null);
     }
   }, [shopState, runState]);
 
@@ -79,7 +55,6 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
       const result = cancelPackSelection(shopState, runState);
       setShopState(result.shopState);
       setRunState(result.runState);
-      setPackCards(null);
     }
   }, [shopState, runState]);
 
@@ -98,10 +73,10 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
         canAffordItem={(item) => canAffordItem(runState.cash, item)}
         canReroll={() => canReroll(runState.cash, shopState.rerollCost)}
       />
-      {shopState.type === 'selectingCard' && packCards && packCards.length > 0 && (
+      {shopState.type === 'selectingCard' && shopState.pendingPack.cards.length > 0 && (
         <CardPackModal
           packType={shopState.pendingPack.packType}
-          cards={packCards}
+          cards={shopState.pendingPack.cards}
           onSelectCard={handleSelectCard}
           onCancel={handleCancelPack}
         />

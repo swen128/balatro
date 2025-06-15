@@ -1,6 +1,8 @@
 import type { RunState } from '../game';
 import type { ShopState, BrowsingShopState } from './shopLogic.ts';
 import type { ShopItem, UpgradeItem, VoucherItem, JokerItem, PackItem } from './shopItems.ts';
+import { generateStandardPackCards } from './cardPacks.ts';
+import type { Card } from '../cards';
 
 export function applyUpgradeEffect(
   runState: RunState,
@@ -55,19 +57,25 @@ export function createPackPendingState(
 ): ShopState {
   return shopState.type !== 'browsing'
     ? shopState
-    : {
-        type: 'selectingCard',
-        availableItems: shopState.availableItems,
-        purchasedJokers: shopState.purchasedJokers,
-        rerollCost: shopState.rerollCost,
-        rerollsUsed: shopState.rerollsUsed,
-        pendingPack: {
-          packType: item.packType,
-          cards: [],
-          price: item.price,
-          originalItem: item,
-        },
-      };
+    : ((): ShopState => {
+        const cards: ReadonlyArray<Card> = item.packType === 'standard'
+          ? generateStandardPackCards(item.cardCount)
+          : generateStandardPackCards(item.cardCount); // For now, spectral/arcana use standard cards
+        
+        return {
+          type: 'selectingCard' as const,
+          availableItems: shopState.availableItems,
+          purchasedJokers: shopState.purchasedJokers,
+          rerollCost: shopState.rerollCost,
+          rerollsUsed: shopState.rerollsUsed,
+          pendingPack: {
+            packType: item.packType,
+            cards,
+            price: item.price,
+            originalItem: item,
+          },
+        };
+      })();
 }
 
 export function createBaseStates(
