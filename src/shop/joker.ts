@@ -37,9 +37,24 @@ type JokerEffect =
   | { readonly type: 'chipsAndMultPerRank'; readonly rank: string; readonly chips: number; readonly mult: number }
   | { readonly type: 'chipsAndMultPerRanks'; readonly ranks: ReadonlyArray<string>; readonly chips: number; readonly mult: number }
   | { readonly type: 'scalingChips'; readonly baseAmount: number; readonly trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'; readonly scalingValue: number }
-  | { readonly type: 'scalingMult'; readonly baseAmount: number; readonly trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'; readonly scalingValue: number };
+  | { readonly type: 'scalingMult'; readonly baseAmount: number; readonly trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'; readonly scalingValue: number }
+  | { readonly type: 'moneyPerFaceCard'; readonly amount: number; readonly chance: number }
+  | { readonly type: 'moneyPerRank'; readonly rank: string; readonly amount: number; readonly chance: number }
+  | { readonly type: 'moneyPerDiscard'; readonly amount: number }
+  | { readonly type: 'moneyIfNoDiscardsUsed'; readonly perDiscard: number }
+  | { readonly type: 'moneyPerHeldFaceCard'; readonly amount: number; readonly chance: number }
+  | { readonly type: 'debtLimit'; readonly amount: number }
+  | { readonly type: 'freeRerollPerShop'; readonly amount: number };
 
 export type Joker = BaseJoker & JokerEffect;
+
+// type MoneyJoker = BaseJoker & (
+//   | { readonly type: 'moneyPerFaceCard'; readonly amount: number; readonly chance: number }
+//   | { readonly type: 'moneyPerRank'; readonly rank: string; readonly amount: number; readonly chance: number }
+//   | { readonly type: 'moneyPerDiscard'; readonly amount: number }
+//   | { readonly type: 'moneyIfNoDiscardsUsed'; readonly perDiscard: number }
+//   | { readonly type: 'moneyPerHeldFaceCard'; readonly amount: number; readonly chance: number }
+// );
 
 export interface JokerContext {
   readonly playedCards: ReadonlyArray<Card>;
@@ -47,6 +62,11 @@ export interface JokerContext {
   readonly handsPlayed: number;
   readonly discardsRemaining?: number;
   readonly heldCards?: ReadonlyArray<Card>;
+}
+
+export interface MoneyEffect {
+  readonly amount: number;
+  readonly source: string;
 }
 
 export function evaluateJokerEffect(
@@ -341,6 +361,16 @@ export function evaluateJokerEffect(
           ? [createEffect('addMult', scalingValue)]
           : [];
     }
+    
+    // Economy jokers don't provide scoring effects
+    case 'moneyPerFaceCard':
+    case 'moneyPerRank':
+    case 'moneyPerDiscard':
+    case 'moneyIfNoDiscardsUsed':
+    case 'moneyPerHeldFaceCard':
+    case 'debtLimit':
+    case 'freeRerollPerShop':
+      return [];
   }
 }
 
@@ -350,6 +380,154 @@ export function evaluateAllJokers(
 ): ReadonlyArray<ScoringEffect> {
   return jokers.flatMap(joker => evaluateJokerEffect(joker, context));
 }
+
+
+export function evaluateAllJokerMoneyEffects(
+  jokers: ReadonlyArray<Joker>,
+  context: JokerContext  
+): ReadonlyArray<MoneyEffect> {
+  return jokers.flatMap(joker => {
+    switch (joker.type) {
+      case 'moneyPerFaceCard': {
+        const faceCardCount = context.playedCards.filter(card => 
+          card.rank === 'J' || card.rank === 'Q' || card.rank === 'K'
+        ).length;
+        
+        return faceCardCount === 0
+          ? []
+          : ((): ReadonlyArray<MoneyEffect> => {
+              const moneyRolls = Array.from({ length: faceCardCount }, () => 
+                Math.random() < joker.chance ? joker.amount : 0
+              );
+              const totalMoney = moneyRolls.reduce((sum, amount) => sum + amount, 0);
+              
+              return totalMoney > 0
+                ? [{ amount: totalMoney, source: joker.name }]
+                : [];
+            })();
+      }
+      
+      case 'moneyPerRank': {
+        const rankCount = context.playedCards.filter(card => card.rank === joker.rank).length;
+        
+        return rankCount === 0
+          ? []
+          : ((): ReadonlyArray<MoneyEffect> => {
+              const moneyRolls = Array.from({ length: rankCount }, () => 
+                Math.random() < joker.chance ? joker.amount : 0
+              );
+              const totalMoney = moneyRolls.reduce((sum, amount) => sum + amount, 0);
+              
+              return totalMoney > 0
+                ? [{ amount: totalMoney, source: joker.name }]
+                : [];
+            })();
+      }
+      
+      case 'moneyPerHeldFaceCard': {
+        return !context.heldCards
+          ? []
+          : ((): ReadonlyArray<MoneyEffect> => {
+              const heldFaceCardCount = context.heldCards.filter(card =>
+                card.rank === 'J' || card.rank === 'Q' || card.rank === 'K'
+              ).length;
+              
+              return heldFaceCardCount === 0
+                ? []
+                : ((): ReadonlyArray<MoneyEffect> => {
+                    const moneyRolls = Array.from({ length: heldFaceCardCount }, () => 
+                      Math.random() < joker.chance ? joker.amount : 0
+                    );
+                    const totalMoney = moneyRolls.reduce((sum, amount) => sum + amount, 0);
+                    
+                    return totalMoney > 0
+                      ? [{ amount: totalMoney, source: joker.name }]
+                      : [];
+                  })();
+            })();
+      }
+      
+      case 'moneyPerDiscard':
+      case 'moneyIfNoDiscardsUsed':
+        // These are evaluated elsewhere (discarding/end of round)
+        return [];
+        
+      // All other joker types don't generate money during hands
+      case 'flatChips':
+      case 'flatMult':
+      case 'multMult':
+      case 'chipsPerHeart':
+      case 'multPerDiamond':
+      case 'multIfContains':
+      case 'chipsIfPlayed':
+      case 'multPerPair':
+      case 'everyOtherHand':
+      case 'multIfNoFaceCards':
+      case 'chipsForRemainingDiscards':
+      case 'multIfNoDiscards':
+      case 'multIfExactCards':
+      case 'multIfMaxCards':
+      case 'chipsForEvenRanks':
+      case 'multForEvenRanks':
+      case 'multForOddRanks':
+      case 'multPerSpecificRanks':
+      case 'chipsForOddRanks':
+      case 'multPerSuit':
+      case 'chipsPerSuit':
+      case 'chipsPerFaceCard':
+      case 'multPerFaceCard':
+      case 'multIfAllSameSuit':
+      case 'chipsIfContainsRank':
+      case 'chipsAndMultPerRank':
+      case 'chipsAndMultPerRanks':
+      case 'scalingChips':
+      case 'scalingMult':
+      case 'debtLimit':
+      case 'freeRerollPerShop':
+        return [];
+    }
+  });
+}
+
+// These functions will be used when we fully implement the economy system
+// function getDebtLimit(jokers: ReadonlyArray<Joker>): number {
+//   // Sum up all debt limit jokers
+//   return jokers.reduce((totalDebt, joker) => {
+//     return joker.type === 'debtLimit' ? totalDebt + joker.amount : totalDebt;
+//   }, 0);
+// }
+
+// function getFreeRerolls(jokers: ReadonlyArray<Joker>): number {
+//   // Sum up all free reroll jokers
+//   return jokers.reduce((totalRerolls, joker) => {
+//     return joker.type === 'freeRerollPerShop' ? totalRerolls + joker.amount : totalRerolls;
+//   }, 0);
+// }
+
+// function evaluateDiscardMoneyEffect(
+//   jokers: ReadonlyArray<Joker>,
+//   discardsUsed: number
+// ): ReadonlyArray<MoneyEffect> {
+//   return jokers
+//     .filter(joker => joker.type === 'moneyPerDiscard' && discardsUsed > 0)
+//     .map(joker => ({
+//       amount: joker.type === 'moneyPerDiscard' ? joker.amount * discardsUsed : 0,
+//       source: joker.name,
+//     }));
+// }
+
+// function evaluateEndOfRoundMoneyEffect(
+//   jokers: ReadonlyArray<Joker>,
+//   discardsRemaining: number,
+//   discardsUsed: number
+// ): ReadonlyArray<MoneyEffect> {
+//   return jokers
+//     .filter(joker => joker.type === 'moneyIfNoDiscardsUsed' && discardsUsed === 0)
+//     .map(joker => ({
+//       amount: joker.type === 'moneyIfNoDiscardsUsed' ? joker.perDiscard * discardsRemaining : 0,
+//       source: joker.name,
+//     }));
+// }
 
 
 // Predefined jokers
@@ -479,8 +657,8 @@ export const JOKERS: ReadonlyArray<Joker> = [
     name: 'Credit Card',
     description: 'Go up to -$20 in debt',
     rarity: 'common',
-    type: 'flatMult',
-    amount: 0
+    type: 'debtLimit',
+    amount: 20
   },
   {
     id: 'joker-16',
@@ -553,8 +731,8 @@ export const JOKERS: ReadonlyArray<Joker> = [
     name: 'Chaos the Clown',
     description: '1 free Reroll per shop',
     rarity: 'common',
-    type: 'flatMult',
-    amount: 0
+    type: 'freeRerollPerShop',
+    amount: 1
   },
   {
     id: 'joker-25',
@@ -577,8 +755,8 @@ export const JOKERS: ReadonlyArray<Joker> = [
     name: 'Delayed Gratification',
     description: 'Earn $2 per discard if no discards used by end of round',
     rarity: 'common',
-    type: 'flatMult',
-    amount: 0
+    type: 'moneyIfNoDiscardsUsed',
+    perDiscard: 2
   },
   {
     id: 'joker-28',
@@ -619,8 +797,9 @@ export const JOKERS: ReadonlyArray<Joker> = [
     name: 'Business Card',
     description: 'Played face cards have a 1 in 2 chance to give $2',
     rarity: 'common',
-    type: 'flatMult',
-    amount: 0
+    type: 'moneyPerFaceCard',
+    amount: 2,
+    chance: 0.5
   },
   {
     id: 'joker-33',
@@ -748,16 +927,17 @@ export const JOKERS: ReadonlyArray<Joker> = [
     name: 'Reserved Parking',
     description: 'Each face card held in hand has a 1 in 2 chance to give $1',
     rarity: 'common',
-    type: 'flatMult',
-    amount: 0
+    type: 'moneyPerHeldFaceCard',
+    amount: 1,
+    chance: 0.5
   },
   {
     id: 'joker-35m',
     name: 'Mail-In Rebate',
     description: 'Earn $3 for each discard used, rank changes every round',
     rarity: 'common',
-    type: 'flatMult',
-    amount: 0
+    type: 'moneyPerDiscard',
+    amount: 3
   },
   {
     id: 'joker-35n',

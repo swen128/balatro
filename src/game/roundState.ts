@@ -4,8 +4,8 @@ import type { EvaluatedHand, ChipMult, ScoringEffect } from '../scoring';
 import { evaluatePokerHand, calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects, determineGlassBrokenCards } from '../scoring';
 import type { BossBlind } from '../blinds';
 import { applyBossEffectOnScoring } from '../blinds';
-import type { Joker, JokerContext } from '../shop';
-import { evaluateAllJokers } from '../shop';
+import type { Joker, JokerContext, MoneyEffect } from '../shop';
+import { evaluateAllJokers, evaluateAllJokerMoneyEffects } from '../shop';
 import type { HandLevels } from '../scoring';
 
 export type RoundState = 
@@ -50,6 +50,7 @@ export interface ScoringState extends BaseRoundState {
   readonly evaluatedHand: EvaluatedHand;
   readonly baseChipMult: ChipMult;
   readonly finalScore: number;
+  readonly moneyGenerated?: number;
   readonly brokenGlassCards?: ReadonlyArray<Card>;
 }
 
@@ -280,11 +281,25 @@ export function scoreHand(
     state.discardsRemaining
   );
   
+  // Calculate money generated from jokers
+  const heldCards = state.hand.filter(card => !state.playedCards.some(played => played.id === card.id));
+  const jokerContext: JokerContext = {
+    playedCards: state.playedCards,
+    evaluatedHand: state.evaluatedHand,
+    handsPlayed: state.handsPlayed,
+    discardsRemaining: state.discardsRemaining,
+    heldCards,
+  };
+  
+  const moneyEffects: ReadonlyArray<MoneyEffect> = evaluateAllJokerMoneyEffects(jokers, jokerContext);
+  const totalMoneyGenerated: number = moneyEffects.reduce((sum, effect) => sum + effect.amount, 0);
+  
   return {
     ...state,
     type: 'scoring',
     baseChipMult: calculation.chipMult,
     finalScore: calculation.finalScore,
+    ...(totalMoneyGenerated > 0 ? ({ moneyGenerated: totalMoneyGenerated } as const) : {}),
   };
 }
 

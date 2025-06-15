@@ -70,6 +70,16 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
             scoringState.evaluatedHand.handType.name,
             scoringState.finalScore
           );
+          
+          // Apply money generated from jokers
+          if (scoringState.moneyGenerated !== undefined && scoringState.moneyGenerated > 0) {
+            const moneyToAdd = scoringState.moneyGenerated;
+            setMoney(currentMoney => currentMoney + moneyToAdd);
+            onUpdateRunState(runState => ({
+              ...runState,
+              cash: runState.cash + moneyToAdd,
+            }));
+          }
         }
         
         // Handle round finished
@@ -89,7 +99,7 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
     }
     
     return undefined;
-  }, [roundState, bossBlind, money, gameState.runState.jokers, gameState.runState.handLevels, onWin, onLose, stats]);
+  }, [roundState, bossBlind, money, gameState.runState.jokers, gameState.runState.handLevels, onWin, onLose, stats, onUpdateRunState]);
 
   const handleCardClickCallback = useCallback((cardId: string): void => {
     const newState = handleCardClick(roundState, cardId);

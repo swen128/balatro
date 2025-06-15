@@ -1,6 +1,9 @@
 // Shop feature exports
 export { ShopContainer } from './ShopContainer.tsx';
 
-export type { Joker, JokerContext } from './joker.ts';
-export { evaluateAllJokers } from './joker.ts';
-export { getRandomJoker } from './joker.ts';
+export type { Joker, JokerContext, MoneyEffect } from './joker.ts';
+export { 
+  evaluateAllJokers,
+  evaluateAllJokerMoneyEffects,
+  getRandomJoker 
+} from './joker.ts';
