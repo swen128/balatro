@@ -106,6 +106,7 @@ interface BossEffectContext {
   readonly bossBlind: BossBlind | { readonly name: string };
   readonly handsPlayed: number;
   readonly totalMoney: number;
+  readonly evaluatedHand?: { readonly handType: { readonly name: string } };
 }
 
 
@@ -124,15 +125,33 @@ export function applyBossEffectOnScoring<T extends { finalScore: number }>(
       : scoringState
     : ((): T => {
         const boss = context.bossBlind;
-        const preScoringEffects = getBossEffectsForPhase<PreScoringEffect>(boss, 'preScoring');
         
-        const modifiedScore = preScoringEffects.reduce(
+        // Apply pre-scoring effects
+        const preScoringEffects = getBossEffectsForPhase<PreScoringEffect>(boss, 'preScoring');
+        const afterPreScoring = preScoringEffects.reduce(
           (score, effect) => 
             shouldApplyPreScoringEffect(effect, context.handsPlayed)
               ? applyPreScoringEffect(effect, score, context.handsPlayed)
               : score,
           scoringState.finalScore
         );
+        
+        // Apply scoring modifier effects
+        const scoringModifierEffects = getBossEffectsForPhase<ScoringModifierEffect>(boss, 'scoringModifier');
+        const modifiedScore = scoringModifierEffects.reduce((score, effect) => {
+          switch (effect.type) {
+            case 'onlyOneHandType':
+              // If hand type doesn't match, score is 0
+              return context.evaluatedHand && context.evaluatedHand.handType.name !== effect.handType
+                ? 0
+                : score;
+            case 'capChips':
+              return Math.min(score, effect.max);
+            case 'noFaceCardBonus':
+              // This would need to be handled in calculateScore, not here
+              return score;
+          }
+        }, afterPreScoring);
         
         return {
           ...scoringState,

@@ -261,6 +261,7 @@ export function scoreHandWithBossEffect(
         bossBlind,
         handsPlayed: state.handsPlayed,
         totalMoney,
+        evaluatedHand: state.evaluatedHand,
       })
     : baseScoring;
 }

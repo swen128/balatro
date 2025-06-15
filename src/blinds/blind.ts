@@ -63,6 +63,31 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     }],
     effectDescription: 'Playing a #1 hand sets money to $0',
   },
+  {
+    type: 'boss',
+    name: 'The Wall',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'preScoring',
+      type: 'debuffAllCardsInHand',
+    }],
+    effectDescription: 'All cards are debuffed',
+  },
+  {
+    type: 'boss',
+    name: 'The Needle',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'onlyOneHandType',
+      handType: '', // Will be set randomly when boss is selected
+    }],
+    effectDescription: 'Only one hand type scores',
+  },
 ];
 
 export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {
@@ -88,15 +113,36 @@ export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): n
 export function getRandomBossBlind(): BossBlind {
   const index = Math.floor(Math.random() * BOSS_BLINDS.length);
   const boss = BOSS_BLINDS[index];
-  return boss ?? {
-    type: 'boss',
-    name: 'The Wall',
-    scoreMultiplier: 2,
-    cashReward: 8,
-    isBoss: true,
-    effects: [],
-    effectDescription: 'No effect',
-  };
+  
+  return !boss
+    ? {
+        type: 'boss',
+        name: 'The Wall',
+        scoreMultiplier: 2,
+        cashReward: 8,
+        isBoss: true,
+        effects: [],
+        effectDescription: 'No effect',
+      }
+    : boss.name === 'The Needle'
+    ? ((): BossBlind => {
+        const handTypes = [
+          'Pair', 'Two Pair', 'Three of a Kind', 'Straight', 
+          'Flush', 'Full House', 'Four of a Kind', 'Straight Flush'
+        ];
+        const selectedHandType = handTypes[Math.floor(Math.random() * handTypes.length)] ?? 'Pair';
+        
+        return {
+          ...boss,
+          effects: [{
+            kind: 'scoringModifier',
+            type: 'onlyOneHandType',
+            handType: selectedHandType,
+          }],
+          effectDescription: `Only ${selectedHandType} scores`,
+        };
+      })()
+    : boss;
 }
 
 export function createBlind(type: 'small' | 'big' | 'boss'): BlindType | BossBlind {
