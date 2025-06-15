@@ -5,6 +5,7 @@ import type { BossBlind } from './bossEffects.ts';
 import { getBlindScoreGoal } from './blind.ts';
 import { getCurrentBlindType } from '../game';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
+import { ConsumablesDisplay } from '../round/ConsumablesDisplay.tsx';
 
 interface BlindSelectionProps {
   readonly runState: RunState;
@@ -49,12 +50,37 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
   };
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen gap-4 relative">
-      <div className="mb-8">
-        <h2 className="text-3xl font-bold mb-4">Ante {runState.ante}</h2>
-        <p className="text-xl">Cash: ${runState.cash}</p>
+    <div className="flex h-screen bg-gray-900">
+      {/* Left sidebar */}
+      <div className="w-[200px] bg-gray-950 p-4 flex flex-col gap-4">
+        <div>
+          <h3 className="text-xl font-bold">Ante {runState.ante}</h3>
+          <p className="text-lg">Cash: ${runState.cash}</p>
+        </div>
+        
+        {runState.jokers.length > 0 && (
+          <div>
+            <h4 className="text-lg mb-2">Jokers</h4>
+            <div className="flex flex-col gap-2">
+              {runState.jokers.map(joker => (
+                <div key={joker.id} className="text-sm p-2 bg-gray-800 rounded">
+                  {joker.name}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        
+        <ConsumablesDisplay
+          consumables={runState.consumables}
+          maxConsumables={runState.maxConsumables}
+          onUseConsumable={() => {}}
+          disabled={true}
+        />
       </div>
-
+      
+      {/* Main content */}
+      <div className="flex-1 flex flex-col items-center justify-center gap-4 relative">
       {/* Display all three blinds */}
       <div className="flex gap-4 mb-8">
         {/* Small Blind */}
@@ -123,11 +149,12 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
         View Deck
       </button>
       
-      <DeckViewer
-        deck={runState.deck}
-        isOpen={showDeck}
-        onClose={() => setShowDeck(false)}
-      />
+        <DeckViewer
+          deck={runState.deck}
+          isOpen={showDeck}
+          onClose={() => setShowDeck(false)}
+        />
+      </div>
     </div>
   );
 }

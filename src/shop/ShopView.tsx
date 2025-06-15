@@ -3,6 +3,7 @@ import type { RunState } from '../game/runState.ts';
 import type { ShopState } from './shopLogic.ts';
 import type { ShopItem } from './shopItems.ts';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
+import { ConsumablesDisplay } from '../round/ConsumablesDisplay.tsx';
 
 interface ShopViewProps {
   readonly runState: RunState;
@@ -56,6 +57,13 @@ export function ShopView({
             </div>
           </div>
         )}
+        
+        <ConsumablesDisplay
+          consumables={runState.consumables}
+          maxConsumables={runState.maxConsumables}
+          onUseConsumable={() => {}}
+          disabled={true}
+        />
       </div>
 
       {/* Main shop area */}
