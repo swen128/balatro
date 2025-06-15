@@ -1,7 +1,7 @@
 import type { Card, DrawPile } from '../cards';
 import { drawCards, discardCards } from '../cards';
 import type { EvaluatedHand, ChipMult, ScoringEffect } from '../scoring';
-import { evaluatePokerHand, calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects } from '../scoring';
+import { evaluatePokerHand, calculateBaseChipMult, calculateFinalScore, applyEffects, getCardEnhancementEffects, determineGlassBrokenCards } from '../scoring';
 import type { BossBlind } from '../blinds';
 import { applyBossEffectOnScoring } from '../blinds';
 import type { Joker, JokerContext } from '../shop';
@@ -48,16 +48,19 @@ export interface ScoringState extends BaseRoundState {
   readonly evaluatedHand: EvaluatedHand;
   readonly baseChipMult: ChipMult;
   readonly finalScore: number;
+  readonly brokenGlassCards?: ReadonlyArray<Card>;
 }
 
 interface PlayedState extends BaseRoundState {
   readonly type: 'played';
   readonly lastHandScore: number;
+  readonly brokenGlassCards?: ReadonlyArray<Card>;
 }
 
 export interface RoundFinishedState extends BaseRoundState {
   readonly type: 'roundFinished';
   readonly won: boolean;
+  readonly brokenGlassCards?: ReadonlyArray<Card>;
 }
 
 export function createRoundState(
@@ -275,38 +278,39 @@ export function finishScoring(state: ScoringState): PlayedState | RoundFinishedS
   const newHandsRemaining = state.handsRemaining - 1;
   const newHandsPlayed = state.handsPlayed + 1;
   
+  // Determine which glass cards broke
+  const brokenGlassCards = determineGlassBrokenCards(state.playedCards);
+  
   // Check if round is finished
+  const baseState = {
+    ...state,
+    score: newScore,
+    hand: remainingCards,
+    drawPile: newDrawPile,
+    handsRemaining: newHandsRemaining,
+    handsPlayed: newHandsPlayed,
+  };
+  
   return newScore >= state.scoreGoal
     ? {
-        ...state,
-        type: 'roundFinished',
-        score: newScore,
-        hand: remainingCards,
-        drawPile: newDrawPile,
-        handsRemaining: newHandsRemaining,
-        handsPlayed: newHandsPlayed,
+        ...baseState,
+        type: 'roundFinished' as const,
         won: true,
+        ...(brokenGlassCards.length > 0 ? { brokenGlassCards } : {}),
       }
     : newHandsRemaining <= 0
     ? {
-        ...state,
-        type: 'roundFinished',
-        score: newScore,
-        hand: remainingCards,
-        drawPile: newDrawPile,
+        ...baseState,
+        type: 'roundFinished' as const,
         handsRemaining: 0,
-        handsPlayed: newHandsPlayed,
         won: false,
+        ...(brokenGlassCards.length > 0 ? { brokenGlassCards } : {}),
       }
     : {
-        ...state,
-        type: 'played',
-        score: newScore,
-        hand: remainingCards,
-        drawPile: newDrawPile,
-        handsRemaining: newHandsRemaining,
-        handsPlayed: newHandsPlayed,
+        ...baseState,
+        type: 'played' as const,
         lastHandScore: state.finalScore,
+        ...(brokenGlassCards.length > 0 ? { brokenGlassCards } : {}),
       };
 }
 

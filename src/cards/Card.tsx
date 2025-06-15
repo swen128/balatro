@@ -25,6 +25,7 @@ export function Card({ card, isSelected, onClick, style, animationClass, animati
         foil: 'bg-gradient-to-br from-gray-100 to-gray-300',
         holographic: 'bg-gradient-to-br from-purple-100 via-pink-100 to-blue-100',
         polychrome: 'bg-gradient-to-br from-red-100 via-yellow-100 to-blue-100',
+        glass: 'bg-gradient-to-br from-blue-100 to-cyan-100 opacity-90',
       }[card.enhancement]
     : 'bg-white';
   

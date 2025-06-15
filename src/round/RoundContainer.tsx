@@ -38,6 +38,9 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
           setMoney(0);
         }
         
+        // Note: Broken glass cards are handled when the round is won
+        // The game state will update the deck at that time
+        
         // Track hand statistics when transitioning from scoring to played
         if (roundState.type === 'scoring' && transition.nextState.type === 'played') {
           const scoringState = roundState;

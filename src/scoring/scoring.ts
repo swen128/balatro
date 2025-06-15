@@ -76,6 +76,20 @@ export function calculateFinalScore(chipMult: ChipMult, effects: ReadonlyArray<S
 
 
 
+export const GLASS_MULT_BONUS = 2; // x2 multiplier  
+const GLASS_BREAK_CHANCE = 0.25; // 25% chance to break
+
+export type RandomNumberGenerator = () => number;
+
+export function determineGlassBrokenCards(
+  cards: ReadonlyArray<Card>,
+  randomFn: RandomNumberGenerator = Math.random
+): ReadonlyArray<Card> {
+  return cards.filter(card => 
+    card.enhancement === 'glass' && randomFn() < GLASS_BREAK_CHANCE
+  );
+}
+
 export function getCardEnhancementEffects(cards: ReadonlyArray<Card>): ReadonlyArray<ScoringEffect> {
   return cards.flatMap((card): ReadonlyArray<ScoringEffect> => 
     card.enhancement === 'holographic'
@@ -89,6 +103,12 @@ export function getCardEnhancementEffects(cards: ReadonlyArray<Card>): ReadonlyA
           type: 'multiplyMult',
           value: 1.5,
           source: `Polychrome ${card.rank}${card.suit}`,
+        }]
+      : card.enhancement === 'glass'
+      ? [{
+          type: 'multiplyMult',
+          value: GLASS_MULT_BONUS,
+          source: `Glass ${card.rank}${card.suit}`,
         }]
       : []
   );

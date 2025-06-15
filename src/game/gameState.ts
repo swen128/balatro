@@ -2,7 +2,7 @@ import type { RunState } from './runState.ts';
 import type { RoundState } from './roundState.ts';
 import type { BlindType, BossBlind } from '../blinds';
 import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal, getRandomBossBlind } from '../blinds';
-import { createInitialRunState, getCurrentBlindType, skipBlind, defeatBlind, addJoker, WINNING_ANTE } from './runState.ts';
+import { createInitialRunState, getCurrentBlindType, skipBlind, defeatBlind, addJoker, WINNING_ANTE, updateDeck } from './runState.ts';
 import { createRoundState } from './roundState.ts';
 import { createDrawPile } from '../cards/drawPile.ts';
 import { JOKERS } from '../shop/joker.ts';
@@ -145,7 +145,21 @@ export function skipBlindFromSelectScreen(state: SelectingBlindState): Selecting
 
 export function winRound(state: PlayingRoundState): ShopState | VictoryState {
   const cashReward = state.blind.cashReward;
-  const newRunState = defeatBlind(state.runState, cashReward);
+  const baseRunState = defeatBlind(state.runState, cashReward);
+  
+  // Check if any glass cards broke in the final round state
+  const brokenCards = state.roundState.type === 'roundFinished' && state.roundState.brokenGlassCards
+    ? state.roundState.brokenGlassCards
+    : [];
+    
+  // Remove broken glass cards from the deck
+  const newRunState = brokenCards.length > 0
+    ? ((): RunState => {
+        const brokenCardIds = new Set(brokenCards.map(card => card.id));
+        const updatedDeck = baseRunState.deck.filter(card => !brokenCardIds.has(card.id));
+        return updateDeck(baseRunState, updatedDeck);
+      })()
+    : baseRunState;
   
   // Check if we just defeated the winning ante boss blind
   return state.runState.ante === WINNING_ANTE && state.runState.blindProgression.type === 'bossBlindUpcoming'

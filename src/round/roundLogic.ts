@@ -1,6 +1,7 @@
 import type { RoundState, RoundFinishedState } from '../game';
 import type { BossBlind } from '../blinds';
 import type { Joker } from '../shop';
+import type { Card } from '../cards';
 import {
   drawCardsToHand,
   drawCardsToHandWithBossEffect,
@@ -17,6 +18,7 @@ interface RoundTransition {
   readonly nextState: RoundState;
   readonly shouldResetMoney?: boolean;
   readonly delayMs: number;
+  readonly brokenGlassCards?: ReadonlyArray<Card>;
 }
 
 export function getNextRoundState(
@@ -45,12 +47,20 @@ export function getNextRoundState(
 
     case 'scoring': {
       const nextState = finishScoring(currentState);
-      return { nextState, delayMs: 2000 };
+      return { 
+        nextState, 
+        delayMs: 2000,
+        ...(currentState.brokenGlassCards ? { brokenGlassCards: currentState.brokenGlassCards } : {}),
+      };
     }
 
     case 'played': {
       const nextState = continueToNextHand(currentState);
-      return { nextState, delayMs: 1000 };
+      return { 
+        nextState, 
+        delayMs: 1000,
+        ...(currentState.brokenGlassCards ? { brokenGlassCards: currentState.brokenGlassCards } : {}),
+      };
     }
 
     case 'selectingHand':
