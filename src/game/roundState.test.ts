@@ -201,7 +201,7 @@ describe('roundState', () => {
         kickers: [],
       };
       
-      const joker = JOKERS.find(j => j.effect.type === 'flatMult');
+      const joker = JOKERS.find(j => j.type === 'flatMult');
       expect(joker).toBeDefined();
       
       const result = calculateScore(playedCards, evaluatedHand, joker ? [joker] : [], null, 1);

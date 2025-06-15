@@ -23,7 +23,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'common',
-        effect: { type: 'flatChips', amount: 30 },
+        type: 'flatChips',
+        amount: 30,
       };
       
       const effects = evaluateJokerEffect(joker, createMockContext());
@@ -40,7 +41,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'common',
-        effect: { type: 'flatMult', amount: 4 },
+        type: 'flatMult',
+        amount: 4,
       };
       
       const effects = evaluateJokerEffect(joker, createMockContext());
@@ -57,7 +59,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'uncommon',
-        effect: { type: 'multMult', amount: 2 },
+        type: 'multMult',
+        amount: 2,
       };
       
       const effects = evaluateJokerEffect(joker, createMockContext());
@@ -74,7 +77,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'common',
-        effect: { type: 'chipsPerHeart', amount: 10 },
+        type: 'chipsPerHeart',
+        amount: 10,
       };
       
       const context = createMockContext({
@@ -99,7 +103,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'common',
-        effect: { type: 'multPerDiamond', amount: 1.5 },
+        type: 'multPerDiamond',
+        amount: 1.5,
       };
       
       const context = createMockContext({
@@ -125,7 +130,9 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'uncommon',
-        effect: { type: 'multIfContains', handType: 'Flush', amount: 10 },
+        type: 'multIfContains',
+        handType: 'Flush',
+        amount: 10,
       };
       
       const flushContext = createMockContext({
@@ -150,7 +157,9 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'uncommon',
-        effect: { type: 'multIfContains', handType: 'Flush', amount: 10 },
+        type: 'multIfContains',
+        handType: 'Flush',
+        amount: 10,
       };
       
       const pairContext = createMockContext({
@@ -171,7 +180,9 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'common',
-        effect: { type: 'chipsIfPlayed', rank: 'A', amount: 50 },
+        type: 'chipsIfPlayed',
+        rank: 'A',
+        amount: 50,
       };
       
       const context = createMockContext({
@@ -196,7 +207,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'rare',
-        effect: { type: 'multPerPair', amount: 3 },
+        type: 'multPerPair',
+        amount: 3,
       };
       
       const twoPairHand: EvaluatedHand = {
@@ -226,7 +238,8 @@ describe('joker', () => {
         name: 'Test Joker',
         description: 'Test',
         rarity: 'uncommon',
-        effect: { type: 'everyOtherHand', mult: 5 },
+        type: 'everyOtherHand',
+        mult: 5,
       };
       
       // First hand (odd) - no effect
@@ -258,8 +271,7 @@ describe('joker', () => {
         expect(joker.name).toBeTruthy();
         expect(joker.description).toBeTruthy();
         expect(['common', 'uncommon', 'rare']).toContain(joker.rarity);
-        expect(joker.effect).toBeTruthy();
-        expect(joker.effect.type).toBeTruthy();
+        expect(joker.type).toBeTruthy();
       }
     });
 
@@ -273,15 +285,25 @@ describe('joker', () => {
     test('specific jokers exist with correct effects', () => {
       const jokerJoker = JOKERS.find(j => j.name === 'Joker');
       expect(jokerJoker).toBeDefined();
-      expect(jokerJoker?.effect).toEqual({ type: 'flatMult', amount: 4 });
+      expect(jokerJoker?.type).toBe('flatMult');
+      if (jokerJoker?.type === 'flatMult') {
+        expect(jokerJoker.amount).toBe(4);
+      }
       
       const greedyJoker = JOKERS.find(j => j.name === 'Greedy Joker');
       expect(greedyJoker).toBeDefined();
-      expect(greedyJoker?.effect).toEqual({ type: 'multPerDiamond', amount: 3 });
+      expect(greedyJoker?.type).toBe('multPerDiamond');
+      if (greedyJoker?.type === 'multPerDiamond') {
+        expect(greedyJoker.amount).toBe(3);
+      }
       
       const wrathfulJoker = JOKERS.find(j => j.name === 'Wrathful Joker');
       expect(wrathfulJoker).toBeDefined();
-      expect(wrathfulJoker?.effect).toEqual({ type: 'multPerSuit', suits: ['♠'], mult: 3 });
+      expect(wrathfulJoker?.type).toBe('multPerSuit');
+      if (wrathfulJoker?.type === 'multPerSuit') {
+        expect(wrathfulJoker.suits).toEqual(['♠']);
+        expect(wrathfulJoker.mult).toBe(3);
+      }
     });
   });
 
@@ -294,7 +316,7 @@ describe('joker', () => {
       expect(joker1.name).toBeDefined();
       expect(joker1.description).toBeDefined();
       expect(joker1.rarity).toBeDefined();
-      expect(joker1.effect).toBeDefined();
+      expect(joker1.type).toBeDefined();
     });
 
     test('returns joker of specified rarity', () => {

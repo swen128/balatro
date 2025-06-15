@@ -1,13 +1,12 @@
 import type { Card } from '../cards';
 import type { EvaluatedHand, ScoringEffect } from '../scoring';
 
-export interface Joker {
+type BaseJoker = {
   readonly id: string;
   readonly name: string;
   readonly description: string;
   readonly rarity: 'common' | 'uncommon' | 'rare';
-  readonly effect: JokerEffect;
-}
+};
 
 type JokerEffect =
   | { readonly type: 'flatChips'; readonly amount: number }
@@ -19,7 +18,6 @@ type JokerEffect =
   | { readonly type: 'chipsIfPlayed'; readonly rank: string; readonly amount: number }
   | { readonly type: 'multPerPair'; readonly amount: number }
   | { readonly type: 'everyOtherHand'; readonly mult: number }
-  // Conditional effects
   | { readonly type: 'multIfNoFaceCards'; readonly mult: number }
   | { readonly type: 'chipsForRemainingDiscards'; readonly chipsPerDiscard: number }
   | { readonly type: 'multIfNoDiscards'; readonly mult: number }
@@ -37,7 +35,11 @@ type JokerEffect =
   | { readonly type: 'multIfAllSameSuit'; readonly mult: number }
   | { readonly type: 'chipsIfContainsRank'; readonly rank: string; readonly chips: number; readonly mult: number }
   | { readonly type: 'chipsAndMultPerRank'; readonly rank: string; readonly chips: number; readonly mult: number }
-  | { readonly type: 'chipsAndMultPerRanks'; readonly ranks: ReadonlyArray<string>; readonly chips: number; readonly mult: number };
+  | { readonly type: 'chipsAndMultPerRanks'; readonly ranks: ReadonlyArray<string>; readonly chips: number; readonly mult: number }
+  | { readonly type: 'scalingChips'; readonly baseAmount: number; readonly trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'; readonly scalingValue: number }
+  | { readonly type: 'scalingMult'; readonly baseAmount: number; readonly trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'; readonly scalingValue: number };
+
+export type Joker = BaseJoker & JokerEffect;
 
 export interface JokerContext {
   readonly playedCards: ReadonlyArray<Card>;
@@ -51,7 +53,6 @@ export function evaluateJokerEffect(
   joker: Joker, 
   context: JokerContext
 ): ReadonlyArray<ScoringEffect> {
-  const { effect } = joker;
   const { playedCards, evaluatedHand, handsPlayed } = context;
   
   const createEffect = (type: ScoringEffect['type'], value: number): ScoringEffect => ({
@@ -60,39 +61,39 @@ export function evaluateJokerEffect(
     source: joker.name,
   });
   
-  switch (effect.type) {
+  switch (joker.type) {
     case 'flatChips':
-      return [createEffect('addChips', effect.amount)];
+      return [createEffect('addChips', joker.amount)];
       
     case 'flatMult':
-      return [createEffect('addMult', effect.amount)];
+      return [createEffect('addMult', joker.amount)];
       
     case 'multMult':
-      return [createEffect('multiplyMult', effect.amount)];
+      return [createEffect('multiplyMult', joker.amount)];
       
     case 'chipsPerHeart': {
       const heartCount = playedCards.filter(card => card.suit === '♥').length;
       return heartCount > 0
-        ? [createEffect('addChips', effect.amount * heartCount)]
+        ? [createEffect('addChips', joker.amount * heartCount)]
         : [];
     }
     
     case 'multPerDiamond': {
       const diamondCount = playedCards.filter(card => card.suit === '♦').length;
       return diamondCount > 0
-        ? [createEffect('addMult', effect.amount * diamondCount)]
+        ? [createEffect('addMult', joker.amount * diamondCount)]
         : [];
     }
     
     case 'multIfContains':
-      return evaluatedHand.handType.name.toLowerCase().includes(effect.handType.toLowerCase())
-        ? [createEffect('addMult', effect.amount)]
+      return evaluatedHand.handType.name.toLowerCase().includes(joker.handType.toLowerCase())
+        ? [createEffect('addMult', joker.amount)]
         : [];
     
     case 'chipsIfPlayed': {
-      const hasRank = playedCards.some(card => card.rank === effect.rank);
+      const hasRank = playedCards.some(card => card.rank === joker.rank);
       return hasRank
-        ? [createEffect('addChips', effect.amount)]
+        ? [createEffect('addChips', joker.amount)]
         : [];
     }
     
@@ -106,14 +107,14 @@ export function evaluateJokerEffect(
       const pairCount = Array.from(rankCounts.values()).filter(count => count >= 2).length;
       
       return pairCount > 0
-        ? [createEffect('addMult', effect.amount * pairCount)]
+        ? [createEffect('addMult', joker.amount * pairCount)]
         : [];
     }
     
     case 'everyOtherHand':
       // Triggers on even-numbered hands (2nd, 4th, 6th, etc.)
       return handsPlayed % 2 === 0
-        ? [createEffect('addMult', effect.mult)]
+        ? [createEffect('addMult', joker.mult)]
         : [];
     
     case 'multIfNoFaceCards': {
@@ -121,28 +122,28 @@ export function evaluateJokerEffect(
         card.rank === 'J' || card.rank === 'Q' || card.rank === 'K'
       );
       return !hasFaceCard
-        ? [createEffect('addMult', effect.mult)]
+        ? [createEffect('addMult', joker.mult)]
         : [];
     }
     
     case 'chipsForRemainingDiscards':
       return context.discardsRemaining !== undefined && context.discardsRemaining > 0
-        ? [createEffect('addChips', effect.chipsPerDiscard * context.discardsRemaining)]
+        ? [createEffect('addChips', joker.chipsPerDiscard * context.discardsRemaining)]
         : [];
     
     case 'multIfNoDiscards':
       return context.discardsRemaining === 0
-        ? [createEffect('addMult', effect.mult)]
+        ? [createEffect('addMult', joker.mult)]
         : [];
     
     case 'multIfExactCards':
-      return playedCards.length === effect.cardCount
-        ? [createEffect('addMult', effect.mult)]
+      return playedCards.length === joker.cardCount
+        ? [createEffect('addMult', joker.mult)]
         : [];
     
     case 'multIfMaxCards':
-      return playedCards.length <= effect.maxCards
-        ? [createEffect('addMult', effect.mult)]
+      return playedCards.length <= joker.maxCards
+        ? [createEffect('addMult', joker.mult)]
         : [];
     
     case 'chipsForEvenRanks': {
@@ -156,7 +157,7 @@ export function evaluateJokerEffect(
       }).length;
       
       return evenRankCount > 0
-        ? [createEffect('addChips', effect.chips * evenRankCount)]
+        ? [createEffect('addChips', joker.chips * evenRankCount)]
         : [];
     }
     
@@ -171,7 +172,7 @@ export function evaluateJokerEffect(
       }).length;
       
       return evenRankCount > 0
-        ? [createEffect('addMult', effect.mult * evenRankCount)]
+        ? [createEffect('addMult', joker.mult * evenRankCount)]
         : [];
     }
     
@@ -186,17 +187,17 @@ export function evaluateJokerEffect(
       }).length;
       
       return oddRankCount > 0
-        ? [createEffect('addMult', effect.mult * oddRankCount)]
+        ? [createEffect('addMult', joker.mult * oddRankCount)]
         : [];
     }
     
     case 'multPerSpecificRanks': {
       const rankCount = playedCards.filter(card => 
-        effect.ranks.includes(card.rank)
+        joker.ranks.includes(card.rank)
       ).length;
       
       return rankCount > 0
-        ? [createEffect('addMult', effect.mult * rankCount)]
+        ? [createEffect('addMult', joker.mult * rankCount)]
         : [];
     }
     
@@ -211,29 +212,29 @@ export function evaluateJokerEffect(
       }).length;
       
       return oddRankCount > 0
-        ? [createEffect('addChips', effect.chips * oddRankCount)]
+        ? [createEffect('addChips', joker.chips * oddRankCount)]
         : [];
     }
     
     case 'multPerSuit': {
-      const suitCounts = effect.suits.map(suit => 
+      const suitCounts = joker.suits.map(suit => 
         playedCards.filter(card => card.suit === suit).length
       );
       const totalCount = suitCounts.reduce((sum, count) => sum + count, 0);
       
       return totalCount > 0
-        ? [createEffect('addMult', effect.mult * totalCount)]
+        ? [createEffect('addMult', joker.mult * totalCount)]
         : [];
     }
     
     case 'chipsPerSuit': {
-      const suitCounts = effect.suits.map(suit => 
+      const suitCounts = joker.suits.map(suit => 
         playedCards.filter(card => card.suit === suit).length
       );
       const totalCount = suitCounts.reduce((sum, count) => sum + count, 0);
       
       return totalCount > 0
-        ? [createEffect('addChips', effect.chips * totalCount)]
+        ? [createEffect('addChips', joker.chips * totalCount)]
         : [];
     }
     
@@ -243,7 +244,7 @@ export function evaluateJokerEffect(
       ).length;
       
       return faceCardCount > 0
-        ? [createEffect('addChips', effect.chips * faceCardCount)]
+        ? [createEffect('addChips', joker.chips * faceCardCount)]
         : [];
     }
     
@@ -253,7 +254,7 @@ export function evaluateJokerEffect(
       ).length;
       
       return faceCardCount > 0
-        ? [createEffect('addMult', effect.mult * faceCardCount)]
+        ? [createEffect('addMult', joker.mult * faceCardCount)]
         : [];
     }
     
@@ -265,60 +266,80 @@ export function evaluateJokerEffect(
             const allSameSuit = firstSuit !== undefined && playedCards.every(card => card.suit === firstSuit);
             
             return allSameSuit
-              ? [createEffect('multiplyMult', effect.mult)]
+              ? [createEffect('multiplyMult', joker.mult)]
               : [];
           })();
     }
     
     case 'chipsIfContainsRank': {
-      const rankCount = playedCards.filter(card => card.rank === effect.rank).length;
+      const rankCount = playedCards.filter(card => card.rank === joker.rank).length;
       return rankCount === 0
         ? []
         : [
-            ...(effect.chips > 0 
+            ...(joker.chips > 0 
               ? [{
                   type: 'addChips' as const,
-                  value: effect.chips * rankCount,
+                  value: joker.chips * rankCount,
                   source: joker.name,
                 }]
               : []),
-            ...(effect.mult !== undefined && effect.mult > 0
+            ...(joker.mult !== undefined && joker.mult > 0
               ? [{
                   type: 'addMult' as const,
-                  value: effect.mult * rankCount,
+                  value: joker.mult * rankCount,
                   source: joker.name,
                 }]
               : []),
           ];
     }
     case 'chipsAndMultPerRank': {
-      const rankCount = playedCards.filter(card => card.rank === effect.rank).length;
+      const rankCount = playedCards.filter(card => card.rank === joker.rank).length;
       return rankCount === 0
         ? []
         : [
-            ...(effect.chips > 0 
-              ? [createEffect('addChips', effect.chips * rankCount)]
+            ...(joker.chips > 0 
+              ? [createEffect('addChips', joker.chips * rankCount)]
               : []),
-            ...(effect.mult > 0
-              ? [createEffect('addMult', effect.mult * rankCount)]
+            ...(joker.mult > 0
+              ? [createEffect('addMult', joker.mult * rankCount)]
               : []),
           ];
     }
     
     case 'chipsAndMultPerRanks': {
       const rankCount = playedCards.filter(card => 
-        effect.ranks.includes(card.rank)
+        joker.ranks.includes(card.rank)
       ).length;
       return rankCount === 0
         ? []
         : [
-            ...(effect.chips > 0 
-              ? [createEffect('addChips', effect.chips * rankCount)]
+            ...(joker.chips > 0 
+              ? [createEffect('addChips', joker.chips * rankCount)]
               : []),
-            ...(effect.mult > 0
-              ? [createEffect('addMult', effect.mult * rankCount)]
+            ...(joker.mult > 0
+              ? [createEffect('addMult', joker.mult * rankCount)]
               : []),
           ];
+    }
+    
+    case 'scalingChips': {
+      const scalingValue = joker.scalingValue ?? 0;
+      return scalingValue > 0
+        ? [createEffect('addChips', scalingValue)]
+        : [];
+    }
+    
+    case 'scalingMult': {
+      const scalingValue = joker.scalingValue ?? 0;
+      // For multiplicative scaling (like Obelisk, Lucky Cat), use multiplyMult if value > 1
+      // For additive scaling (like Flash Card, Red Card), use addMult
+      return joker.baseAmount < 1 && scalingValue >= 1
+        ? scalingValue > 1
+          ? [createEffect('multiplyMult', scalingValue)]
+          : []
+        : scalingValue > 0
+          ? [createEffect('addMult', scalingValue)]
+          : [];
     }
   }
 }
@@ -330,6 +351,7 @@ export function evaluateAllJokers(
   return jokers.flatMap(joker => evaluateJokerEffect(joker, context));
 }
 
+
 // Predefined jokers
 export const JOKERS: ReadonlyArray<Joker> = [
   {
@@ -337,388 +359,574 @@ export const JOKERS: ReadonlyArray<Joker> = [
     name: 'Joker',
     description: '+4 Mult',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 4 },
+    type: 'flatMult',
+    amount: 4
   },
   {
     id: 'joker-2',
     name: 'Greedy Joker',
     description: 'Played cards with ♦ suit give +3 Mult each',
     rarity: 'common',
-    effect: { type: 'multPerDiamond', amount: 3 },
+    type: 'multPerDiamond',
+    amount: 3
   },
   {
     id: 'joker-3',
     name: 'Lusty Joker',
     description: 'Played cards with ♥ suit give +20 Chips each',
     rarity: 'common',
-    effect: { type: 'chipsPerHeart', amount: 20 },
+    type: 'chipsPerHeart',
+    amount: 20
   },
   {
     id: 'joker-4',
     name: 'Wrathful Joker',
     description: 'Played cards with ♠ suit give +3 Mult each',
     rarity: 'common',
-    effect: { type: 'multPerSuit', suits: ['♠'], mult: 3 },
+    type: 'multPerSuit',
+    suits: ['♠'],
+    mult: 3
   },
   {
     id: 'joker-5',
     name: 'Gluttenous Joker',
     description: 'Played cards with ♣ suit give +20 Chips each',
     rarity: 'common',
-    effect: { type: 'chipsPerSuit', suits: ['♣'], chips: 20 },
+    type: 'chipsPerSuit',
+    suits: ['♣'],
+    chips: 20
   },
   {
     id: 'joker-6',
     name: 'Jolly Joker',
     description: '+8 Mult if hand contains a Pair',
     rarity: 'common',
-    effect: { type: 'multIfContains', handType: 'pair', amount: 8 },
+    type: 'multIfContains',
+    handType: 'pair',
+    amount: 8
   },
   {
     id: 'joker-7',
     name: 'Zany Joker',
     description: '+12 Mult if hand contains a Three of a Kind',
     rarity: 'uncommon',
-    effect: { type: 'multIfContains', handType: 'three', amount: 12 },
+    type: 'multIfContains',
+    handType: 'three',
+    amount: 12
   },
   {
     id: 'joker-8',
     name: 'Mad Joker',
     description: '+20 Mult if hand contains a Four of a Kind',
     rarity: 'uncommon',
-    effect: { type: 'multIfContains', handType: 'four', amount: 20 },
+    type: 'multIfContains',
+    handType: 'four',
+    amount: 20
   },
   {
     id: 'joker-9',
     name: 'Crazy Joker',
     description: '+12 Mult if hand contains a Straight',
     rarity: 'uncommon',
-    effect: { type: 'multIfContains', handType: 'straight', amount: 12 },
+    type: 'multIfContains',
+    handType: 'straight',
+    amount: 12
   },
   {
     id: 'joker-10',
     name: 'Droll Joker',
     description: '+10 Mult if hand contains a Flush',
     rarity: 'uncommon',
-    effect: { type: 'multIfContains', handType: 'flush', amount: 10 },
+    type: 'multIfContains',
+    handType: 'flush',
+    amount: 10
   },
   {
     id: 'joker-11',
     name: 'Half Joker',
     description: '+20 Mult if played hand contains 3 or fewer cards',
     rarity: 'common',
-    effect: { type: 'multIfMaxCards', maxCards: 3, mult: 20 },
+    type: 'multIfMaxCards',
+    maxCards: 3,
+    mult: 20
   },
   {
     id: 'joker-12',
     name: 'Joker Stencil',
     description: 'x1 Mult for each empty Joker slot',
     rarity: 'uncommon',
-    effect: { type: 'multMult', amount: 1 }, // Simplified for now
+    type: 'multMult',
+    amount: 1
   },
   {
     id: 'joker-13',
     name: 'Four Fingers',
     description: 'All Flushes and Straights can be made with 4 cards',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-14',
     name: 'Mime',
     description: 'Retrigger all played cards',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-15',
     name: 'Credit Card',
     description: 'Go up to -$20 in debt',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-16',
     name: 'Ceremonial Dagger',
     description: 'When Blind is selected, destroy Joker to the right and permanently add double its sell value to this Mult',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Starts at 0, grows over time
+    type: 'scalingMult',
+    baseAmount: 0,
+    trigger: 'handPlayed',
+    scalingValue: 0
   },
   {
     id: 'joker-17',
     name: 'Banner',
     description: '+30 Chips for each remaining discard',
     rarity: 'common',
-    effect: { type: 'chipsForRemainingDiscards', chipsPerDiscard: 30 },
+    type: 'chipsForRemainingDiscards',
+    chipsPerDiscard: 30
   },
   {
     id: 'joker-18',
     name: 'Mystic Summit',
     description: '+15 Mult when 0 discards remaining',
     rarity: 'common',
-    effect: { type: 'multIfNoDiscards', mult: 15 },
+    type: 'multIfNoDiscards',
+    mult: 15
   },
   {
     id: 'joker-19',
     name: 'Marble Joker',
     description: 'Adds one Stone card to deck when Blind is selected',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-20',
     name: 'Loyalty Card',
     description: 'x4 Mult every 6 hands played',
     rarity: 'uncommon',
-    effect: { type: 'multMult', amount: 4 }, // Simplified for now
+    type: 'multMult',
+    amount: 4
   },
   {
     id: 'joker-21',
     name: '8 Ball',
     description: '1 in 4 chance for each played 8 to create a Tarot card',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-22',
     name: 'Misprint',
     description: '+? Mult',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 23 }, // Random between 0-23
+    type: 'flatMult',
+    amount: 23
   },
   {
     id: 'joker-23',
     name: 'Raised Fist',
     description: 'Adds double the rank of held cards to Mult',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Special calculation needed
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-24',
     name: 'Chaos the Clown',
     description: '1 free Reroll per shop',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-25',
     name: 'Scary Face',
     description: 'Played face cards give +30 Chips when scored',
     rarity: 'common',
-    effect: { type: 'chipsPerFaceCard', chips: 30 },
+    type: 'chipsPerFaceCard',
+    chips: 30
   },
   {
     id: 'joker-26',
     name: 'Abstract Joker',
     description: '+3 Mult for each Joker',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 3 }, // Simplified for now
+    type: 'flatMult',
+    amount: 3
   },
   {
     id: 'joker-27',
     name: 'Delayed Gratification',
     description: 'Earn $2 per discard if no discards used by end of round',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-28',
     name: 'Gros Michel',
     description: '+15 Mult, 1 in 4 chance to be destroyed at end of round',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 15 },
+    type: 'flatMult',
+    amount: 15
   },
   {
     id: 'joker-29',
     name: 'Even Steven',
     description: 'Played cards with even rank give +4 Mult',
     rarity: 'common',
-    effect: { type: 'multForEvenRanks', mult: 4 },
+    type: 'multForEvenRanks',
+    mult: 4
   },
   {
     id: 'joker-30',
     name: 'Odd Todd',
     description: 'Played cards with odd rank give +30 Chips',
     rarity: 'common',
-    effect: { type: 'chipsForOddRanks', chips: 30 },
+    type: 'chipsForOddRanks',
+    chips: 30
   },
   {
     id: 'joker-31',
     name: 'Scholar',
     description: 'Played Aces give +20 Chips and +4 Mult',
     rarity: 'common',
-    effect: { type: 'chipsAndMultPerRank', rank: 'A', chips: 20, mult: 4 },
+    type: 'chipsAndMultPerRank',
+    rank: 'A',
+    chips: 20,
+    mult: 4
   },
   {
     id: 'joker-32',
     name: 'Business Card',
     description: 'Played face cards have a 1 in 2 chance to give $2',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-33',
     name: 'Supernova',
     description: 'Adds the number of times poker hand has been played to Mult',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 1 }, // Simplified for now
+    type: 'flatMult',
+    amount: 1
   },
   {
     id: 'joker-34',
     name: 'Ride the Bus',
     description: '+1 Mult per consecutive hand without a face card',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Grows over time
+    type: 'scalingMult',
+    baseAmount: 1,
+    trigger: 'handPlayed',
+    scalingValue: 0
   },
   {
     id: 'joker-35',
     name: 'Space Joker',
     description: '1 in 4 chance to upgrade level of played hand',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
+    type: 'flatMult',
+    amount: 0
   },
-  // New conditional jokers
   {
     id: 'joker-35a',
     name: 'Walkie Talkie',
     description: 'Each played 10 or 4 gives +10 Chips and +2 Mult',
     rarity: 'common',
-    effect: { type: 'chipsAndMultPerRanks', ranks: ['10', '4'], chips: 10, mult: 2 },
+    type: 'chipsAndMultPerRanks',
+    ranks: ['10', '4'],
+    chips: 10,
+    mult: 2
   },
   {
     id: 'joker-35b',
     name: 'Shoot the Moon',
     description: 'Each Queen held in hand gives +13 Mult',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Needs special handling for held cards
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35c',
     name: 'Hack',
     description: 'Retrigger each played 2, 3, 4, or 5',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35d',
     name: 'Stuntman',
     description: '+250 Chips, -2 hand size',
     rarity: 'uncommon',
-    effect: { type: 'flatChips', amount: 250 }, // Hand size effect handled separately
+    type: 'flatChips',
+    amount: 250
   },
   {
     id: 'joker-35e',
     name: 'Supernova',
     description: 'Adds the number of times poker hand has been played to Mult',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Needs special handling
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35f',
     name: 'Ride the Bus',
     description: '+1 Mult per consecutive hand played without a face card. Resets when face card is played',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Needs stateful handling
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35g',
     name: 'Wee Joker',
     description: 'Each played 2 gives +8 Chips when scored',
     rarity: 'common',
-    effect: { type: 'chipsIfContainsRank', rank: '2', chips: 8, mult: 0 },
+    type: 'chipsIfContainsRank',
+    rank: '2',
+    chips: 8,
+    mult: 0
   },
   {
     id: 'joker-35h',
     name: 'Sock and Buskin',
     description: 'Retrigger all played face cards',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Special effect
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35i',
     name: 'Fibonacci',
     description: 'Each played Ace, 2, 3, 5, or 8 gives +8 Mult when scored',
     rarity: 'uncommon',
-    effect: { type: 'multPerSpecificRanks', ranks: ['A', '2', '3', '5', '8'], mult: 8 },
+    type: 'multPerSpecificRanks',
+    ranks: ['A', '2', '3', '5', '8'],
+    mult: 8
   },
   {
     id: 'joker-35j',
     name: 'Castle',
     description: 'This Joker gains +3 Chips per discarded card, suit changes every round',
     rarity: 'uncommon',
-    effect: { type: 'flatChips', amount: 0 }, // Needs stateful handling
+    type: 'scalingChips',
+    baseAmount: 3,
+    trigger: 'cardDiscarded',
+    scalingValue: 0
   },
   {
     id: 'joker-35k',
     name: 'Smiley Face',
     description: 'Played face cards give +4 Mult when scored',
     rarity: 'common',
-    effect: { type: 'multPerFaceCard', mult: 4 },
+    type: 'multPerFaceCard',
+    mult: 4
   },
   {
     id: 'joker-35l',
     name: 'Reserved Parking',
     description: 'Each face card held in hand has a 1 in 2 chance to give $1',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Money effect
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35m',
     name: 'Mail-In Rebate',
     description: 'Earn $3 for each discard used, rank changes every round',
     rarity: 'common',
-    effect: { type: 'flatMult', amount: 0 }, // Money effect
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35n',
     name: 'Seeing Double',
     description: 'x2 Mult if played hand has a scoring Club card and a scoring card of any other suit',
     rarity: 'uncommon',
-    effect: { type: 'flatMult', amount: 0 }, // Needs custom suit checking
+    type: 'flatMult',
+    amount: 0
   },
   {
     id: 'joker-35o',
     name: 'Hit the Road',
     description: 'x0.5 Mult for every Jack discarded this round',
     rarity: 'rare',
-    effect: { type: 'multMult', amount: 1 }, // Needs stateful tracking
+    type: 'multMult',
+    amount: 1
   },
-  // Rare jokers
+  {
+    id: 'joker-s1',
+    name: 'Egg',
+    description: 'Gains $3 of sell value at end of round',
+    rarity: 'common',
+    type: 'flatMult',
+    amount: 0
+  },
+  {
+    id: 'joker-s2',
+    name: 'Runner',
+    description: 'This Joker gains +15 Chips if played hand contains a Straight',
+    rarity: 'common',
+    type: 'scalingChips',
+    baseAmount: 15,
+    trigger: 'handPlayed',
+    scalingValue: 15
+  },
+  {
+    id: 'joker-s3',
+    name: 'Ice Cream',
+    description: '+100 Chips, -5 Chips for every hand played',
+    rarity: 'common',
+    type: 'scalingChips',
+    baseAmount: -5,
+    trigger: 'handPlayed',
+    scalingValue: 100
+  },
+  {
+    id: 'joker-s4',
+    name: 'DNA',
+    description: 'If first hand of round has only 1 card, permanently duplicate it and add it to your deck',
+    rarity: 'rare',
+    type: 'flatMult',
+    amount: 0
+  },
+  {
+    id: 'joker-s5',
+    name: 'Rocket',
+    description: 'Earn $1 at end of round, Payout increases by $2 when Boss Blind is defeated',
+    rarity: 'uncommon',
+    type: 'flatMult',
+    amount: 0
+  },
+  {
+    id: 'joker-s6',
+    name: 'Obelisk',
+    description: 'This Joker gains x0.2 Mult per consecutive hand played without playing your most played hand',
+    rarity: 'rare',
+    type: 'scalingMult',
+    baseAmount: 0.2,
+    trigger: 'handPlayed',
+    scalingValue: 1
+  },
+  {
+    id: 'joker-s7',
+    name: 'Lucky Cat',
+    description: 'This Joker gains x0.25 Mult each time a Lucky card successfully triggers',
+    rarity: 'uncommon',
+    type: 'scalingMult',
+    baseAmount: 0.25,
+    trigger: 'handPlayed',
+    scalingValue: 1
+  },
+  {
+    id: 'joker-s8',
+    name: 'Flash Card',
+    description: 'This Joker gains +20 Mult per reroll in the shop',
+    rarity: 'uncommon',
+    type: 'scalingMult',
+    baseAmount: 20,
+    trigger: 'moneyEarned',
+    scalingValue: 0
+  },
+  {
+    id: 'joker-s9',
+    name: 'Popcorn',
+    description: '+20 Mult, -4 Mult per round played',
+    rarity: 'common',
+    type: 'scalingMult',
+    baseAmount: -4,
+    trigger: 'handPlayed',
+    scalingValue: 0
+  },
+  {
+    id: 'joker-s10',
+    name: 'Ramen',
+    description: 'x2 Mult, loses x0.01 Mult per card discarded',
+    rarity: 'uncommon',
+    type: 'scalingMult',
+    baseAmount: -0.01,
+    trigger: 'cardDiscarded',
+    scalingValue: 2
+  },
+  {
+    id: 'joker-s11',
+    name: 'Seltzer',
+    description: 'Retrigger all cards played for the next 10 hands',
+    rarity: 'uncommon',
+    type: 'flatMult',
+    amount: 0
+  },
+  {
+    id: 'joker-s12',
+    name: 'Red Card',
+    description: 'This Joker gains +3 Mult when any Booster Pack is skipped',
+    rarity: 'common',
+    type: 'scalingMult',
+    baseAmount: 3,
+    trigger: 'moneyEarned',
+    scalingValue: 0
+  },
   {
     id: 'joker-36',
     name: 'Cavendish',
     description: 'x3 Mult, 1 in 1000 chance to be destroyed at end of round',
     rarity: 'rare',
-    effect: { type: 'multMult', amount: 3 },
+    type: 'multMult',
+    amount: 3
   },
   {
     id: 'joker-37',
     name: 'Baron',
     description: 'Each King held in hand gives x1.5 Mult',
     rarity: 'rare',
-    effect: { type: 'multMult', amount: 1.5 }, // Simplified for now
+    type: 'multMult',
+    amount: 1.5
   },
   {
     id: 'joker-38',
     name: 'The Duo',
     description: 'x2 Mult if played hand contains a Pair',
     rarity: 'rare',
-    effect: { type: 'multMult', amount: 2 }, // Simplified for now
+    type: 'multMult',
+    amount: 2
   },
   {
     id: 'joker-39',
     name: 'The Trio',
     description: 'x3 Mult if played hand contains a Three of a Kind',
     rarity: 'rare',
-    effect: { type: 'multMult', amount: 3 }, // Simplified for now
+    type: 'multMult',
+    amount: 3
   },
   {
     id: 'joker-40',
     name: 'The Family',
     description: 'x4 Mult if played hand contains a Four of a Kind',
     rarity: 'rare',
-    effect: { type: 'multMult', amount: 4 }, // Simplified for now
-  },
+    type: 'multMult',
+    amount: 4
+  }
 ];
 
 export function getRandomJoker(rarity?: 'common' | 'uncommon' | 'rare'): Joker {
@@ -741,6 +949,7 @@ export function getRandomJoker(rarity?: 'common' | 'uncommon' | 'rare'): Joker {
         name: 'Default Joker',
         description: '+4 Mult',
         rarity: 'common',
-        effect: { type: 'flatMult', amount: 4 },
+        type: 'flatMult', amount: 4,
       };
 }
+
