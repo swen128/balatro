@@ -1,13 +1,9 @@
-
-// Boss effect types organized by when they apply
 type BossEffectType = 
   | HandSelectionEffect
   | PreScoringEffect
   | ScoringModifierEffect
   | PostScoringEffect
   | RoundEndEffect;
-
-// Hand selection effects - applied when selecting cards to play
 type HandSelectionEffect = {
   readonly kind: 'handSelection';
 } & (
@@ -17,8 +13,6 @@ type HandSelectionEffect = {
   | { readonly type: 'preventCardPlay'; readonly rank: string }
   | { readonly type: 'exactCardCount'; readonly count: number }
 );
-
-// Pre-scoring effects - modify score before calculation
 type PreScoringEffect = {
   readonly kind: 'preScoring';
 } & (
@@ -26,8 +20,6 @@ type PreScoringEffect = {
   | { readonly type: 'debuffAllCardsInHand' }
   | { readonly type: 'removeAllSuits' }
 );
-
-// Scoring modifier effects - modify chip/mult calculation
 type ScoringModifierEffect = {
   readonly kind: 'scoringModifier';
 } & (
@@ -36,24 +28,18 @@ type ScoringModifierEffect = {
   | { readonly type: 'onlyOneHandType'; readonly handType: string }
   | { readonly type: 'suitGivesNoChips'; readonly suit: string }
 );
-
-// Post-scoring effects - applied after score calculation
 type PostScoringEffect = {
   readonly kind: 'postScoring';
 } & (
   | { readonly type: 'setMoneyToZero'; readonly condition: 'mostPlayedHand' }
   | { readonly type: 'loseMoneyPerCard'; readonly amount: number }
 );
-
-// Round end effects - applied at end of round
 type RoundEndEffect = {
   readonly kind: 'roundEnd';
   readonly type: 'gainMoneyIfCondition';
   readonly condition: string;
   readonly amount: number;
 };
-
-// Boss blind with typed effects
 export interface BossBlind {
   readonly type: 'boss';
   readonly name: string;
@@ -95,8 +81,6 @@ function applyPreScoringEffect(
 
 
 
-
-// Context for boss effect application
 interface BossEffectContext {
   readonly bossBlind: BossBlind;
   readonly handsPlayed: number;
@@ -104,15 +88,12 @@ interface BossEffectContext {
   readonly evaluatedHand?: { readonly handType: { readonly name: string } };
 }
 
-
-// Apply boss effects during scoring
 export function applyBossEffectOnScoring(
   finalScore: number,
   context: BossEffectContext  
 ): number {
   const boss = context.bossBlind;
   
-  // Apply pre-scoring effects
   const preScoringEffects = boss.effects.filter(e => e.kind === 'preScoring');
   const afterPreScoring = preScoringEffects.reduce(
     (score, effect) => 
@@ -122,22 +103,18 @@ export function applyBossEffectOnScoring(
     finalScore
   );
   
-  // Apply scoring modifier effects
   const scoringModifierEffects = boss.effects.filter(e => e.kind === 'scoringModifier');
   const modifiedScore = scoringModifierEffects.reduce((score, effect) => {
     switch (effect.type) {
       case 'onlyOneHandType':
-        // If hand type doesn't match, score is 0
         return context.evaluatedHand && context.evaluatedHand.handType.name !== effect.handType
           ? 0
           : score;
       case 'capChips':
         return Math.min(score, effect.max);
       case 'noFaceCardBonus':
-        // This would need to be handled in calculateScore, not here
         return score;
       case 'suitGivesNoChips':
-        // This is handled in calculateBaseChipMult, not here
         return score;
     }
   }, afterPreScoring);

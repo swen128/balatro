@@ -3,7 +3,6 @@
 /* eslint-disable functional/no-try-statements */
 /* eslint-disable no-console */
 
-// Sound effect types
 export type SoundEffectType = 
   | 'cardDraw'
   | 'cardSelect'
@@ -19,14 +18,12 @@ export type SoundEffectType =
   | 'jokerActivate'
   | 'error';
 
-// Sound configuration
 export interface SoundConfig {
   readonly enabled: boolean;
   readonly volume: number; // 0-1
   readonly muted: boolean;
 }
 
-// Default sound configuration
 export const DEFAULT_SOUND_CONFIG: SoundConfig = {
   enabled: true,
   volume: 0.7,
@@ -51,18 +48,15 @@ const SOUND_URLS: Record<SoundEffectType, string> = {
   error: '/sounds/error.mp3',
 };
 
-// Audio context and buffer cache
 const audioContext = (typeof window !== 'undefined' && window.AudioContext !== undefined)
   ? new AudioContext()
   : null;
 
 const audioBuffers = new Map<SoundEffectType, AudioBuffer>();
 
-// Load a sound effect
 async function loadSound(type: SoundEffectType): Promise<AudioBuffer | null> {
   if (!audioContext) return null;
   
-  // Check cache
   const cached = audioBuffers.get(type);
   if (cached) return cached;
   
@@ -72,7 +66,6 @@ async function loadSound(type: SoundEffectType): Promise<AudioBuffer | null> {
     const arrayBuffer = await response.arrayBuffer();
     const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
     
-    // Cache the buffer
     audioBuffers.set(type, audioBuffer);
     return audioBuffer;
   } catch (error) {
@@ -81,7 +74,6 @@ async function loadSound(type: SoundEffectType): Promise<AudioBuffer | null> {
   }
 }
 
-// Play a sound effect
 export async function playSound(
   type: SoundEffectType,
   config: SoundConfig = DEFAULT_SOUND_CONFIG
@@ -109,7 +101,6 @@ export async function playSound(
   }
 }
 
-// Play multiple sounds in sequence
 export async function playSoundSequence(
   types: ReadonlyArray<SoundEffectType>,
   delayMs: number = 100,
@@ -120,7 +111,6 @@ export async function playSoundSequence(
     await new Promise(resolve => setTimeout(resolve, delayMs));
   }
 }
-
 // Play a sound with pitch variation (for variety)
 export async function playSoundWithPitch(
   type: SoundEffectType,
@@ -151,7 +141,6 @@ export async function playSoundWithPitch(
   }
 }
 
-// Preload all sounds
 export function preloadAllSounds(): Promise<void> {
   const types: ReadonlyArray<SoundEffectType> = [
     'cardDraw',
@@ -170,7 +159,6 @@ export function preloadAllSounds(): Promise<void> {
   ];
   return Promise.all(types.map(type => loadSound(type))).then(() => undefined);
 }
-
 // Resume audio context (required for some browsers)
 export function resumeAudioContext(): void {
   if (audioContext?.state === 'suspended') {

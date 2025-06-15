@@ -63,7 +63,6 @@ export function updateHandPlayed(
     [handType]: currentCount + 1,
   };
   
-  // Find the most played hand
   const favoriteHand = Object.entries(newHandCounts).reduce<string | null>(
     (favorite, [hand, count]) => {
       return favorite === null

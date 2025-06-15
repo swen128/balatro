@@ -18,7 +18,6 @@ export interface ScoringEffect {
 export function calculateBaseChipMult(evaluatedHand: EvaluatedHand, bossBlind?: BossBlind | null): ChipMult {
   const handChips = evaluatedHand.handType.baseChips;
   
-  // Find suit restriction effect if boss blind exists
   const restrictedSuit = bossBlind
     ? ((): { readonly suit: string } | undefined => {
         const effect = bossBlind.effects.find(e => 
@@ -32,7 +31,6 @@ export function calculateBaseChipMult(evaluatedHand: EvaluatedHand, bossBlind?: 
     
   const cardChips = evaluatedHand.scoringCards.reduce(
     (sum, card) => {
-      // Skip chips from restricted suit
       const shouldSkip = restrictedSuit !== undefined && card.suit === restrictedSuit.suit;
       return sum + (shouldSkip ? 0 : getCardChipValue(card));
     },

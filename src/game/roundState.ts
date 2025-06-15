@@ -182,7 +182,7 @@ export function deselectCard(state: SelectingHandState, cardId: string): Selecti
 
 export function playSelectedCards(state: SelectingHandState): PlayingState | SelectingHandState {
   return state.selectedCardIds.size === 0
-    ? state // Can't play with no cards selected
+    ? state
     : ((): PlayingState => {
         const playedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
         const evaluatedHand = evaluatePokerHand(playedCards);
@@ -330,7 +330,7 @@ export function continueToNextHand(state: PlayedState): DrawingState {
 
 export function discardSelectedCards(state: SelectingHandState): DrawingState | SelectingHandState {
   return state.selectedCardIds.size === 0 || state.discardsRemaining <= 0
-    ? state // Can't discard with no cards selected or no discards remaining
+    ? state
     : ((): DrawingState => {
         // Remove selected cards from hand
         const remainingCards = state.hand.filter(card => !state.selectedCardIds.has(card.id));

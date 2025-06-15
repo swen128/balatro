@@ -265,5 +265,5 @@ export function generateShopItems(cash: number): ReadonlyArray<ShopItem> {
   const affordableItems = allItems.filter(item => item.price <= cash * 2);
   const shuffled = [...affordableItems].sort(() => Math.random() - 0.5);
   
-  return shuffled.slice(0, 4); // Show 4 items
+  return shuffled.slice(0, 4);
 }

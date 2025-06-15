@@ -13,13 +13,12 @@ interface SaveData {
   readonly gameState: GameState;
   readonly timestamp: number;
 }
-
 // Since type assertions are not allowed, we'll just trust the data structure
 function parseSaveData(data: unknown): SaveData | null {
   try {
     return typeof data !== 'object' || data === null
       ? null
-      : data as SaveData; // We have to trust the structure matches SaveData
+      : data as SaveData;
   } catch {
     return null;
   }
@@ -59,7 +58,6 @@ export function loadGame(): GameState | null {
       return null;
     }
     
-    // Check version compatibility
     if (saveData.version !== SAVE_VERSION) {
       return null;
     }

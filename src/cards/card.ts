@@ -10,7 +10,6 @@ export type CardEnhancement = 'foil' | 'holographic' | 'polychrome' | 'glass';
 
 export type Card = PlayingCard;
 
-// Use timestamp and random number for unique IDs
 export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement): PlayingCard {
   const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   return {
@@ -62,7 +61,6 @@ export function getRankIndex(rank: Rank): number {
   return RANKS.indexOf(rank);
 }
 
-// Fisher-Yates shuffle algorithm requires mutation for efficiency
 /* eslint-disable functional/no-let, functional/no-conditional-statements */
 export function shuffleDeck(deck: ReadonlyArray<PlayingCard>): ReadonlyArray<PlayingCard> {
   const shuffled = [...deck];

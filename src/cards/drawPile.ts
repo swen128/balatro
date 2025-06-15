@@ -45,7 +45,7 @@ function drawCardsRecursive(
                     remaining,
                     drawnSoFar
                   )
-                : [drawnSoFar, pile]; // No more cards to draw
+                : [drawnSoFar, pile];
             })();
       })();
 }
