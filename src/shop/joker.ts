@@ -1,5 +1,6 @@
 import type { Card } from '../cards';
 import type { EvaluatedHand, ScoringEffect } from '../scoring';
+import { filterDefined } from '../utils/array.ts';
 
 export interface Joker {
   readonly id: string;
@@ -131,9 +132,9 @@ export function evaluateAllJokers(
   jokers: ReadonlyArray<Joker>,
   context: JokerContext
 ): ReadonlyArray<ScoringEffect> {
-  return jokers
-    .map(joker => evaluateJokerEffect(joker, context))
-    .filter((effect): effect is ScoringEffect => effect !== null);
+  return filterDefined(
+    jokers.map(joker => evaluateJokerEffect(joker, context))
+  );
 }
 
 // Predefined jokers

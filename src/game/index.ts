@@ -1,7 +1,7 @@
 export type { GameState,     } from './gameState.ts';
 ;
 
-export type { RoundState,      RoundFinishedState,  } from './roundState.ts';
+export type { RoundState } from './roundState.ts';
 ;
 
 export type { RunState,  } from './runState.ts';

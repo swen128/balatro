@@ -19,9 +19,15 @@ export function calculateBaseChipMult(evaluatedHand: EvaluatedHand, bossBlind?: 
   const handChips = evaluatedHand.handType.baseChips;
   
   // Find suit restriction effect if boss blind exists
-  const restrictedSuit = bossBlind && 'effects' in bossBlind
-    ? bossBlind.effects.find((e): e is { readonly kind: 'scoringModifier'; readonly type: 'suitGivesNoChips'; readonly suit: string } => 
-        e.kind === 'scoringModifier' && e.type === 'suitGivesNoChips')
+  const restrictedSuit = bossBlind
+    ? ((): { readonly suit: string } | undefined => {
+        const effect = bossBlind.effects.find(e => 
+          e.kind === 'scoringModifier' && e.type === 'suitGivesNoChips'
+        );
+        return effect && effect.kind === 'scoringModifier' && effect.type === 'suitGivesNoChips'
+          ? effect
+          : undefined;
+      })()
     : undefined;
     
   const cardChips = evaluatedHand.scoringCards.reduce(

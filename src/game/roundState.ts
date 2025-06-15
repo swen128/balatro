@@ -57,7 +57,7 @@ interface PlayedState extends BaseRoundState {
   readonly brokenGlassCards?: ReadonlyArray<Card>;
 }
 
-export interface RoundFinishedState extends BaseRoundState {
+interface RoundFinishedState extends BaseRoundState {
   readonly type: 'roundFinished';
   readonly won: boolean;
   readonly brokenGlassCards?: ReadonlyArray<Card>;

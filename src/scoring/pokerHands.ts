@@ -1,5 +1,6 @@
 import type { Card, Rank, Suit } from '../cards';
 import { getRankIndex } from '../cards';
+import { filterDefined } from '../utils/array.ts';
 
 interface PokerHandType {
   readonly name: string;
@@ -63,9 +64,9 @@ function checkStraight(cards: ReadonlyArray<Card>): ReadonlyArray<Card> | null {
   
   // Remove duplicates by rank
   const uniqueRanks = Array.from(new Set(sortedByRank.map(c => c.rank)));
-  const uniqueCards = uniqueRanks.map(rank => 
-    sortedByRank.find(c => c.rank === rank)
-  ).filter((c): c is Card => c !== undefined);
+  const uniqueCards = filterDefined(
+    uniqueRanks.map(rank => sortedByRank.find(c => c.rank === rank))
+  );
   
   return uniqueCards.length < 5
     ? checkAceLowStraight(uniqueCards)

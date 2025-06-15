@@ -8,7 +8,6 @@ import {
   handlePlayHand,
   handleDiscardCards,
   canDiscardCards,
-  isRoundFinished
 } from './roundLogic.ts';
 import { RoundView } from './RoundView.tsx';
 import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
@@ -51,7 +50,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
         }
         
         // Handle round finished
-        if (isRoundFinished(transition.nextState)) {
+        if (transition.nextState.type === 'roundFinished') {
           const finishedState = transition.nextState;
           setTimeout(() => {
             if (finishedState.won) {

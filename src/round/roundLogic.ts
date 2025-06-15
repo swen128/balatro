@@ -1,4 +1,4 @@
-import type { RoundState, RoundFinishedState } from '../game';
+import type { RoundState } from '../game';
 import type { BossBlind } from '../blinds';
 import type { Joker } from '../shop';
 import type { Card } from '../cards';
@@ -72,7 +72,7 @@ export function getNextRoundState(
 export function canPlayHand(state: RoundState, bossBlind: BossBlind | null = null): boolean {
   return state.type !== 'selectingHand' || state.selectedCardIds.size === 0
     ? false
-    : bossBlind && 'effects' in bossBlind
+    : bossBlind
     ? ((): boolean => {
         const exactCountEffect = bossBlind.effects.find(
           e => e.kind === 'handSelection' && e.type === 'exactCardCount'
@@ -95,10 +95,6 @@ export function handlePlayHand(state: RoundState): RoundState | null {
   return state.type === 'selectingHand'
     ? playSelectedCards(state)
     : null;
-}
-
-export function isRoundFinished(state: RoundState): state is RoundFinishedState {
-  return state.type === 'roundFinished';
 }
 
 export function handleDiscardCards(state: RoundState): RoundState | null {
