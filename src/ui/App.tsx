@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import type { GameState } from '../game/gameState.ts';
 import type { RunState } from '../game/runState.ts';
-import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScreen, winRound, loseRound, leaveShop, returnToMenu } from '../game/gameState.ts';
+import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScreen, winRound, loseRound, leaveShop, returnToMenu, continueEndlessMode } from '../game/gameState.ts';
 import { saveGame, loadGame, hasSaveGame, deleteSaveGame, getSaveInfo } from '../save-game';
 import { MainMenuView } from '../game';
 import { BlindSelectionView } from '../blinds';
@@ -100,6 +100,13 @@ function AppContent(): React.ReactElement {
     setGameState(returnToMenu());
   };
 
+  const handleContinuePlaying = (): void => {
+    if (gameState.type === 'victory') {
+      sound.play('buttonClick');
+      setGameState(continueEndlessMode(gameState));
+    }
+  };
+
   switch (gameState.type) {
     case 'mainMenu':
       return (
@@ -167,6 +174,7 @@ function AppContent(): React.ReactElement {
         <VictoryView
           gameState={gameState}
           onReturnToMenu={handleReturnToMenu}
+          onContinuePlaying={handleContinuePlaying}
         />
       );
     

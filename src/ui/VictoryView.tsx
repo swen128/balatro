@@ -5,9 +5,10 @@ import { WINNING_ANTE } from '../game/runState.ts';
 interface VictoryViewProps {
   readonly gameState: VictoryState;
   readonly onReturnToMenu: () => void;
+  readonly onContinuePlaying: () => void;
 }
 
-export function VictoryView({ gameState, onReturnToMenu }: VictoryViewProps): React.ReactElement {
+export function VictoryView({ gameState, onReturnToMenu, onContinuePlaying }: VictoryViewProps): React.ReactElement {
   return (
     <div className="victory-screen fixed inset-0 bg-gradient-to-b from-yellow-900 to-yellow-700 flex items-center justify-center">
       <div className="bg-black/80 rounded-xl p-12 max-w-2xl text-center space-y-6">
@@ -25,8 +26,14 @@ export function VictoryView({ gameState, onReturnToMenu }: VictoryViewProps): Re
         
         <div className="mt-8 space-y-4">
           <button
+            onClick={onContinuePlaying}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors w-full"
+          >
+            Continue Playing (Endless Mode)
+          </button>
+          <button
             onClick={onReturnToMenu}
-            className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors"
+            className="bg-yellow-600 hover:bg-yellow-700 text-white font-bold py-4 px-8 rounded-lg text-xl transition-colors w-full"
           >
             Return to Main Menu
           </button>

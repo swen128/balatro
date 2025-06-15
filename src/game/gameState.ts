@@ -177,6 +177,15 @@ export function returnToMenu(): GameState {
   return createMainMenuState();
 }
 
+export function continueEndlessMode(state: VictoryState): ShopState {
+  // Continue playing after defeating ante 8
+  // The run state already has ante incremented to 9 from defeatBlind
+  return {
+    type: 'shop',
+    runState: state.runState,
+  };
+}
+
 export function leaveShop(state: ShopState): SelectingBlindState {
   const blindType = getCurrentBlindType(state.runState);
   
