@@ -9,9 +9,10 @@ interface CardProps {
   readonly style?: React.CSSProperties;
   readonly animationClass?: string;
   readonly animationDelay?: number;
+  readonly size?: 'small' | 'normal';
 }
 
-export function Card({ card, isSelected, onClick, style, animationClass, animationDelay }: CardProps): React.ReactElement {
+export function Card({ card, isSelected, onClick, style, animationClass, animationDelay, size = 'normal' }: CardProps): React.ReactElement {
   switch (card.type) {
     case 'playing':
       return (
@@ -32,6 +33,7 @@ export function Card({ card, isSelected, onClick, style, animationClass, animati
           onClick={onClick}
           cardColor="from-purple-600 to-blue-600"
           borderColor={isSelected ? 'border-purple-400' : 'border-gray-600'}
+          size={size}
         />
       );
     case 'arcana':
@@ -42,6 +44,7 @@ export function Card({ card, isSelected, onClick, style, animationClass, animati
           onClick={onClick}
           cardColor="from-orange-500 to-red-600"
           borderColor={isSelected ? 'border-orange-400' : 'border-gray-600'}
+          size={size}
         />
       );
   }
@@ -117,19 +120,24 @@ interface SpecialCardViewProps {
   readonly onClick: () => void;
   readonly cardColor: string;
   readonly borderColor: string;
+  readonly size?: 'small' | 'normal';
 }
 
-function SpecialCardView({ card, isSelected, onClick, cardColor, borderColor }: SpecialCardViewProps): React.ReactElement {
+function SpecialCardView({ card, isSelected, onClick, cardColor, borderColor, size = 'normal' }: SpecialCardViewProps): React.ReactElement {
+  const sizeClasses = size === 'small' 
+    ? 'w-20 h-28 text-xs p-2'
+    : 'w-32 h-44 text-sm p-3';
+    
   return (
     <div
-      className={`w-32 h-44 rounded-lg border-2 ${borderColor} bg-gradient-to-br ${cardColor} 
-        flex flex-col items-center justify-center p-3 cursor-pointer transition-all hover:scale-105
+      className={`${sizeClasses} rounded-lg border-2 ${borderColor} bg-gradient-to-br ${cardColor} 
+        flex flex-col items-center justify-center cursor-pointer transition-all hover:scale-105
         ${isSelected ? 'ring-2 ring-white' : ''}`}
       onClick={onClick}
     >
       <div className="text-white text-center">
-        <h3 className="font-bold text-sm mb-2">{card.name}</h3>
-        <p className="text-xs opacity-90">{card.description}</p>
+        <h3 className={`font-bold mb-1 ${size === 'small' ? 'text-xs' : 'text-sm'}`}>{card.name}</h3>
+        <p className={`opacity-90 ${size === 'small' ? 'text-[10px] leading-tight' : 'text-xs'}`}>{card.description}</p>
       </div>
     </div>
   );

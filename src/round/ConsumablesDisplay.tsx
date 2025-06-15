@@ -40,7 +40,8 @@ export function ConsumablesDisplay({
                   <Card 
                     card={consumable} 
                     isSelected={false}
-                    onClick={() => {}} 
+                    onClick={() => {}}
+                    size="small"
                   />
                 </button>
               ) : (
