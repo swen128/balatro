@@ -14,7 +14,7 @@ export default {
           
           const hasOverview = body.includes('# Overview');
           const hasBackground = body.includes('# Background');
-          const hasCoAuthored = body.toLowerCase().includes('co-authored-by:');
+          const hasCoAuthored = body.includes('Co-authored-by:') || body.includes('Co-Authored-By:');
           
           const errors = [];
           
@@ -27,7 +27,7 @@ export default {
           }
           
           if (!hasCoAuthored) {
-            errors.push('Missing "Co-authored-by:" line');
+            errors.push('Missing "Co-authored-by:" or "Co-Authored-By:" line');
           }
           
           if (errors.length > 0) {
