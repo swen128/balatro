@@ -25,14 +25,14 @@ The core game is functional with:
 - [x] Implement ante progression beyond ante 8 (endless mode)
 
 ### 2. Boss Blinds
-Currently only 3 boss blinds implemented. Add more variety:
-- [ ] The Wall (all cards are debuffed)
-- [ ] The Needle (only one hand type scores)
+Currently 7 boss blinds implemented. Add more variety:
+- [x] The Wall (all cards are debuffed)
+- [x] The Needle (only one hand type scores)
 - [ ] The Fish (cards start face down)
 - [ ] The Club/Diamond/Heart/Spade (suit restrictions)
-- [ ] The Goad (spades give no chips)
+- [x] The Goad (spades give no chips)
 - [ ] The Arm (decrease level of played poker hands)
-- [ ] The Psychic (must play 5 cards)
+- [x] The Psychic (must play 5 cards)
 
 ### 3. Joker System Expansion
 Current jokers are basic. Add:
