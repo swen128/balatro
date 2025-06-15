@@ -6,19 +6,53 @@ This document outlines key principles for writing type-safe TypeScript code.
 
 ### 1. Avoid Nested Type Objects - Use Discriminated Unions
 
-**Problem**: The original implementation had:
+**Problem**: The original implementation had a nested effect object:
 ```typescript
 interface Joker {
-  effect: JokerEffect;
+  id: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'uncommon' | 'rare';
+  effect: JokerEffect;  // Nested object with its own type field
+}
+
+type JokerEffect = 
+  | { type: 'flatChips'; amount: number }
+  | { type: 'flatMult'; amount: number }
+  // ... more effect types
+
+// Usage required accessing nested properties:
+if (joker.effect.type === 'flatChips') {
+  return joker.effect.amount;  // Two levels of property access
 }
 ```
 
-**Solution**: Flatten properties directly onto the union type:
+**Solution**: Flatten all properties directly onto the union type:
 ```typescript
-type Joker = BaseJoker & JokerEffect;
+type BaseJoker = {
+  id: string;
+  name: string;
+  description: string;
+  rarity: 'common' | 'uncommon' | 'rare';
+};
+
+type Joker = BaseJoker & (
+  | { type: 'flatChips'; amount: number }
+  | { type: 'flatMult'; amount: number }
+  // ... more types
+);
+
+// Usage is cleaner and type narrows naturally:
+if (joker.type === 'flatChips') {
+  return joker.amount;  // Direct property access, TypeScript knows amount exists
+}
 ```
 
-**Why**: This allows TypeScript to properly narrow types based on the discriminator field without needing type guards.
+**Why**: 
+- Eliminates unnecessary nesting
+- TypeScript can narrow the entire object type based on the discriminator
+- Cleaner property access without multiple levels
+- No need to check both `joker.effect` existence and `joker.effect.type`
 
 ### 2. Never Use Type Guards - Design Types to Avoid Them
 
@@ -44,19 +78,73 @@ switch (joker.type) {
 
 ### 3. Input Type Should Match Usage
 
-**Problem**: A function that only processes certain types but accepts all types:
+**Problem**: A function that accepts a broad type but only processes specific subtypes:
 ```typescript
-function updateJokerScaling(jokers: ReadonlyArray<Joker>, ...) {
-  // Then filtering inside
+// This function accepts ALL jokers but only processes scaling ones
+function updateJokerScaling(
+  jokers: ReadonlyArray<Joker>,  // Accepts any joker type
+  trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'
+): ReadonlyArray<Joker> {
+  return jokers.map(joker => {
+    // Has to check type at runtime
+    if (joker.type === 'scalingChips' || joker.type === 'scalingMult') {
+      if (joker.trigger === trigger) {
+        return { ...joker, scalingValue: joker.scalingValue + joker.baseAmount };
+      }
+    }
+    return joker;  // Most jokers just pass through unchanged
+  });
 }
 ```
 
-**Solution**: Either:
-1. Accept all types and handle them exhaustively
-2. Design your data flow so only relevant types reach the function
-3. Remove the function if it's not used yet
+**Better Design Options**:
 
-**Why**: Functions should not check their input types - the type system should guarantee correct inputs.
+Option 1 - Separate scaling jokers at the data level:
+```typescript
+interface GameState {
+  jokers: ReadonlyArray<Joker>;
+  scalingJokers: ReadonlyArray<ScalingJoker>;  // Keep them separate
+}
+
+function updateScalingJokers(
+  jokers: ReadonlyArray<ScalingJoker>,  // Only accepts what it processes
+  trigger: 'handPlayed' | 'cardDiscarded' | 'moneyEarned'
+): ReadonlyArray<ScalingJoker> {
+  return jokers.map(joker => 
+    joker.trigger === trigger 
+      ? { ...joker, scalingValue: joker.scalingValue + joker.baseAmount }
+      : joker
+  );
+}
+```
+
+Option 2 - Handle at the call site:
+```typescript
+// Filter before calling
+const scalingJokers = jokers.filter(isScalingJoker);
+const updatedScaling = updateScalingJokers(scalingJokers, trigger);
+const updatedJokers = [...nonScalingJokers, ...updatedScaling];
+```
+
+Option 3 - If you must handle all types, use exhaustive pattern matching:
+```typescript
+function updateJoker(joker: Joker, trigger: Trigger): Joker {
+  switch (joker.type) {
+    case 'scalingChips':
+    case 'scalingMult':
+      return joker.trigger === trigger ? updateScaling(joker) : joker;
+    case 'flatChips':
+    case 'flatMult':
+    // ... handle EVERY case explicitly
+      return joker;
+  }
+}
+```
+
+**Why**: 
+- Functions should process what they claim to process
+- Runtime type checking inside functions is a code smell
+- The type system should enforce correct usage at compile time
 
 ### 4. Avoid Type Complexity
 
@@ -80,18 +168,7 @@ type Joker = BaseJoker & JokerEffect;
 
 **Why**: Simpler types are easier to understand and maintain.
 
-### 5. Don't Create Unused Code
-
-**Problem**: Creating functions "for future use" like `updateJokerScaling`.
-
-**Solution**: Delete unused code. Add it when needed.
-
-**Why**: 
-- Unused code adds maintenance burden
-- It may not match actual requirements when needed
-- YAGNI (You Aren't Gonna Need It) principle
-
-### 6. Exhaustive Pattern Matching
+### 5. Exhaustive Pattern Matching
 
 **Problem**: Using default cases or partial matches.
 
@@ -106,7 +183,7 @@ switch (joker.type) {
 
 **Why**: The compiler will catch missing cases when new types are added.
 
-### 7. Property Access with Type Narrowing
+### 6. Property Access with Type Narrowing
 
 **Problem**: Tests trying to access properties that don't exist on all union members:
 ```typescript
@@ -129,7 +206,7 @@ Good TypeScript design means:
 2. No type guards or type assertions
 3. Exhaustive pattern matching
 4. Types that narrow naturally through normal control flow
-5. No unused code
-6. Input types that match what the function actually processes
+5. Input types that match what the function actually processes
+6. Flatten nested type structures for better type narrowing
 
 The goal is to make the compiler do the work of ensuring correctness, not runtime checks.
