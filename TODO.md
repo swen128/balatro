@@ -17,6 +17,7 @@ The core game is functional with:
 - ✅ Responsive build configuration for web deployment
 - ✅ Consumables system (spectral and arcana cards)
 - ✅ Glass card enhancement with breaking mechanic
+- ✅ Planet cards (level up specific poker hands)
 
 ## High Priority Tasks
 
@@ -26,7 +27,11 @@ The core game is functional with:
 - [x] Add victory screen with final score
 - [x] Implement ante progression beyond ante 8 (endless mode)
 
-### 2. Boss Blinds
+### 2. Bug Fixes (Critical)
+- [ ] Fix spectral cards to match official Balatro cards - see https://balatrogame.fandom.com/wiki/Spectral_Cards
+- [ ] Fix card enhancement updates not reflecting in hand display during rounds
+
+### 3. Boss Blinds
 Currently 8 boss blinds implemented. Add more variety:
 - [x] The Wall (all cards are debuffed)
 - [x] The Needle (only one hand type scores)
