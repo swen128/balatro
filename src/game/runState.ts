@@ -239,6 +239,13 @@ export function removeConsumable(state: RunState, consumableId: string): RunStat
   };
 }
 
+export function setMaxJokers(state: RunState, maxJokers: number): RunState {
+  return {
+    ...state,
+    maxJokers,
+  };
+}
+
 export function levelUpPokerHand(state: RunState, handType: PokerHandKey): RunState {
   return {
     ...state,

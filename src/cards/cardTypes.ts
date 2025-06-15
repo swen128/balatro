@@ -1,4 +1,4 @@
-import type { Suit, Rank, CardEnhancement } from './card.ts';
+import type { Suit, Rank, CardEnhancement, CardSeal } from './card.ts';
 import type { ConsumableCard } from '../consumables';
 
 export interface PlayingCard {
@@ -7,16 +7,29 @@ export interface PlayingCard {
   readonly suit: Suit;
   readonly rank: Rank;
   readonly enhancement?: CardEnhancement;
+  readonly seal?: CardSeal;
 }
 
 type SpectralEffect =
   | { readonly type: 'addFoil'; readonly count: number }
   | { readonly type: 'addHolographic'; readonly count: number }
   | { readonly type: 'addPolychrome'; readonly count: number }
+  | { readonly type: 'addRandomEnhancement'; readonly count: number }
+  | { readonly type: 'addSeal'; readonly sealType: CardSeal; readonly count: number }
   | { readonly type: 'duplicateCard'; readonly count: number }
+  | { readonly type: 'duplicateCardExact'; readonly count: number }
   | { readonly type: 'destroyCard'; readonly count: number }
+  | { readonly type: 'destroyCardInHand'; readonly count: number; readonly gainMoney: number }
+  | { readonly type: 'destroyAndReplace'; readonly count: number; readonly replacementType: 'face' | 'ace' | 'numbered'; readonly enhancedCount: number }
   | { readonly type: 'changeRank'; readonly targetRank: Rank }
-  | { readonly type: 'changeSuit'; readonly targetSuit: Suit };
+  | { readonly type: 'changeRankWithHandSize'; readonly targetRank: Rank; readonly handSizeChange: number }
+  | { readonly type: 'changeSuit'; readonly targetSuit: Suit }
+  | { readonly type: 'createRareJoker'; readonly setMoneyToZero: boolean }
+  | { readonly type: 'createLegendaryJoker' }
+  | { readonly type: 'copyJokerAndDestroyOthers' }
+  | { readonly type: 'addNegativeToJoker'; readonly handSizeChange: number }
+  | { readonly type: 'addPolychromeToJokerAndDestroyOthers' }
+  | { readonly type: 'upgradeAllPokerHands' };
 
 export interface SpectralCard {
   readonly type: 'spectral';

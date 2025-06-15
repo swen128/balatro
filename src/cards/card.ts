@@ -7,10 +7,11 @@ export type Suit = typeof SUITS[number];
 export type Rank = typeof RANKS[number];
 
 export type CardEnhancement = 'foil' | 'holographic' | 'polychrome' | 'glass';
+export type CardSeal = 'red' | 'blue' | 'gold' | 'purple';
 
 export type Card = PlayingCard;
 
-export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement): PlayingCard {
+export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement, seal?: CardSeal): PlayingCard {
   const uniqueId = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
   return {
     type: 'playing' as const,
@@ -18,6 +19,7 @@ export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement
     suit,
     rank,
     ...(enhancement ? { enhancement } : {}),
+    ...(seal ? { seal } : {}),
   };
 }
 

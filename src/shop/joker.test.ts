@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { evaluateJokerEffect, JOKERS, type Joker, type JokerContext } from './joker.ts';
+import { evaluateJokerEffect, JOKERS, getRandomJoker, type Joker, type JokerContext } from './joker.ts';
 import { createCard } from '../cards';
 import type { EvaluatedHand } from '../scoring/pokerHands.ts';
 import { POKER_HANDS } from '../scoring/pokerHands.ts';
@@ -270,7 +270,7 @@ describe('joker', () => {
     });
 
     test('has expected number of jokers', () => {
-      expect(JOKERS.length).toBe(35);
+      expect(JOKERS.length).toBe(40);
     });
 
     test('specific jokers exist with correct effects', () => {
@@ -285,6 +285,35 @@ describe('joker', () => {
       const wrathfulJoker = JOKERS.find(j => j.name === 'Wrathful Joker');
       expect(wrathfulJoker).toBeDefined();
       expect(wrathfulJoker?.effect).toEqual({ type: 'multPerDiamond', amount: 3 });
+    });
+  });
+
+  describe('getRandomJoker', () => {
+    test('returns a joker with unique ID', () => {
+      const joker1 = getRandomJoker();
+      const joker2 = getRandomJoker();
+      
+      expect(joker1.id).not.toBe(joker2.id);
+      expect(joker1.name).toBeDefined();
+      expect(joker1.description).toBeDefined();
+      expect(joker1.rarity).toBeDefined();
+      expect(joker1.effect).toBeDefined();
+    });
+
+    test('returns joker of specified rarity', () => {
+      const commonJoker = getRandomJoker('common');
+      expect(commonJoker.rarity).toBe('common');
+
+      const uncommonJoker = getRandomJoker('uncommon');
+      expect(uncommonJoker.rarity).toBe('uncommon');
+
+      const rareJoker = getRandomJoker('rare');
+      expect(rareJoker.rarity).toBe('rare');
+    });
+
+    test('returns any joker when rarity not specified', () => {
+      const joker = getRandomJoker();
+      expect(['common', 'uncommon', 'rare']).toContain(joker.rarity);
     });
   });
 });

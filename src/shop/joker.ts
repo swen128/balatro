@@ -384,4 +384,64 @@ export const JOKERS: ReadonlyArray<Joker> = [
     rarity: 'uncommon',
     effect: { type: 'flatMult', amount: 0 }, // Special effect, handled elsewhere
   },
+  // Rare jokers
+  {
+    id: 'joker-36',
+    name: 'Cavendish',
+    description: 'x3 Mult, 1 in 1000 chance to be destroyed at end of round',
+    rarity: 'rare',
+    effect: { type: 'multMult', amount: 3 },
+  },
+  {
+    id: 'joker-37',
+    name: 'Baron',
+    description: 'Each King held in hand gives x1.5 Mult',
+    rarity: 'rare',
+    effect: { type: 'multMult', amount: 1.5 }, // Simplified for now
+  },
+  {
+    id: 'joker-38',
+    name: 'The Duo',
+    description: 'x2 Mult if played hand contains a Pair',
+    rarity: 'rare',
+    effect: { type: 'multMult', amount: 2 }, // Simplified for now
+  },
+  {
+    id: 'joker-39',
+    name: 'The Trio',
+    description: 'x3 Mult if played hand contains a Three of a Kind',
+    rarity: 'rare',
+    effect: { type: 'multMult', amount: 3 }, // Simplified for now
+  },
+  {
+    id: 'joker-40',
+    name: 'The Family',
+    description: 'x4 Mult if played hand contains a Four of a Kind',
+    rarity: 'rare',
+    effect: { type: 'multMult', amount: 4 }, // Simplified for now
+  },
 ];
+
+export function getRandomJoker(rarity?: 'common' | 'uncommon' | 'rare'): Joker {
+  const filteredJokers = rarity 
+    ? JOKERS.filter(joker => joker.rarity === rarity)
+    : JOKERS;
+  
+  const jokersToUse = filteredJokers.length === 0 ? JOKERS : filteredJokers;
+  const randomIndex = Math.floor(Math.random() * jokersToUse.length);
+  const selectedJoker = jokersToUse[randomIndex] ?? JOKERS[0];
+  
+  // Return a new instance with a unique ID
+  return selectedJoker 
+    ? {
+        ...selectedJoker,
+        id: `${selectedJoker.id}_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      }
+    : {
+        id: `joker-default_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+        name: 'Default Joker',
+        description: '+4 Mult',
+        rarity: 'common',
+        effect: { type: 'flatMult', amount: 4 },
+      };
+}

@@ -136,6 +136,19 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
             return applyPlanetEffect(gameState.runState, consumable);
         }
       })();
+      
+      // Sync the hand cards with the updated deck
+      const syncHandWithDeck = (hand: ReadonlyArray<Card>, deck: ReadonlyArray<Card>): ReadonlyArray<Card> => {
+        return hand.map(handCard => {
+          const updatedCard = deck.find(deckCard => deckCard.id === handCard.id);
+          return updatedCard ?? handCard;
+        });
+      };
+      
+      setRoundState(currentState => ({
+        ...currentState,
+        hand: syncHandWithDeck(currentState.hand, updatedRunState.deck)
+      }));
         
       onUpdateRunState(() => removeConsumable(updatedRunState, consumableId));
     }
@@ -157,10 +170,23 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
           return applyPlanetEffect(gameState.runState, consumable);
       }
     })();
+    
+    // Sync the hand cards with the updated deck
+    const syncHandWithDeck = (hand: ReadonlyArray<Card>, deck: ReadonlyArray<Card>): ReadonlyArray<Card> => {
+      return hand.map(handCard => {
+        const updatedCard = deck.find(deckCard => deckCard.id === handCard.id);
+        return updatedCard ?? handCard;
+      });
+    };
+    
+    setRoundState(currentState => ({
+      ...currentState,
+      hand: syncHandWithDeck(currentState.hand, updatedRunState.deck)
+    }));
       
     onUpdateRunState(() => removeConsumable(updatedRunState, pendingConsumable));
     setPendingConsumable(null);
-  }, [pendingConsumable, gameState.runState, onUpdateRunState]);
+  }, [pendingConsumable, gameState.runState, onUpdateRunState, setRoundState]);
 
   const pendingConsumableCard = pendingConsumable !== null
     ? gameState.runState.consumables.find(c => c.id === pendingConsumable)
