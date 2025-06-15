@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import type { GameState } from '../game/gameState.ts';
 import type { RunState } from '../game/runState.ts';
-import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScreen, winRound, loseRound, leaveShop } from '../game/gameState.ts';
+import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScreen, winRound, loseRound, leaveShop, returnToMenu } from '../game/gameState.ts';
 import { saveGame, loadGame, hasSaveGame, deleteSaveGame, getSaveInfo } from '../save-game';
 import { MainMenuView } from '../game';
 import { BlindSelectionView } from '../blinds';
 import { RoundContainer } from '../round';
 import { ShopContainer } from '../shop';
+import { VictoryView } from './VictoryView.tsx';
 import { StatisticsView, StatisticsProvider, useStatisticsContext } from '../statistics';
 import { SoundProvider, SoundSettings, useSound } from '../sound';
 
@@ -55,7 +56,8 @@ function AppContent(): React.ReactElement {
   const handleWinRound = (): void => {
     if (gameState.type === 'playingRound') {
       sound.play('roundWin');
-      setGameState(winRound(gameState));
+      const nextState = winRound(gameState);
+      setGameState(nextState);
       
       // Update statistics for boss defeats
       if (gameState.blind.isBoss) {
@@ -64,6 +66,11 @@ function AppContent(): React.ReactElement {
       
       // Track money earned from blind reward
       stats.trackMoneyEarned(gameState.blind.cashReward);
+      
+      // If we transitioned to victory, track the win
+      if (nextState.type === 'victory') {
+        stats.trackGameEnd(true, nextState.runState.ante, nextState.finalScore);
+      }
     }
   };
 
@@ -87,6 +94,11 @@ function AppContent(): React.ReactElement {
       };
       setGameState(leaveShop(updatedGameState));
     }
+  };
+
+  const handleReturnToMenu = (): void => {
+    deleteSaveGame(); // Clear save since the run is complete
+    setGameState(returnToMenu());
   };
 
   switch (gameState.type) {
@@ -148,6 +160,14 @@ function AppContent(): React.ReactElement {
         <ShopContainer
           runState={gameState.runState}
           onLeave={handleLeaveShop}
+        />
+      );
+    
+    case 'victory':
+      return (
+        <VictoryView
+          gameState={gameState}
+          onReturnToMenu={handleReturnToMenu}
         />
       );
   }

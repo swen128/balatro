@@ -13,6 +13,8 @@ The core game is functional with:
 - ✅ Statistics tracking
 - ✅ Unit tests for all domain logic
 - ✅ Pre-commit hooks with `bun check` command
+- ✅ GitHub Actions deployment to GitHub Pages
+- ✅ Responsive build configuration for web deployment
 
 ## High Priority Tasks
 
@@ -132,9 +134,28 @@ Basic enhancements exist but missing:
 - `bun run build` - Build for production
 - `bun run check` - Run lint, typecheck, and tests
 - `bun test` - Run unit tests only
+- `bun run knip` - Check for unused files and exports
+- `bun run autofix` - Auto-fix linting issues
 
-### Recent Fixes
+### Deployment
+- Game is deployed to: https://swen128.github.io/balatro/
+- GitHub Actions automatically builds and deploys on push to main
+- Only deploys when source files change (not documentation)
+
+### Recent Updates
 - Fixed failing unit tests (import paths and suit symbols)
 - Added missing utility functions to card.ts
 - Added getPokerHandByName function
 - Set up pre-commit hooks with husky
+- Added GitHub Actions deployment workflow
+- Updated Vite config for relative paths (GitHub Pages compatibility)
+- Refactored getCardChipValue for clarity
+
+### Next Steps for Development
+Currently working on high-priority game progression features:
+1. Win condition for completing ante 8 (victory screen)
+2. Game over screen with statistics display
+3. Endless mode progression beyond ante 8
+4. Additional boss blinds for variety
+
+The game state management is in `src/game/gameState.ts` and ante progression is handled in `src/game/runState.ts`.

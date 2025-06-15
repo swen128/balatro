@@ -4,6 +4,8 @@ import type { BossBlind } from '../blinds';
 import { getRandomBossBlind } from '../blinds';
 import type { Joker } from '../shop';
 
+export const WINNING_ANTE = 8;
+
 export interface RunState {
   readonly ante: number;
   readonly cash: number;
