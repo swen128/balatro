@@ -105,11 +105,6 @@ See GAME_SPECIFICATION.md for detailed game rules and mechanics.
 - Test file naming: `<module>.test.ts`
 
 ## Git Workflow
-- Use conventional commits format (e.g., `feat:`, `fix:`, `docs:`, `refactor:`, `test:`)
 - The pre-commit hook will automatically run `bun run check` (lint, typecheck, and tests)
 - You can manually run `bun run check` to verify everything passes
 - When completing sub-tasks, commit changes after passing tests and linter before proceeding to the next task
-- When making commits, write:
-  1. Overview of the change
-  2. Background context of the change which is not obvious from the diff
-- **Write overview and background context in commit messages**
