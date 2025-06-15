@@ -51,7 +51,7 @@ Current implementation includes 90+ jokers:
 - [x] Basic scoring jokers (flat chips/mult bonuses)
 - [x] Conditional jokers (activate under specific conditions)
 - [x] Scaling jokers (grow stronger over time)
-- [ ] Economy jokers (affect money generation)
+- [x] Economy jokers (affect money generation)
 - [ ] Hand-size jokers (modify hand size or discards)
 - [ ] Retrigger jokers (replay cards multiple times)
 - [ ] Special interaction jokers (interact with other game elements)
@@ -179,10 +179,12 @@ Current implementation includes 90+ jokers:
 - Added TypeScript type safety guidelines
 
 ### Next Steps for Development
-1. Implement economy and hand-size jokers
-2. Add voucher system for permanent upgrades
-3. Implement tarot cards for card modifications
-4. Add seal system for cards
-5. Improve UI/UX with tooltips and animations
+1. Configure test output to hide passing tests
+2. Refactor RoundContainer to separate concerns
+3. Implement hand-size jokers
+4. Add voucher system for permanent upgrades
+5. Implement tarot cards for card modifications
+6. Add seal system for cards
+7. Improve UI/UX with tooltips and animations
 
 The game state management is in `src/game/gameState.ts` and ante progression is handled in `src/game/runState.ts`.
