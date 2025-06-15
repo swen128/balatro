@@ -1,7 +1,7 @@
 import { describe, test, expect } from 'bun:test';
 import { evaluatePokerHand, getPokerHandByName } from './pokerHands.ts';
-import { createCard, getCardChipValue } from '../cards/card.ts';
-import type { Card } from '../cards/card.ts';
+import { createCard, getCardChipValue } from '../cards';
+import type { Card } from '../cards';
 
 describe('pokerHands', () => {
   describe('getCardChipValue', () => {

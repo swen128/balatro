@@ -14,7 +14,7 @@ import {
   updateDeck,
   type RunState,
 } from './runState.ts';
-import { createCard } from '../cards/card.ts';
+import { createCard } from '../cards';
 import { JOKERS } from '../shop/joker.ts';
 
 describe('runState', () => {

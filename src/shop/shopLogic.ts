@@ -1,8 +1,7 @@
 import type { RunState } from '../game';
 import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
-import type { Card } from '../cards';
-// import type { SpectralCard, ArcanaCard } from './cardPacks.ts';
+import type { AnyCard } from '../cards';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 interface BaseShopState {
@@ -21,7 +20,7 @@ interface SelectingCardState extends BaseShopState {
   readonly availableItems: ReadonlyArray<ShopItem>;
   readonly pendingPack: {
     readonly packType: 'standard' | 'spectral' | 'arcana';
-    readonly cards: ReadonlyArray<Card>; // TODO: Support SpectralCard | ArcanaCard
+    readonly cards: ReadonlyArray<AnyCard>;
     readonly price: number;
     readonly originalItem: PackItem;
   };
@@ -135,7 +134,7 @@ function rerollShopHelper(
 export function selectCardFromPack(
   shopState: SelectingCardState,
   runState: RunState,
-  card: Card
+  card: AnyCard
 ): { shopState: BrowsingShopState; runState: RunState } {
   return {
     shopState: {
@@ -147,7 +146,8 @@ export function selectCardFromPack(
     },
     runState: {
       ...runState,
-      deck: [...runState.deck, card],
+      deck: card.type === 'playing' ? [...runState.deck, card] : runState.deck,
+      // TODO: Handle spectral and arcana card effects
     },
   };
 }

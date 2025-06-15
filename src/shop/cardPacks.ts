@@ -1,8 +1,7 @@
-import type { Card, CardEnhancement } from '../cards';
-import { createCard, SUITS, RANKS } from '../cards';
-// import type { SpectralEffect } from './shopItems.ts';
+import type { Card, CardEnhancement, AnyCard, SpectralCard, ArcanaCard } from '../cards';
+import { createCard, SUITS, RANKS, getRandomSpectralCards, getRandomArcanaCards } from '../cards';
 
-export function generateStandardPackCards(count: number): ReadonlyArray<Card> {
+function generateStandardPackCards(count: number): ReadonlyArray<AnyCard> {
   return Array.from({ length: count }, (): Card => {
     const suitIndex = Math.floor(Math.random() * SUITS.length);
     const rankIndex = Math.floor(Math.random() * RANKS.length);
@@ -25,25 +24,23 @@ export function generateStandardPackCards(count: number): ReadonlyArray<Card> {
   });
 }
 
-// TODO: Implement special card types for spectral and arcana packs
-// interface SpectralCard {
-//   readonly id: string;
-//   readonly name: string;
-//   readonly description: string;
-//   readonly effect: SpectralEffect;
-// }
+function generateSpectralPackCards(count: number): ReadonlyArray<SpectralCard> {
+  return getRandomSpectralCards(count);
+}
 
-// interface ArcanaCard {
-//   readonly id: string;
-//   readonly name: string;
-//   readonly description: string;
-//   readonly effect: ArcanaEffect;
-// }
+function generateArcanaPackCards(count: number): ReadonlyArray<ArcanaCard> {
+  return getRandomArcanaCards(count);
+}
 
-// type ArcanaEffect = 
-//   | { readonly type: 'enhanceHand'; readonly enhancement: CardEnhancement; readonly count: number }
-//   | { readonly type: 'createJoker'; readonly rarity: string }
-//   | { readonly type: 'createMoney'; readonly amount: number }
-//   | { readonly type: 'createPlanet'; readonly handType: string };
+export function generatePackCards(packType: 'standard' | 'spectral' | 'arcana', count: number): ReadonlyArray<AnyCard> {
+  switch (packType) {
+    case 'standard':
+      return generateStandardPackCards(count);
+    case 'spectral':
+      return generateSpectralPackCards(count);
+    case 'arcana':
+      return generateArcanaPackCards(count);
+  }
+}
 
 

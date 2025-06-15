@@ -1,5 +1,5 @@
 import React from 'react';
-import type { Card } from '../cards/card.ts';
+import type { Card } from '../cards';
 import { evaluatePokerHand } from '../scoring/pokerHands.ts';
 import { calculateBaseScore } from '../scoring/scoring.ts';
 

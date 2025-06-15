@@ -12,7 +12,7 @@ import {
   isRoundLost,
   type RoundState,
 } from './roundState.ts';
-import { createCard } from '../cards/card.ts';
+import { createCard } from '../cards';
 import { createDrawPile, type DrawPile } from '../cards/drawPile.ts';
 import { POKER_HANDS } from '../scoring/pokerHands.ts';
 import { JOKERS } from '../shop/joker.ts';

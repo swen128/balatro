@@ -1,6 +1,6 @@
 import { describe, test, expect } from 'bun:test';
 import { evaluateJokerEffect, JOKERS, type Joker, type JokerContext } from './joker.ts';
-import { createCard } from '../cards/card.ts';
+import { createCard } from '../cards';
 import type { EvaluatedHand } from '../scoring/pokerHands.ts';
 import { POKER_HANDS } from '../scoring/pokerHands.ts';
 

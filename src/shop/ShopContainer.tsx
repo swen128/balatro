@@ -3,7 +3,7 @@ import type { RunState } from '../game/runState.ts';
 import { createShopState, purchaseItem, rerollShop, canAffordItem, canReroll, selectCardFromPack, cancelPackSelection } from './shopLogic.ts';
 import { ShopView } from './ShopView.tsx';
 import { CardPackModal } from './CardPackModal.tsx';
-import type { Card } from '../cards/card.ts';
+import type { AnyCard } from '../cards';
 import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
 
 interface ShopContainerProps {
@@ -42,7 +42,7 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
     }
   }, [shopState, runState, stats]);
 
-  const handleSelectCard = useCallback((card: Card): void => {
+  const handleSelectCard = useCallback((card: AnyCard): void => {
     if (shopState.type === 'selectingCard') {
       const result = selectCardFromPack(shopState, runState, card);
       setShopState(result.shopState);

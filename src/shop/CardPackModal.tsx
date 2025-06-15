@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
-import type { Card } from '../cards/card.ts';
+import type { AnyCard } from '../cards';
+import { isPlayingCard } from '../cards';
 import { Card as CardComponent } from '../cards/Card.tsx';
+import { SpecialCard } from '../cards/SpecialCard.tsx';
 
 interface CardPackModalProps {
   readonly packType: 'standard' | 'spectral' | 'arcana';
-  readonly cards: ReadonlyArray<Card>;
-  readonly onSelectCard: (card: Card) => void;
+  readonly cards: ReadonlyArray<AnyCard>;
+  readonly onSelectCard: (card: AnyCard) => void;
   readonly onCancel: () => void;
 }
 
@@ -34,7 +36,9 @@ export function CardPackModal({ packType, cards, onSelectCard, onCancel }: CardP
     <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-lg p-6 max-w-2xl">
         <h2 className="text-2xl mb-4 text-center">{getPackTitle()}</h2>
-        <p className="text-center mb-6 text-gray-400">Choose 1 card to add to your deck</p>
+        <p className="text-center mb-6 text-gray-400">
+          {packType === 'standard' ? 'Choose 1 card to add to your deck' : 'Choose 1 card to use'}
+        </p>
         
         <div className="flex gap-4 justify-center mb-6">
           {cards.map(card => (
@@ -45,11 +49,19 @@ export function CardPackModal({ packType, cards, onSelectCard, onCancel }: CardP
               }`}
               onClick={() => setSelectedCardId(card.id)}
             >
-              <CardComponent
-                card={card}
-                isSelected={selectedCardId === card.id}
-                onClick={() => setSelectedCardId(card.id)}
-              />
+              {isPlayingCard(card) ? (
+                <CardComponent
+                  card={card}
+                  isSelected={selectedCardId === card.id}
+                  onClick={() => setSelectedCardId(card.id)}
+                />
+              ) : (
+                <SpecialCard
+                  card={card}
+                  isSelected={selectedCardId === card.id}
+                  onClick={() => setSelectedCardId(card.id)}
+                />
+              )}
             </div>
           ))}
         </div>

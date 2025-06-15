@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { RoundState } from '../game/roundState.ts';
 import type { RunState } from '../game/runState.ts';
 import type { BlindType, BossBlind } from '../blinds';
-import type { Card } from '../cards/card.ts';
+import type { Card } from '../cards';
 import { Hand } from './Hand.tsx';
 import { ScoreDisplay } from '../scoring/ScoreDisplay.tsx';
 import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';

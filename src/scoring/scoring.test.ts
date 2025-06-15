@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'bun:test';
 import { calculateBaseScore, calculateFinalScore } from './scoring.ts';
 import type { ScoringEffect } from './scoring.ts';
-import { createCard } from '../cards/card.ts';
+import { createCard } from '../cards';
 import { evaluatePokerHand } from './pokerHands.ts';
 
 describe('scoring', () => {
