@@ -24,25 +24,33 @@ export function createCard(suit: Suit, rank: Rank, enhancement?: CardEnhancement
   };
 }
 
+function getBaseChipValue(rank: Rank): number {
+  return {
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "J": 10,
+    "Q": 10,
+    "K": 10,
+    "A": 11,
+  }[rank]
+}
+
 export function getCardChipValue(card: Card): number {
-  const rankIndex = RANKS.indexOf(card.rank);
-  
-  const baseValue = rankIndex < 0
-    ? 0 // Default for invalid rank
-    : rankIndex <= 8
-    ? rankIndex + 2  // 2-10 have their face value
-    : rankIndex <= 11
-    ? 10  // J, Q, K have value 10
-    : 11; // A has value 11
-  
-  // Apply enhancement bonuses
+  const baseValue = getBaseChipValue(card.rank);
   return card.enhancement === 'foil'
-    ? baseValue + 50 // Foil adds +50 chips
+    ? baseValue + 50
     : baseValue;
 }
 
 export function createStandardDeck(): ReadonlyArray<Card> {
-  return SUITS.flatMap(suit => 
+  return SUITS.flatMap(suit =>
     RANKS.map(rank => createCard(suit, rank))
   );
 }
@@ -55,7 +63,6 @@ export function isRedSuit(suit: Suit): boolean {
 export function getRankIndex(rank: Rank): number {
   return RANKS.indexOf(rank);
 }
-
 
 // Fisher-Yates shuffle algorithm requires mutation for efficiency
 /* eslint-disable functional/no-let, functional/no-conditional-statements */
@@ -72,6 +79,7 @@ export function shuffleDeck(deck: ReadonlyArray<Card>): ReadonlyArray<Card> {
   }
   return shuffled;
 }
+
 /* eslint-enable functional/no-let, functional/no-conditional-statements */
 
 export function isSameSuit(card1: Card, card2: Card): boolean {
