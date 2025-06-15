@@ -42,13 +42,29 @@ export function calculateBaseChipMult(
   const baseHandChips = evaluatedHand.handType.baseChips;
   const baseHandMult = evaluatedHand.handType.baseMult;
   
+  // Check for hand level decrease effect from boss blind
+  const handLevelDecrease = bossBlind
+    ? ((): number => {
+        const effect = bossBlind.effects.find(e => 
+          e.kind === 'scoringModifier' && e.type === 'decreaseHandLevel'
+        );
+        return effect && effect.kind === 'scoringModifier' && effect.type === 'decreaseHandLevel'
+          ? effect.amount
+          : 0;
+      })()
+    : 0;
+  
   // Apply hand level bonuses if available
   const levelBonus = handLevels !== undefined
     ? ((): { chips: number; mult: number } => {
         const handKey = getHandLevelKey(evaluatedHand);
-        return handKey !== null
-          ? getHandLevelBonus(handLevels[handKey])
-          : { chips: 0, mult: 0 };
+        return handKey === null 
+          ? { chips: 0, mult: 0 }
+          : ((): { chips: number; mult: number } => {
+              const baseLevel = handLevels[handKey];
+              const effectiveLevel = Math.max(1, baseLevel + handLevelDecrease);
+              return getHandLevelBonus(effectiveLevel);
+            })();
       })()
     : { chips: 0, mult: 0 };
   

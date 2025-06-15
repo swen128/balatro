@@ -22,7 +22,7 @@ describe('blind', () => {
     it('should create boss blind with random effect', () => {
       const blind = createBlind('boss');
       expect(blind.type).toBe('boss');
-      expect(['The Window', 'The Hook', 'The Ox', 'The Wall', 'The Needle', 'The Goad', 'The Psychic', 'The Fish']).toContain(blind.name);
+      expect(['The Window', 'The Hook', 'The Ox', 'The Wall', 'The Needle', 'The Goad', 'The Psychic', 'The Fish', 'The Club', 'The Diamond', 'The Heart', 'The Spade', 'The Arm']).toContain(blind.name);
       expect(blind.scoreMultiplier).toBe(2);
       expect(blind.cashReward).toBe(5);
       

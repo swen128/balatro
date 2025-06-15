@@ -28,6 +28,7 @@ type ScoringModifierEffect = {
   | { readonly type: 'noFaceCardBonus' }
   | { readonly type: 'onlyOneHandType'; readonly handType: string }
   | { readonly type: 'suitGivesNoChips'; readonly suit: string }
+  | { readonly type: 'decreaseHandLevel'; readonly amount: number }
 );
 type PostScoringEffect = {
   readonly kind: 'postScoring';
@@ -120,6 +121,8 @@ export function applyBossEffectOnScoring(
       case 'noFaceCardBonus':
         return score;
       case 'suitGivesNoChips':
+        return score;
+      case 'decreaseHandLevel':
         return score;
     }
   }, afterPreScoring);

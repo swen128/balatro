@@ -126,6 +126,71 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     }],
     effectDescription: 'Cards drawn face down',
   },
+  {
+    type: 'boss',
+    name: 'The Club',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'suitGivesNoChips',
+      suit: '♣',
+    }],
+    effectDescription: 'Clubs give no Chips',
+  },
+  {
+    type: 'boss',
+    name: 'The Diamond',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'suitGivesNoChips',
+      suit: '♦',
+    }],
+    effectDescription: 'Diamonds give no Chips',
+  },
+  {
+    type: 'boss',
+    name: 'The Heart',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'suitGivesNoChips',
+      suit: '♥',
+    }],
+    effectDescription: 'Hearts give no Chips',
+  },
+  {
+    type: 'boss',
+    name: 'The Spade',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'suitGivesNoChips',
+      suit: '♠',
+    }],
+    effectDescription: 'Spades give no Chips',
+  },
+  {
+    type: 'boss',
+    name: 'The Arm',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'decreaseHandLevel',
+      amount: -1,
+    }],
+    effectDescription: 'Decrease level of played poker hands by 1',
+  },
 ];
 
 export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {

@@ -26,12 +26,12 @@ describe('joker', () => {
         effect: { type: 'flatChips', amount: 30 },
       };
       
-      const effect = evaluateJokerEffect(joker, createMockContext());
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, createMockContext());
+      expect(effects).toEqual([{
         type: 'addChips',
         value: 30,
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('flatMult effect adds mult', () => {
@@ -43,12 +43,12 @@ describe('joker', () => {
         effect: { type: 'flatMult', amount: 4 },
       };
       
-      const effect = evaluateJokerEffect(joker, createMockContext());
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, createMockContext());
+      expect(effects).toEqual([{
         type: 'addMult',
         value: 4,
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('multMult effect multiplies mult', () => {
@@ -60,12 +60,12 @@ describe('joker', () => {
         effect: { type: 'multMult', amount: 2 },
       };
       
-      const effect = evaluateJokerEffect(joker, createMockContext());
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, createMockContext());
+      expect(effects).toEqual([{
         type: 'multiplyMult',
         value: 2,
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('chipsPerHeart effect counts hearts', () => {
@@ -85,12 +85,12 @@ describe('joker', () => {
         ],
       });
       
-      const effect = evaluateJokerEffect(joker, context);
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, context);
+      expect(effects).toEqual([{
         type: 'addChips',
         value: 20, // 2 hearts * 10
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('multPerDiamond effect counts diamonds', () => {
@@ -111,12 +111,12 @@ describe('joker', () => {
         ],
       });
       
-      const effect = evaluateJokerEffect(joker, context);
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, context);
+      expect(effects).toEqual([{
         type: 'addMult',
         value: 4.5, // 3 diamonds * 1.5 = 4.5
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('multIfContains effect triggers on matching hand', () => {
@@ -136,12 +136,12 @@ describe('joker', () => {
         },
       });
       
-      const effect = evaluateJokerEffect(joker, flushContext);
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, flushContext);
+      expect(effects).toEqual([{
         type: 'addMult',
         value: 10,
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('multIfContains effect returns null on non-matching hand', () => {
@@ -161,8 +161,8 @@ describe('joker', () => {
         },
       });
       
-      const effect = evaluateJokerEffect(joker, pairContext);
-      expect(effect).toBeNull();
+      const effects = evaluateJokerEffect(joker, pairContext);
+      expect(effects).toEqual([]);
     });
 
     test('chipsIfPlayed effect triggers on matching rank', () => {
@@ -182,12 +182,12 @@ describe('joker', () => {
         ],
       });
       
-      const effect = evaluateJokerEffect(joker, context);
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, context);
+      expect(effects).toEqual([{
         type: 'addChips',
         value: 50,
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('multPerPair effect counts pairs in scoring cards', () => {
@@ -212,12 +212,12 @@ describe('joker', () => {
       
       const context = createMockContext({ evaluatedHand: twoPairHand });
       
-      const effect = evaluateJokerEffect(joker, context);
-      expect(effect).toEqual({
+      const effects = evaluateJokerEffect(joker, context);
+      expect(effects).toEqual([{
         type: 'addMult',
         value: 6, // 2 pairs * 3
         source: 'Test Joker',
-      });
+      }]);
     });
 
     test('everyOtherHand effect triggers on even hands', () => {
@@ -231,23 +231,23 @@ describe('joker', () => {
       
       // First hand (odd) - no effect
       const oddContext = createMockContext({ handsPlayed: 1 });
-      expect(evaluateJokerEffect(joker, oddContext)).toBeNull();
+      expect(evaluateJokerEffect(joker, oddContext)).toEqual([]);
       
       // Second hand (even) - effect triggers
       const evenContext = createMockContext({ handsPlayed: 2 });
-      expect(evaluateJokerEffect(joker, evenContext)).toEqual({
+      expect(evaluateJokerEffect(joker, evenContext)).toEqual([{
         type: 'addMult',
         value: 5,
         source: 'Test Joker',
-      });
+      }]);
       
       // Fourth hand (even) - effect triggers
       const fourthContext = createMockContext({ handsPlayed: 4 });
-      expect(evaluateJokerEffect(joker, fourthContext)).toEqual({
+      expect(evaluateJokerEffect(joker, fourthContext)).toEqual([{
         type: 'addMult',
         value: 5,
         source: 'Test Joker',
-      });
+      }]);
     });
   });
 
@@ -270,7 +270,7 @@ describe('joker', () => {
     });
 
     test('has expected number of jokers', () => {
-      expect(JOKERS.length).toBe(40);
+      expect(JOKERS.length).toBe(55);
     });
 
     test('specific jokers exist with correct effects', () => {
@@ -284,7 +284,7 @@ describe('joker', () => {
       
       const wrathfulJoker = JOKERS.find(j => j.name === 'Wrathful Joker');
       expect(wrathfulJoker).toBeDefined();
-      expect(wrathfulJoker?.effect).toEqual({ type: 'multPerDiamond', amount: 3 });
+      expect(wrathfulJoker?.effect).toEqual({ type: 'multPerSuit', suits: ['♠'], mult: 3 });
     });
   });
 

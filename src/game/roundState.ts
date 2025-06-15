@@ -235,7 +235,8 @@ export function calculateScore(
   jokers: ReadonlyArray<Joker>,
   bossBlind: BossBlind | null,
   handsPlayed: number,
-  handLevels?: HandLevels
+  handLevels?: HandLevels,
+  discardsRemaining?: number
 ): ScoreCalculation {
   const baseChipMult = calculateBaseChipMult(evaluatedHand, bossBlind, handLevels);
   
@@ -247,6 +248,7 @@ export function calculateScore(
     playedCards,
     evaluatedHand,
     handsPlayed,
+    ...(discardsRemaining !== undefined ? { discardsRemaining } : {}),
   };
   const jokerEffects = evaluateAllJokers(jokers, jokerContext);
   
@@ -274,7 +276,8 @@ export function scoreHand(
     jokers,
     bossBlind,
     state.handsPlayed,
-    handLevels
+    handLevels,
+    state.discardsRemaining
   );
   
   return {
