@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import type { AnyCard } from '../cards';
-import { isPlayingCard } from '../cards';
 import { Card as CardComponent } from '../cards/Card.tsx';
-import { SpecialCard } from '../cards/SpecialCard.tsx';
 
 interface CardPackModalProps {
   readonly packType: 'standard' | 'spectral' | 'arcana';
@@ -49,19 +47,11 @@ export function CardPackModal({ packType, cards, onSelectCard, onCancel }: CardP
               }`}
               onClick={() => setSelectedCardId(card.id)}
             >
-              {isPlayingCard(card) ? (
-                <CardComponent
-                  card={card}
-                  isSelected={selectedCardId === card.id}
-                  onClick={() => setSelectedCardId(card.id)}
-                />
-              ) : (
-                <SpecialCard
-                  card={card}
-                  isSelected={selectedCardId === card.id}
-                  onClick={() => setSelectedCardId(card.id)}
-                />
-              )}
+              <CardComponent
+                card={card}
+                isSelected={selectedCardId === card.id}
+                onClick={() => setSelectedCardId(card.id)}
+              />
             </div>
           ))}
         </div>

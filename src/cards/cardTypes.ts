@@ -44,7 +44,3 @@ export interface ArcanaCard {
 
 export type Card = PlayingCard | SpectralCard | ArcanaCard;
 
-export function isPlayingCard(card: Card): card is PlayingCard {
-  return card.type === 'playing';
-}
-

@@ -1,9 +1,9 @@
 import React from 'react';
-import type { Card as CardType } from './card.ts';
+import type { AnyCard, PlayingCard } from './index.ts';
 import { isRedSuit } from './card.ts';
 
 interface CardProps {
-  readonly card: CardType;
+  readonly card: AnyCard;
   readonly isSelected: boolean;
   readonly onClick: () => void;
   readonly style?: React.CSSProperties;
@@ -12,6 +12,51 @@ interface CardProps {
 }
 
 export function Card({ card, isSelected, onClick, style, animationClass, animationDelay }: CardProps): React.ReactElement {
+  switch (card.type) {
+    case 'playing':
+      return (
+        <PlayingCardView
+          card={card}
+          isSelected={isSelected}
+          onClick={onClick}
+          {...(style !== undefined ? { style } : {})}
+          {...(animationClass !== undefined ? { animationClass } : {})}
+          {...(animationDelay !== undefined ? { animationDelay } : {})}
+        />
+      );
+    case 'spectral':
+      return (
+        <SpecialCardView
+          card={card}
+          isSelected={isSelected}
+          onClick={onClick}
+          cardColor="from-purple-600 to-blue-600"
+          borderColor={isSelected ? 'border-purple-400' : 'border-gray-600'}
+        />
+      );
+    case 'arcana':
+      return (
+        <SpecialCardView
+          card={card}
+          isSelected={isSelected}
+          onClick={onClick}
+          cardColor="from-orange-500 to-red-600"
+          borderColor={isSelected ? 'border-orange-400' : 'border-gray-600'}
+        />
+      );
+  }
+}
+
+interface PlayingCardViewProps {
+  readonly card: PlayingCard;
+  readonly isSelected: boolean;
+  readonly onClick: () => void;
+  readonly style?: React.CSSProperties;
+  readonly animationClass?: string;
+  readonly animationDelay?: number;
+}
+
+function PlayingCardView({ card, isSelected, onClick, style, animationClass, animationDelay }: PlayingCardViewProps): React.ReactElement {
   const isRed = isRedSuit(card.suit);
   
   const combinedStyle: React.CSSProperties = {
@@ -62,6 +107,30 @@ export function Card({ card, isSelected, onClick, style, animationClass, animati
           }`} />
         </div>
       )}
+    </div>
+  );
+}
+
+interface SpecialCardViewProps {
+  readonly card: { name: string; description: string; };
+  readonly isSelected: boolean;
+  readonly onClick: () => void;
+  readonly cardColor: string;
+  readonly borderColor: string;
+}
+
+function SpecialCardView({ card, isSelected, onClick, cardColor, borderColor }: SpecialCardViewProps): React.ReactElement {
+  return (
+    <div
+      className={`w-32 h-44 rounded-lg border-2 ${borderColor} bg-gradient-to-br ${cardColor} 
+        flex flex-col items-center justify-center p-3 cursor-pointer transition-all hover:scale-105
+        ${isSelected ? 'ring-2 ring-white' : ''}`}
+      onClick={onClick}
+    >
+      <div className="text-white text-center">
+        <h3 className="font-bold text-sm mb-2">{card.name}</h3>
+        <p className="text-xs opacity-90">{card.description}</p>
+      </div>
     </div>
   );
 }
