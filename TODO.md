@@ -7,17 +7,19 @@ The core game is functional with:
 - ✅ Poker hand evaluation and scoring
 - ✅ Shop system with jokers and card packs
 - ✅ Save/load functionality
-- ✅ Boss blinds (8 implemented: The Window, The Hook, The Ox, The Wall, The Needle, The Goad, The Psychic, The Fish)
-- ✅ Card enhancements (foil, holographic, polychrome)
+- ✅ Boss blinds (13 implemented, all from official game)
+- ✅ Card enhancements (foil, holographic, polychrome, glass)
 - ✅ Discard mechanics
 - ✅ Statistics tracking
 - ✅ Unit tests for all domain logic
 - ✅ Pre-commit hooks with `bun check` command
 - ✅ GitHub Actions deployment to GitHub Pages
 - ✅ Responsive build configuration for web deployment
-- ✅ Consumables system (spectral and arcana cards)
+- ✅ Consumables system (spectral, arcana, and planet cards)
 - ✅ Glass card enhancement with breaking mechanic
 - ✅ Planet cards (level up specific poker hands)
+- ✅ Spectral cards (all 19 official cards implemented)
+- ✅ Arcana cards (all 22 official cards implemented)
 
 ## High Priority Tasks
 
@@ -28,85 +30,100 @@ The core game is functional with:
 - [x] Implement ante progression beyond ante 8 (endless mode)
 
 ### 2. Bug Fixes (Critical)
-- [ ] Fix spectral cards to match official Balatro cards - see https://balatrogame.fandom.com/wiki/Spectral_Cards
-- [ ] Fix card enhancement updates not reflecting in hand display during rounds
+- [x] Fix spectral cards to match official Balatro cards
+- [x] Fix card enhancement updates not reflecting in hand display during rounds
 
-### 3. Boss Blinds
-Currently 8 boss blinds implemented. Add more variety:
+### 3. Boss Blinds (All Completed)
+All 13 boss blinds from the official game are now implemented:
+- [x] The Window (select only 1 card type)
+- [x] The Hook (discard 2 random cards per hand)
+- [x] The Ox (playing a #? sets money to $0)
 - [x] The Wall (all cards are debuffed)
 - [x] The Needle (only one hand type scores)
 - [x] The Fish (cards start face down)
-- [ ] The Club/Diamond/Heart/Spade (suit restrictions)
+- [x] The Club/Diamond/Heart/Spade (suit restrictions)
 - [x] The Goad (spades give no chips)
-- [ ] The Arm (decrease level of played poker hands)
+- [x] The Arm (decrease level of played poker hands)
 - [x] The Psychic (must play 5 cards)
 
-### 3. Joker System Expansion
-Current jokers are basic. Add:
-- [ ] Conditional jokers (activate under specific conditions)
-- [ ] Scaling jokers (grow stronger over time)
+### 4. Joker System Expansion
+Current implementation includes 90+ jokers:
+- [x] Basic scoring jokers (flat chips/mult bonuses)
+- [x] Conditional jokers (activate under specific conditions)
+- [x] Scaling jokers (grow stronger over time)
 - [ ] Economy jokers (affect money generation)
 - [ ] Hand-size jokers (modify hand size or discards)
+- [ ] Retrigger jokers (replay cards multiple times)
+- [ ] Special interaction jokers (interact with other game elements)
 
-### 4. Missing Core Features
+### 5. Missing Core Features
 - [ ] Voucher system (permanent passive upgrades)
-- [ ] Poker hand leveling system (increase base chips/mult)
-- [ ] Tarot cards (enhance other cards)
-- [ ] Planet cards (level up specific poker hands)
-- [x] Spectral cards (rare powerful effects) - implemented with consumables system
-- [x] Arcana cards - implemented with consumables system
+- [ ] Tarot cards (enhance playing cards in hand)
+- [ ] Seals (Red, Blue, Gold, Purple with special effects)
+- [ ] Edition system for jokers (foil, holographic, polychrome)
+- [ ] Negative jokers (don't take up slot)
 
 ## Medium Priority Tasks
 
-### 5. Card Enhancements
-Basic enhancements exist but missing:
-- [ ] Seals (Red, Blue, Gold, Purple with special effects)
-- [x] Glass cards (high mult but chance to break)
+### 6. Card Types
 - [ ] Stone cards (high chips but no rank/suit)
 - [ ] Wild cards (can be any suit)
 - [ ] Steel cards (remain in hand after playing)
+- [ ] Bonus/Mult cards
+- [ ] Lucky cards (chance for additional effects)
 
-### 6. UI/UX Improvements
+### 7. UI/UX Improvements
 - [ ] Tutorial/help system for new players
 - [ ] Card/joker tooltips on hover
 - [ ] Hand history viewer
 - [ ] Enhanced deck viewer with filters
 - [ ] Settings menu (gameplay settings, not just sound)
 - [ ] Score animations and visual feedback
+- [ ] Better joker organization in shop
 
-### 7. Shop Improvements
+### 8. Shop Improvements
 - [ ] Reroll cost should increase with each use
-- [x] More diverse card pack types (Standard, Arcana, Spectral)
 - [ ] Shop item tooltips
 - [ ] Purchase animations
+- [ ] Booster pack opening animations
+- [ ] Joker rarity indicators
+
+### 9. Game Balance
+- [ ] Review and adjust joker prices
+- [ ] Balance scaling joker progression
+- [ ] Fine-tune boss blind difficulty
+- [ ] Adjust consumable card rarity/pricing
 
 ## Low Priority Tasks
 
-### 8. Visual Polish
+### 10. Visual Polish
 - [ ] Boss blind entrance animations
 - [ ] Card enhancement visual effects
 - [ ] Particle effects for scoring/purchasing
 - [ ] Victory/defeat screen animations
 - [ ] Improved card dealing animations
+- [ ] Joker activation animations
 
-### 9. Audio System
+### 11. Audio System
 - [ ] Background music
 - [ ] Contextual sound effects (different sounds for hand types)
 - [ ] Boss blind themes
 - [ ] Victory/defeat jingles
+- [ ] Shop music
 
-### 10. Save System Enhancements
+### 12. Save System Enhancements
 - [ ] Multiple save slots
 - [ ] Run history viewer
 - [ ] Statistics per save slot
+- [ ] Cloud save support
 
-### 11. Achievement System
+### 13. Achievement System
 - [ ] Design achievement list
 - [ ] Implement achievement tracking
 - [ ] Achievement notification system
 - [ ] Unlock rewards
 
-### 12. Accessibility
+### 14. Accessibility
 - [ ] Colorblind mode
 - [ ] Font size options
 - [ ] Animation speed controls
@@ -115,17 +132,19 @@ Basic enhancements exist but missing:
 
 ## Future Features
 
-### 13. Advanced Game Modes
+### 15. Advanced Game Modes
 - [ ] Daily challenges (seeded runs)
 - [ ] Challenge runs (special rule sets)
 - [ ] Custom starting decks
 - [ ] Leaderboards
+- [ ] Endless mode improvements
 
-### 14. Technical Improvements
+### 16. Technical Improvements
 - [ ] Performance optimization (React.memo, useMemo)
 - [ ] Error boundaries
 - [ ] Progressive Web App support
 - [ ] Mobile responsive design
+- [ ] Offline play support
 
 ## Development Notes
 
@@ -135,8 +154,8 @@ Basic enhancements exist but missing:
 - Immutable state updates
 - Container/Presentation component pattern
 - Pure functions for game logic
-- No type guards or type assertions (except in saveGame.ts)
-- HandState discriminated union instead of boolean flags
+- No type guards or type assertions
+- Exhaustive pattern matching with switch statements
 
 ### Commands
 - `bun run dev` - Start development server
@@ -152,18 +171,18 @@ Basic enhancements exist but missing:
 - Only deploys when source files change (not documentation)
 
 ### Recent Updates
-- Implemented The Fish boss blind (cards start face down and reveal on selection)
-- Added consumables system for spectral and arcana cards
-- Created ConsumablesDisplay component with size variants
-- Added glass card enhancement with 1/4 chance to break
-- Refactored Hand component to use HandState discriminated union
-- Implemented all spectral and arcana card effects
-- Added card selection modal for effects requiring target selection
+- Implemented all 13 boss blinds from the official game
+- Refactored Joker type to discriminated union (no nested effect property)
+- Implemented scaling jokers (Ice Cream, Runner, Obelisk, etc.)
+- Fixed card enhancement sync issues during rounds
+- Organized documentation into docs/ directory
+- Added TypeScript type safety guidelines
 
 ### Next Steps for Development
-1. Implement remaining boss blinds (The Club/Diamond/Heart/Spade, The Arm)
-2. Expanded joker system with conditional/scaling jokers
-3. Core missing features: vouchers, hand leveling, planet cards
-4. UI/UX improvements: tooltips, tutorials, better visual feedback
+1. Implement economy and hand-size jokers
+2. Add voucher system for permanent upgrades
+3. Implement tarot cards for card modifications
+4. Add seal system for cards
+5. Improve UI/UX with tooltips and animations
 
 The game state management is in `src/game/gameState.ts` and ante progression is handled in `src/game/runState.ts`.
