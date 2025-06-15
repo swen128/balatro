@@ -7,10 +7,23 @@ export default {
   plugins: [
     {
       rules: {
-        'body-format': ({ body }) => {
-          if (!body) {
+        'body-format': ({ raw }) => {
+          // Use raw message to get the full commit message including all lines
+          if (!raw) {
+            return [false, 'Commit message is required'];
+          }
+          
+          // Extract body from raw message (everything after the subject line and blank line)
+          const lines = raw.split('\n');
+          const bodyStartIndex = lines.findIndex((line, index) => 
+            index > 0 && lines[index - 1] === '' && line !== ''
+          );
+          
+          if (bodyStartIndex === -1) {
             return [false, 'Commit body is required'];
           }
+          
+          const body = lines.slice(bodyStartIndex).join('\n');
           
           const hasOverview = body.includes('# Overview');
           const hasBackground = body.includes('# Background');
