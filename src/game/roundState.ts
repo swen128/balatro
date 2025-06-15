@@ -25,6 +25,7 @@ interface BaseRoundState {
   readonly handSize: number;
   readonly handsPlayed: number;
   readonly discardsRemaining: number;
+  readonly faceDownCardIds: ReadonlySet<string>;
 }
 
 interface DrawingState extends BaseRoundState {
@@ -69,7 +70,7 @@ export function createRoundState(
   handsCount: number,
   handSize: number,
   discardsCount: number
-): RoundState {
+): DrawingState {
   return {
     type: 'drawing',
     drawPile,
@@ -80,6 +81,7 @@ export function createRoundState(
     handSize,
     handsPlayed: 0,
     discardsRemaining: discardsCount,
+    faceDownCardIds: new Set(),
   };
 }
 
@@ -118,19 +120,38 @@ export function drawCardsToHandWithBossEffect(
   
   return !bossBlind
     ? baseState
-    : bossBlind.name === 'The Hook' && baseState.hand.length > 2
-    ? ((): SelectingHandState => {
-        const shuffled = [...baseState.hand].sort(() => Math.random() - 0.5);
-        const remainingHand = shuffled.slice(2);
-        const discardedCards = shuffled.slice(0, 2);
+    : ((): SelectingHandState => {
+        // Check for The Hook effect (discard random cards)
+        const discardEffect = bossBlind.effects.find(
+          e => e.kind === 'handSelection' && e.type === 'discardRandomCards'
+        );
         
-        return {
-          ...baseState,
-          hand: remainingHand,
-          drawPile: discardCards(baseState.drawPile, discardedCards),
-        };
-      })()
-    : baseState;
+        const hookProcessedState = discardEffect && discardEffect.type === 'discardRandomCards' && baseState.hand.length > discardEffect.count
+          ? ((): SelectingHandState => {
+              const shuffled = [...baseState.hand].sort(() => Math.random() - 0.5);
+              const remainingHand = shuffled.slice(discardEffect.count);
+              const discardedCards = shuffled.slice(0, discardEffect.count);
+              
+              return {
+                ...baseState,
+                hand: remainingHand,
+                drawPile: discardCards(baseState.drawPile, discardedCards),
+              };
+            })()
+          : baseState;
+        
+        // Check for The Fish effect (cards start face down)
+        const faceDownEffect = bossBlind.effects.find(
+          e => e.kind === 'cardVisibility' && e.type === 'cardsStartFaceDown'
+        );
+        
+        return faceDownEffect
+          ? {
+              ...hookProcessedState,
+              faceDownCardIds: new Set([...state.faceDownCardIds, ...hookProcessedState.hand.map(card => card.id)]),
+            }
+          : hookProcessedState;
+      })();
 }
 
 export function toggleCardSelection(
@@ -150,9 +171,12 @@ export function toggleCardSelection(
     : newSelectedIds.size < 5
     ? ((): SelectingHandState => {
         newSelectedIds.add(cardId);
+        const newFaceDownIds = new Set(state.faceDownCardIds);
+        newFaceDownIds.delete(cardId);
         return {
           ...state,
           selectedCardIds: newSelectedIds,
+          faceDownCardIds: newFaceDownIds,
         };
       })()
     : state;

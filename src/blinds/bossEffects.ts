@@ -3,7 +3,8 @@ type BossEffectType =
   | PreScoringEffect
   | ScoringModifierEffect
   | PostScoringEffect
-  | RoundEndEffect;
+  | RoundEndEffect
+  | CardVisibilityEffect;
 type HandSelectionEffect = {
   readonly kind: 'handSelection';
 } & (
@@ -39,6 +40,10 @@ type RoundEndEffect = {
   readonly type: 'gainMoneyIfCondition';
   readonly condition: string;
   readonly amount: number;
+};
+type CardVisibilityEffect = {
+  readonly kind: 'cardVisibility';
+  readonly type: 'cardsStartFaceDown';
 };
 export interface BossBlind {
   readonly type: 'boss';

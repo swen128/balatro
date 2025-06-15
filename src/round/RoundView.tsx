@@ -3,7 +3,7 @@ import type { RoundState } from '../game/roundState.ts';
 import type { RunState } from '../game/runState.ts';
 import type { BlindType, BossBlind } from '../blinds';
 import type { Card } from '../cards';
-import { Hand } from './Hand.tsx';
+import { Hand, type HandState } from './Hand.tsx';
 import { ScoreDisplay } from '../scoring/ScoreDisplay.tsx';
 import { SelectedHandDisplay } from './SelectedHandDisplay.tsx';
 import { JokerDisplay } from './JokerDisplay.tsx';
@@ -100,9 +100,21 @@ export function RoundView({
       : [];
   };
 
-  const isPlaying = roundState.type === 'playing' || roundState.type === 'scoring';
-  const isDrawing = roundState.type === 'drawing';
-  const isDiscarding = isDiscardingProp;
+  const getHandState = (): HandState => {
+    switch (roundState.type) {
+      case 'drawing':
+        return { type: 'drawing' };
+      case 'playing':
+        return { type: 'playing' };
+      case 'scoring':
+        return { type: 'scoring' };
+      case 'selectingHand':
+        return isDiscardingProp ? { type: 'discarding' } : { type: 'idle' };
+      case 'played':
+      case 'roundFinished':
+        return { type: 'idle' };
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-900">
@@ -163,11 +175,9 @@ export function RoundView({
             cards={roundState.hand}
             selectedCardIds={getSelectedCardIds()}
             playedCards={getPlayedCards()}
+            faceDownCardIds={roundState.faceDownCardIds}
             onCardClick={handleCardClick}
-            isPlaying={isPlaying}
-            isDrawing={isDrawing}
-            isDiscarding={isDiscarding}
-            isScoring={roundState.type === 'scoring'}
+            state={getHandState()}
           />
 
           {/* Action buttons below cards */}

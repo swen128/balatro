@@ -1,28 +1,32 @@
 import React from 'react';
 import type { Card as CardType } from '../cards';
 import { Card } from '../cards/Card.tsx';
+import { FaceDownCard } from '../cards/FaceDownCard.tsx';
 import { CardScoreOverlay } from './CardScoreOverlay.tsx';
+
+export type HandState = 
+  | { readonly type: 'idle' }
+  | { readonly type: 'drawing' }
+  | { readonly type: 'discarding' }
+  | { readonly type: 'playing' }
+  | { readonly type: 'scoring' };
 
 interface HandProps {
   readonly cards: ReadonlyArray<CardType>;
   readonly selectedCardIds: ReadonlySet<string>;
   readonly playedCards: ReadonlyArray<CardType>;
+  readonly faceDownCardIds: ReadonlySet<string>;
   readonly onCardClick: (cardId: string) => void;
-  readonly isPlaying: boolean;
-  readonly isDrawing?: boolean;
-  readonly isDiscarding?: boolean;
-  readonly isScoring?: boolean;
+  readonly state: HandState;
 }
 
 export function Hand({ 
   cards, 
   selectedCardIds, 
-  playedCards, 
-  onCardClick, 
-  isPlaying,
-  isDrawing = false,
-  isDiscarding = false,
-  isScoring = false
+  playedCards,
+  faceDownCardIds,
+  onCardClick,
+  state
 }: HandProps): React.ReactElement {
   const playedCardIds = new Set(playedCards.map(c => c.id));
   
@@ -33,29 +37,42 @@ export function Hand({
         const isSelected = selectedCardIds.has(card.id);
         
         // Determine animation class
-        let animationClass = '';
-        if (isDrawing) {
-          animationClass = 'animate-card-deal';
-        } else if (isDiscarding && isSelected) {
-          animationClass = 'animate-card-discard';
-        } else if (isPlaying && isPlayed) {
-          animationClass = 'animate-card-play';
-        }
+        const animationClass = state.type === 'drawing'
+          ? 'animate-card-deal'
+          : state.type === 'discarding' && isSelected
+          ? 'animate-card-discard'
+          : state.type === 'playing' && isPlayed
+          ? 'animate-card-play'
+          : '';
+        
+        const isFaceDown = faceDownCardIds.has(card.id);
         
         return (
           <div key={card.id} className="relative">
-            <Card
-              card={card}
-              isSelected={isSelected}
-              onClick={() => !isPlaying && !isDiscarding && onCardClick(card.id)}
-              animationClass={animationClass}
-              animationDelay={index * 0.1}
-              style={{
-                opacity: (isPlayed && !isPlaying) ? 0 : 1,
-                transition: 'opacity 0.5s ease-out',
-              }}
-            />
-            <CardScoreOverlay card={card} isVisible={isScoring && isPlayed} />
+            {isFaceDown ? (
+              <FaceDownCard
+                onClick={() => (state.type === 'idle' || state.type === 'drawing') && onCardClick(card.id)}
+                animationClass={animationClass}
+                animationDelay={index * 0.1}
+                style={{
+                  opacity: (isPlayed && state.type !== 'playing' && state.type !== 'scoring') ? 0 : 1,
+                  transition: 'opacity 0.5s ease-out',
+                }}
+              />
+            ) : (
+              <Card
+                card={card}
+                isSelected={isSelected}
+                onClick={() => (state.type === 'idle' || state.type === 'drawing') && onCardClick(card.id)}
+                animationClass={animationClass}
+                animationDelay={index * 0.1}
+                style={{
+                  opacity: (isPlayed && state.type !== 'playing' && state.type !== 'scoring') ? 0 : 1,
+                  transition: 'opacity 0.5s ease-out',
+                }}
+              />
+            )}
+            <CardScoreOverlay card={card} isVisible={state.type === 'scoring' && isPlayed && !isFaceDown} />
           </div>
         );
       })}

@@ -314,6 +314,7 @@ describe('roundState', () => {
         handsPlayed: 2,
         discardsRemaining: 3,
         selectedCardIds: new Set(),
+        faceDownCardIds: new Set(),
       };
       
       expect(isRoundWon(state)).toBe(true);
@@ -332,6 +333,7 @@ describe('roundState', () => {
         handsPlayed: 4,
         discardsRemaining: 3,
         selectedCardIds: new Set(),
+        faceDownCardIds: new Set(),
       };
       
       expect(isRoundWon(state)).toBe(false);
@@ -350,6 +352,7 @@ describe('roundState', () => {
         handsPlayed: 3,
         discardsRemaining: 3,
         selectedCardIds: new Set(),
+        faceDownCardIds: new Set(),
       };
       
       expect(isRoundWon(state)).toBe(false);

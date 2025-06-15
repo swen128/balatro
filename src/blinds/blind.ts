@@ -114,6 +114,18 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     }],
     effectDescription: 'Must play 5 cards',
   },
+  {
+    type: 'boss',
+    name: 'The Fish',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'cardVisibility',
+      type: 'cardsStartFaceDown',
+    }],
+    effectDescription: 'Cards drawn face down',
+  },
 ];
 
 export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {
