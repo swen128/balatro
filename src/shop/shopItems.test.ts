@@ -2,8 +2,7 @@ import { describe, test, expect } from 'bun:test';
 import { 
   createRandomShopItems, 
   createCardPack,
-  PACK_DEFINITIONS,
-  type PackItem 
+  PACK_DEFINITIONS
 } from './shopItems.ts';
 
 describe('shopItems', () => {
@@ -49,11 +48,12 @@ describe('shopItems', () => {
 
     test('pack items have valid pack types', () => {
       const items = createRandomShopItems(50);
-      const packItems = items.filter((i): i is PackItem => i.type === 'pack');
       
-      for (const pack of packItems) {
-        expect(['arcana', 'spectral', 'standard']).toContain(pack.packType);
-        expect(pack.cardCount).toBeGreaterThan(0);
+      for (const item of items) {
+        if (item.type === 'pack') {
+          expect(['arcana', 'spectral', 'standard']).toContain(item.packType);
+          expect(item.cardCount).toBeGreaterThan(0);
+        }
       }
     });
   });

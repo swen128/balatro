@@ -95,13 +95,6 @@ function applyPreScoringEffect(
 
 
 
-// Get all effects for a specific phase
-function getBossEffectsForPhase<T extends BossEffectType>(
-  boss: BossBlind,
-  phase: T['kind']
-): ReadonlyArray<T> {
-  return boss.effects.filter((effect): effect is T => effect.kind === phase);
-}
 
 // Context for boss effect application
 interface BossEffectContext {
@@ -113,24 +106,24 @@ interface BossEffectContext {
 
 
 // Apply boss effects during scoring
-export function applyBossEffectOnScoring<T extends { finalScore: number }>(
-  scoringState: T,
-  context: BossEffectContext
-): T {
+export function applyBossEffectOnScoring(
+  finalScore: number,
+  context: BossEffectContext  
+): number {
   const boss = context.bossBlind;
   
   // Apply pre-scoring effects
-  const preScoringEffects = getBossEffectsForPhase<PreScoringEffect>(boss, 'preScoring');
+  const preScoringEffects = boss.effects.filter(e => e.kind === 'preScoring');
   const afterPreScoring = preScoringEffects.reduce(
     (score, effect) => 
-      shouldApplyPreScoringEffect(effect, context.handsPlayed)
+      effect.kind === 'preScoring' && shouldApplyPreScoringEffect(effect, context.handsPlayed)
         ? applyPreScoringEffect(effect, score, context.handsPlayed)
         : score,
-    scoringState.finalScore
+    finalScore
   );
   
   // Apply scoring modifier effects
-  const scoringModifierEffects = getBossEffectsForPhase<ScoringModifierEffect>(boss, 'scoringModifier');
+  const scoringModifierEffects = boss.effects.filter(e => e.kind === 'scoringModifier');
   const modifiedScore = scoringModifierEffects.reduce((score, effect) => {
     switch (effect.type) {
       case 'onlyOneHandType':
@@ -149,9 +142,6 @@ export function applyBossEffectOnScoring<T extends { finalScore: number }>(
     }
   }, afterPreScoring);
   
-  return {
-    ...scoringState,
-    finalScore: modifiedScore,
-  };
+  return modifiedScore;
 }
 

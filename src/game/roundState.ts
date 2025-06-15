@@ -259,14 +259,21 @@ export function scoreHandWithBossEffect(
 ): ScoringState {
   const baseScoring = scoreHand(state, jokers, bossBlind);
   
-  return bossBlind
-    ? applyBossEffectOnScoring(baseScoring, {
-        bossBlind,
-        handsPlayed: state.handsPlayed,
-        totalMoney,
-        evaluatedHand: state.evaluatedHand,
-      })
-    : baseScoring;
+  return !bossBlind
+    ? baseScoring
+    : ((): ScoringState => {
+        const modifiedScore = applyBossEffectOnScoring(baseScoring.finalScore, {
+          bossBlind,
+          handsPlayed: state.handsPlayed,
+          totalMoney,
+          evaluatedHand: state.evaluatedHand,
+        });
+        
+        return {
+          ...baseScoring,
+          finalScore: modifiedScore,
+        };
+      })();
 }
 
 export function finishScoring(state: ScoringState): PlayedState | RoundFinishedState {
