@@ -59,8 +59,20 @@ export function getNextRoundState(
   }
 }
 
-export function canPlayHand(state: RoundState): boolean {
-  return state.type === 'selectingHand' && state.selectedCardIds.size > 0;
+export function canPlayHand(state: RoundState, bossBlind: BossBlind | null = null): boolean {
+  return state.type !== 'selectingHand' || state.selectedCardIds.size === 0
+    ? false
+    : bossBlind && 'effects' in bossBlind
+    ? ((): boolean => {
+        const exactCountEffect = bossBlind.effects.find(
+          e => e.kind === 'handSelection' && e.type === 'exactCardCount'
+        );
+        
+        return exactCountEffect && exactCountEffect.type === 'exactCardCount'
+          ? state.selectedCardIds.size === exactCountEffect.count
+          : true;
+      })()
+    : true;
 }
 
 export function handleCardClick(state: RoundState, cardId: string): RoundState | null {

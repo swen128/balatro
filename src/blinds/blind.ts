@@ -101,6 +101,19 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     }],
     effectDescription: 'Spades give no Chips',
   },
+  {
+    type: 'boss',
+    name: 'The Psychic',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'handSelection',
+      type: 'exactCardCount',
+      count: 5,
+    }],
+    effectDescription: 'Must play 5 cards',
+  },
 ];
 
 export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {

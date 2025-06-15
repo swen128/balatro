@@ -15,6 +15,7 @@ type HandSelectionEffect = {
   | { readonly type: 'forceSuit'; readonly suit: string }
   | { readonly type: 'maxCardSelection'; readonly max: number }
   | { readonly type: 'preventCardPlay'; readonly rank: string }
+  | { readonly type: 'exactCardCount'; readonly count: number }
 );
 
 // Pre-scoring effects - modify score before calculation

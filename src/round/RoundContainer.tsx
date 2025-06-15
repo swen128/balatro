@@ -100,7 +100,7 @@ export function RoundContainer({ gameState, onWin, onLose }: RoundContainerProps
       onCardClick={handleCardClickCallback}
       onPlayHand={handlePlayHandCallback}
       onDiscardCards={handleDiscardCardsCallback}
-      canPlayHand={canPlayHand(roundState)}
+      canPlayHand={canPlayHand(roundState, bossBlind)}
       canDiscardCards={canDiscardCards(roundState)}
       isDiscarding={isDiscarding}
     />
