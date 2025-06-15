@@ -1,5 +1,5 @@
 import type { RunState } from '../game';
-import type { ShopItem, JokerItem } from './shopItems.ts';
+import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
 import type { Card } from '../cards';
 import type { SpectralCard, ArcanaCard } from './cardPacks.ts';
@@ -13,6 +13,8 @@ export interface ShopState {
   readonly pendingPack: {
     readonly type: 'standard' | 'spectral' | 'arcana';
     readonly cards: ReadonlyArray<Card | SpectralCard | ArcanaCard>;
+    readonly price: number;
+    readonly originalItem: PackItem;
   } | null;
 }
 
@@ -113,4 +115,42 @@ function rerollShopHelper(
   };
 
   return { shopState: newShopState, runState: newRunState };
+}
+
+export function selectCardFromPack(
+  shopState: ShopState,
+  runState: RunState,
+  card: Card
+): { shopState: ShopState; runState: RunState } | null {
+  return !shopState.pendingPack
+    ? null
+    : {
+        shopState: {
+          ...shopState,
+          pendingPack: null,
+        },
+        runState: {
+          ...runState,
+          deck: [...runState.deck, card],
+        },
+      };
+}
+
+export function cancelPackSelection(
+  shopState: ShopState,
+  runState: RunState
+): { shopState: ShopState; runState: RunState } | null {
+  return !shopState.pendingPack
+    ? null
+    : {
+        shopState: {
+          ...shopState,
+          availableItems: [...shopState.availableItems, shopState.pendingPack.originalItem],
+          pendingPack: null,
+        },
+        runState: {
+          ...runState,
+          cash: runState.cash + shopState.pendingPack.price,
+        },
+      };
 }

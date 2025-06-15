@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import type { RunState } from '../game/runState.ts';
-import { createShopState, purchaseItem, rerollShop, canAffordItem, canReroll } from './shopLogic.ts';
+import { createShopState, purchaseItem, rerollShop, canAffordItem, canReroll, selectCardFromPack, cancelPackSelection } from './shopLogic.ts';
 import { ShopView } from './ShopView.tsx';
 import { CardPackModal } from './CardPackModal.tsx';
 import { generateStandardPackCards } from './cardPacks.ts';
@@ -66,39 +66,22 @@ export function ShopContainer({ runState: initialRunState, onLeave }: ShopContai
   }, [shopState, runState, stats]);
 
   const handleSelectCard = useCallback((card: Card): void => {
-    // Add the selected card to the deck
-    const newRunState = {
-      ...runState,
-      deck: [...runState.deck, card],
-    };
-    
-    // Clear the pending pack
-    const newShopState = {
-      ...shopState,
-      pendingPack: null,
-    };
-    
-    setRunState(newRunState);
-    setShopState(newShopState);
-    setPackCards(null);
-  }, [runState, shopState]);
+    const result = selectCardFromPack(shopState, runState, card);
+    if (result) {
+      setShopState(result.shopState);
+      setRunState(result.runState);
+      setPackCards(null);
+    }
+  }, [shopState, runState]);
 
   const handleCancelPack = useCallback((): void => {
-    // Return the money and clear the pack
-    const newRunState = {
-      ...runState,
-      cash: runState.cash + (shopState.pendingPack ? 4 : 0), // Refund pack cost
-    };
-    
-    const newShopState = {
-      ...shopState,
-      pendingPack: null,
-    };
-    
-    setRunState(newRunState);
-    setShopState(newShopState);
-    setPackCards(null);
-  }, [runState, shopState]);
+    const result = cancelPackSelection(shopState, runState);
+    if (result) {
+      setShopState(result.shopState);
+      setRunState(result.runState);
+      setPackCards(null);
+    }
+  }, [shopState, runState]);
 
   const handleLeave = useCallback((): void => {
     onLeave(runState);

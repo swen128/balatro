@@ -58,6 +58,8 @@ export function createPackPendingState(
     pendingPack: {
       type: item.packType,
       cards: [],
+      price: item.price,
+      originalItem: item,
     },
   };
 }
