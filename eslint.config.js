@@ -84,6 +84,14 @@ export default [
       // Additional rules for exhaustive switches
       '@typescript-eslint/switch-exhaustiveness-check': 'error',
       'unicorn/prefer-switch': 'error',
+      
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: 'TSTypePredicate',
+          message: 'Type predicates are not allowed because of the unsoundness. Rethink your type design.',
+        },
+      ],
     },
     settings: {
       react: {
