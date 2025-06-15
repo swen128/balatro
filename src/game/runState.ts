@@ -1,9 +1,9 @@
-import type { Card, SpectralCard, ArcanaCard } from '../cards';
+import type { Card } from '../cards';
 import { createStandardDeck } from '../cards';
 import type { BossBlind } from '../blinds';
 import { getRandomBossBlind } from '../blinds';
 import type { Joker } from '../shop';
-import type { PlanetCard } from '../consumables';
+import type { ConsumableCard } from '../consumables';
 import type { HandLevels, PokerHandKey } from '../scoring';
 
 export const WINNING_ANTE = 8;
@@ -19,7 +19,7 @@ export interface RunState {
   readonly blindProgression: BlindProgression;
   readonly jokers: ReadonlyArray<Joker>;
   readonly maxJokers: number;
-  readonly consumables: ReadonlyArray<SpectralCard | ArcanaCard | PlanetCard>;
+  readonly consumables: ReadonlyArray<ConsumableCard>;
   readonly maxConsumables: number;
   readonly handLevels: HandLevels;
 }
@@ -223,7 +223,7 @@ export function updateDeck(state: RunState, deck: ReadonlyArray<Card>): RunState
   };
 }
 
-export function addConsumable(state: RunState, consumable: SpectralCard | ArcanaCard): RunState {
+export function addConsumable(state: RunState, consumable: ConsumableCard): RunState {
   return state.consumables.length >= state.maxConsumables
     ? state
     : {

@@ -1,7 +1,8 @@
-import type { Card, CardEnhancement, AnyCard, SpectralCard, ArcanaCard } from '../cards';
+import type { Card, CardEnhancement, SpectralCard, ArcanaCard } from '../cards';
 import { createCard, SUITS, RANKS, getRandomSpectralCards, getRandomArcanaCards } from '../cards';
 import type { PlanetCard } from '../consumables';
 import { getRandomPlanetCards } from '../consumables';
+import type { AnyCard } from '../cards';
 
 function generateStandardPackCards(count: number): ReadonlyArray<AnyCard> {
   return Array.from({ length: count }, (): Card => {

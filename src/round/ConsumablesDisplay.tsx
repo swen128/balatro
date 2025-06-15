@@ -1,9 +1,9 @@
 import React from 'react';
-import type { SpectralCard, ArcanaCard } from '../cards';
+import type { ConsumableCard } from '../consumables';
 import { Card } from '../cards/Card.tsx';
 
 interface ConsumablesDisplayProps {
-  readonly consumables: ReadonlyArray<SpectralCard | ArcanaCard>;
+  readonly consumables: ReadonlyArray<ConsumableCard>;
   readonly maxConsumables: number;
   readonly onUseConsumable: (consumableId: string) => void;
   readonly disabled: boolean;

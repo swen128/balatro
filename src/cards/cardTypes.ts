@@ -1,4 +1,5 @@
 import type { Suit, Rank, CardEnhancement } from './card.ts';
+import type { ConsumableCard } from '../consumables';
 
 export interface PlayingCard {
   readonly type: 'playing';
@@ -42,13 +43,4 @@ export interface ArcanaCard {
   readonly effect: ArcanaEffect;
 }
 
-export interface PlanetCard {
-  readonly type: 'planet';
-  readonly id: string;
-  readonly name: string;
-  readonly handType: string;
-  readonly description: string;
-}
-
-export type Card = PlayingCard | SpectralCard | ArcanaCard | PlanetCard;
-
+export type AnyCard = PlayingCard | ConsumableCard;

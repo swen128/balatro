@@ -1,3 +1,8 @@
+import type { SpectralCard, ArcanaCard } from '../cards';
+import type { PlanetCard } from './planetCard.ts';
+
+export type ConsumableCard = SpectralCard | ArcanaCard | PlanetCard;
+
 export { 
   applySpectralEffect, 
   applyArcanaEffect,
@@ -8,8 +13,5 @@ export {
 
 export type { PlanetCard } from './planetCard.ts';
 export { 
-  PLANET_CARDS, 
-  createPlanetCard, 
-  createRandomPlanetCard,
   getRandomPlanetCards
 } from './planetCard.ts';

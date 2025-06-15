@@ -10,7 +10,7 @@ export interface PlanetCard {
   readonly description: string;
 }
 
-export const PLANET_CARDS = {
+const PLANET_CARDS = {
   PAIR: 'Mercury',
   TWO_PAIR: 'Venus',
   THREE_OF_A_KIND: 'Earth',
@@ -27,7 +27,7 @@ function formatHandType(handType: PokerHandKey): string {
   return POKER_HANDS[handType].name;
 }
 
-export function createPlanetCard(handType: PokerHandKey): PlanetCard {
+function createPlanetCard(handType: PokerHandKey): PlanetCard {
   return {
     id: nanoid(),
     type: 'planet',
@@ -42,7 +42,7 @@ const PLANET_HAND_TYPES: ReadonlyArray<PokerHandKey> = [
   'FULL_HOUSE', 'FOUR_OF_A_KIND', 'STRAIGHT_FLUSH', 'ROYAL_FLUSH', 'HIGH_CARD'
 ];
 
-export function createRandomPlanetCard(): PlanetCard {
+function createRandomPlanetCard(): PlanetCard {
   const randomIndex = Math.floor(Math.random() * PLANET_HAND_TYPES.length);
   const handType = PLANET_HAND_TYPES[randomIndex];
   

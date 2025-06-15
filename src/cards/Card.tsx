@@ -1,5 +1,6 @@
 import React from 'react';
-import type { AnyCard, PlayingCard } from './index.ts';
+import type { PlayingCard } from './index.ts';
+import type { AnyCard } from './index.ts';
 import { isRedSuit } from './card.ts';
 
 interface CardProps {

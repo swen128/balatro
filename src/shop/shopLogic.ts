@@ -2,8 +2,9 @@ import type { RunState } from '../game';
 import { addConsumable } from '../game';
 import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
-import type { AnyCard, SpectralCard } from '../cards';
+import type { SpectralCard } from '../cards';
 import { createSpectralCard } from '../cards';
+import type { AnyCard } from '../cards';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 interface BaseShopState {
@@ -21,7 +22,7 @@ interface SelectingCardState extends BaseShopState {
   readonly type: 'selectingCard';
   readonly availableItems: ReadonlyArray<ShopItem>;
   readonly pendingPack: {
-    readonly packType: 'standard' | 'spectral' | 'arcana';
+    readonly packType: 'standard' | 'spectral' | 'arcana' | 'celestial';
     readonly cards: ReadonlyArray<AnyCard>;
     readonly price: number;
     readonly originalItem: PackItem;
@@ -161,11 +162,16 @@ export function selectCardFromPack(
   runState: RunState,
   card: AnyCard
 ): { shopState: BrowsingShopState; runState: RunState } {
-  const updatedRunState = card.type === 'playing'
-    ? { ...runState, deck: [...runState.deck, card] }
-    : card.type === 'spectral' || card.type === 'arcana'
-    ? addConsumable(runState, card)
-    : runState;
+  const updatedRunState = ((): RunState => {
+    switch (card.type) {
+      case 'playing':
+        return { ...runState, deck: [...runState.deck, card] };
+      case 'spectral':
+      case 'arcana':
+      case 'planet':
+        return addConsumable(runState, card);
+    }
+  })();
     
   return {
     shopState: {

@@ -126,11 +126,16 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
       setPendingConsumable(consumableId);
     } else {
       // Apply effect immediately if no selection needed
-      const updatedRunState = consumable.type === 'spectral'
-        ? applySpectralEffect(gameState.runState, consumable, {})
-        : consumable.type === 'arcana'
-        ? applyArcanaEffect(gameState.runState, consumable, {})
-        : applyPlanetEffect(gameState.runState, consumable);
+      const updatedRunState = ((): RunState => {
+        switch (consumable.type) {
+          case 'spectral':
+            return applySpectralEffect(gameState.runState, consumable, {});
+          case 'arcana':
+            return applyArcanaEffect(gameState.runState, consumable, {});
+          case 'planet':
+            return applyPlanetEffect(gameState.runState, consumable);
+        }
+      })();
         
       onUpdateRunState(() => removeConsumable(updatedRunState, consumableId));
     }
@@ -142,11 +147,16 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
     const consumable = gameState.runState.consumables.find(c => c.id === pendingConsumable);
     if (!consumable) return;
     
-    const updatedRunState = consumable.type === 'spectral'
-      ? applySpectralEffect(gameState.runState, consumable, { selectedCards })
-      : consumable.type === 'arcana'
-      ? applyArcanaEffect(gameState.runState, consumable, { selectedCards })
-      : applyPlanetEffect(gameState.runState, consumable);
+    const updatedRunState = ((): RunState => {
+      switch (consumable.type) {
+        case 'spectral':
+          return applySpectralEffect(gameState.runState, consumable, { selectedCards });
+        case 'arcana':
+          return applyArcanaEffect(gameState.runState, consumable, { selectedCards });
+        case 'planet':
+          return applyPlanetEffect(gameState.runState, consumable);
+      }
+    })();
       
     onUpdateRunState(() => removeConsumable(updatedRunState, pendingConsumable));
     setPendingConsumable(null);
