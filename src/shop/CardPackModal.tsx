@@ -3,7 +3,7 @@ import type { AnyCard } from '../cards';
 import { Card as CardComponent } from '../cards/Card.tsx';
 
 interface CardPackModalProps {
-  readonly packType: 'standard' | 'spectral' | 'arcana';
+  readonly packType: 'standard' | 'spectral' | 'arcana' | 'celestial';
   readonly cards: ReadonlyArray<AnyCard>;
   readonly onSelectCard: (card: AnyCard) => void;
   readonly onCancel: () => void;
@@ -27,6 +27,8 @@ export function CardPackModal({ packType, cards, onSelectCard, onCancel }: CardP
         return 'Spectral Pack';
       case 'arcana':
         return 'Arcana Pack';
+      case 'celestial':
+        return 'Celestial Pack';
     }
   };
   

@@ -51,7 +51,7 @@ describe('shopItems', () => {
       
       for (const item of items) {
         if (item.type === 'pack') {
-          expect(['arcana', 'spectral', 'standard']).toContain(item.packType);
+          expect(['arcana', 'spectral', 'standard', 'celestial']).toContain(item.packType);
           expect(item.cardCount).toBeGreaterThan(0);
         }
       }

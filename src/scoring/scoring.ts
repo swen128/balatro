@@ -1,7 +1,8 @@
 import type { Card } from '../cards';
 import { getCardChipValue } from '../cards';
-import type { EvaluatedHand } from './pokerHands.ts';
+import type { EvaluatedHand, HandLevels, PokerHandKey } from './pokerHands.ts';
 import type { BossBlind } from '../blinds';
+import { POKER_HANDS } from './pokerHands.ts';
 
 export interface ChipMult {
   readonly chips: number;
@@ -15,8 +16,44 @@ export interface ScoringEffect {
 }
 
 
-export function calculateBaseChipMult(evaluatedHand: EvaluatedHand, bossBlind?: BossBlind | null): ChipMult {
-  const handChips = evaluatedHand.handType.baseChips;
+function getHandLevelKey(evaluatedHand: EvaluatedHand): PokerHandKey | null {
+  // Find which POKER_HANDS key matches this hand type
+  const keys: ReadonlyArray<PokerHandKey> = [
+    'ROYAL_FLUSH', 'STRAIGHT_FLUSH', 'FOUR_OF_A_KIND', 'FULL_HOUSE',
+    'FLUSH', 'STRAIGHT', 'THREE_OF_A_KIND', 'TWO_PAIR', 'PAIR', 'HIGH_CARD'
+  ];
+  
+  const matchingKey = keys.find(key => POKER_HANDS[key] === evaluatedHand.handType);
+  return matchingKey ?? null;
+}
+
+function getHandLevelBonus(level: number): { chips: number; mult: number } {
+  return {
+    chips: (level - 1) * 10,
+    mult: (level - 1) * 1,
+  };
+}
+
+export function calculateBaseChipMult(
+  evaluatedHand: EvaluatedHand, 
+  bossBlind?: BossBlind | null,
+  handLevels?: HandLevels
+): ChipMult {
+  const baseHandChips = evaluatedHand.handType.baseChips;
+  const baseHandMult = evaluatedHand.handType.baseMult;
+  
+  // Apply hand level bonuses if available
+  const levelBonus = handLevels !== undefined
+    ? ((): { chips: number; mult: number } => {
+        const handKey = getHandLevelKey(evaluatedHand);
+        return handKey !== null
+          ? getHandLevelBonus(handLevels[handKey])
+          : { chips: 0, mult: 0 };
+      })()
+    : { chips: 0, mult: 0 };
+  
+  const handChips = baseHandChips + levelBonus.chips;
+  const handMult = baseHandMult + levelBonus.mult;
   
   const restrictedSuit = bossBlind
     ? ((): { readonly suit: string } | undefined => {
@@ -39,7 +76,7 @@ export function calculateBaseChipMult(evaluatedHand: EvaluatedHand, bossBlind?: 
   
   return {
     chips: handChips + cardChips,
-    mult: evaluatedHand.handType.baseMult,
+    mult: handMult,
   };
 }
 

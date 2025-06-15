@@ -16,7 +16,8 @@ import { CardSelectionModal } from './CardSelectionModal.tsx';
 import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
 import { 
   applySpectralEffect, 
-  applyArcanaEffect, 
+  applyArcanaEffect,
+  applyPlanetEffect,
   canUseConsumable,
   getRequiredSelections 
 } from '../consumables';
@@ -49,7 +50,7 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
   const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
 
   useEffect(() => {
-    const transition = getNextRoundState(roundState, bossBlind, money, gameState.runState.jokers);
+    const transition = getNextRoundState(roundState, bossBlind, money, gameState.runState.jokers, gameState.runState.handLevels);
     
     if (transition) {
       const timeoutId = setTimeout(() => {
@@ -88,7 +89,7 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
     }
     
     return undefined;
-  }, [roundState, bossBlind, money, gameState.runState.jokers, onWin, onLose, stats]);
+  }, [roundState, bossBlind, money, gameState.runState.jokers, gameState.runState.handLevels, onWin, onLose, stats]);
 
   const handleCardClickCallback = useCallback((cardId: string): void => {
     const newState = handleCardClick(roundState, cardId);
@@ -127,7 +128,9 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
       // Apply effect immediately if no selection needed
       const updatedRunState = consumable.type === 'spectral'
         ? applySpectralEffect(gameState.runState, consumable, {})
-        : applyArcanaEffect(gameState.runState, consumable, {});
+        : consumable.type === 'arcana'
+        ? applyArcanaEffect(gameState.runState, consumable, {})
+        : applyPlanetEffect(gameState.runState, consumable);
         
       onUpdateRunState(() => removeConsumable(updatedRunState, consumableId));
     }
@@ -141,7 +144,9 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
     
     const updatedRunState = consumable.type === 'spectral'
       ? applySpectralEffect(gameState.runState, consumable, { selectedCards })
-      : applyArcanaEffect(gameState.runState, consumable, { selectedCards });
+      : consumable.type === 'arcana'
+      ? applyArcanaEffect(gameState.runState, consumable, { selectedCards })
+      : applyPlanetEffect(gameState.runState, consumable);
       
     onUpdateRunState(() => removeConsumable(updatedRunState, pendingConsumable));
     setPendingConsumable(null);

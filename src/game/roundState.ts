@@ -6,6 +6,7 @@ import type { BossBlind } from '../blinds';
 import { applyBossEffectOnScoring } from '../blinds';
 import type { Joker, JokerContext } from '../shop';
 import { evaluateAllJokers } from '../shop';
+import type { HandLevels } from '../scoring';
 
 export type RoundState = 
   | DrawingState
@@ -171,12 +172,9 @@ export function toggleCardSelection(
     : newSelectedIds.size < 5
     ? ((): SelectingHandState => {
         newSelectedIds.add(cardId);
-        const newFaceDownIds = new Set(state.faceDownCardIds);
-        newFaceDownIds.delete(cardId);
         return {
           ...state,
           selectedCardIds: newSelectedIds,
-          faceDownCardIds: newFaceDownIds,
         };
       })()
     : state;
@@ -211,11 +209,16 @@ export function playSelectedCards(state: SelectingHandState): PlayingState | Sel
         const playedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
         const evaluatedHand = evaluatePokerHand(playedCards);
         
+        // Remove played cards from face down set
+        const newFaceDownIds = new Set(state.faceDownCardIds);
+        playedCards.forEach(card => newFaceDownIds.delete(card.id));
+        
         return {
           ...state,
           type: 'playing',
           playedCards,
           evaluatedHand,
+          faceDownCardIds: newFaceDownIds,
         };
       })();
 }
@@ -231,9 +234,10 @@ export function calculateScore(
   evaluatedHand: EvaluatedHand,
   jokers: ReadonlyArray<Joker>,
   bossBlind: BossBlind | null,
-  handsPlayed: number
+  handsPlayed: number,
+  handLevels?: HandLevels
 ): ScoreCalculation {
-  const baseChipMult = calculateBaseChipMult(evaluatedHand, bossBlind);
+  const baseChipMult = calculateBaseChipMult(evaluatedHand, bossBlind, handLevels);
   
   // Apply enhancement effects from played cards
   const enhancementEffects = getCardEnhancementEffects(playedCards);
@@ -258,13 +262,19 @@ export function calculateScore(
   };
 }
 
-export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = [], bossBlind: BossBlind | null = null): ScoringState {
+export function scoreHand(
+  state: PlayingState, 
+  jokers: ReadonlyArray<Joker> = [], 
+  bossBlind: BossBlind | null = null,
+  handLevels?: HandLevels
+): ScoringState {
   const calculation = calculateScore(
     state.playedCards,
     state.evaluatedHand,
     jokers,
     bossBlind,
-    state.handsPlayed
+    state.handsPlayed,
+    handLevels
   );
   
   return {
@@ -279,9 +289,10 @@ export function scoreHandWithBossEffect(
   state: PlayingState,
   bossBlind: BossBlind | null,
   totalMoney: number,
-  jokers: ReadonlyArray<Joker> = []
+  jokers: ReadonlyArray<Joker> = [],
+  handLevels?: HandLevels
 ): ScoringState {
-  const baseScoring = scoreHand(state, jokers, bossBlind);
+  const baseScoring = scoreHand(state, jokers, bossBlind, handLevels);
   
   return !bossBlind
     ? baseScoring

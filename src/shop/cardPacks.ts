@@ -1,5 +1,7 @@
 import type { Card, CardEnhancement, AnyCard, SpectralCard, ArcanaCard } from '../cards';
 import { createCard, SUITS, RANKS, getRandomSpectralCards, getRandomArcanaCards } from '../cards';
+import type { PlanetCard } from '../consumables';
+import { getRandomPlanetCards } from '../consumables';
 
 function generateStandardPackCards(count: number): ReadonlyArray<AnyCard> {
   return Array.from({ length: count }, (): Card => {
@@ -28,7 +30,11 @@ function generateArcanaPackCards(count: number): ReadonlyArray<ArcanaCard> {
   return getRandomArcanaCards(count);
 }
 
-export function generatePackCards(packType: 'standard' | 'spectral' | 'arcana', count: number): ReadonlyArray<AnyCard> {
+function generateCelestialPackCards(count: number): ReadonlyArray<PlanetCard> {
+  return getRandomPlanetCards(count);
+}
+
+export function generatePackCards(packType: 'standard' | 'spectral' | 'arcana' | 'celestial', count: number): ReadonlyArray<AnyCard> {
   switch (packType) {
     case 'standard':
       return generateStandardPackCards(count);
@@ -36,6 +42,8 @@ export function generatePackCards(packType: 'standard' | 'spectral' | 'arcana', 
       return generateSpectralPackCards(count);
     case 'arcana':
       return generateArcanaPackCards(count);
+    case 'celestial':
+      return generateCelestialPackCards(count);
   }
 }
 

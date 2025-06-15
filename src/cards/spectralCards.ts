@@ -70,3 +70,31 @@ export function getRandomSpectralCards(count: number): ReadonlyArray<SpectralCar
   const shuffled = [...SPECTRAL_CARDS].sort(() => Math.random() - 0.5);
   return shuffled.slice(0, Math.min(count, shuffled.length));
 }
+
+export function createSpectralCard(enhancement: 'foil' | 'holographic' | 'polychrome', count: number): SpectralCard {
+  const spectralMap = {
+    foil: {
+      type: 'spectral' as const,
+      id: 'spectral_aura',
+      name: 'Aura',
+      description: 'Add Foil enhancement to 1 selected card in your hand',
+      effect: { type: 'addFoil' as const, count },
+    },
+    holographic: {
+      type: 'spectral' as const,
+      id: 'spectral_wraith',
+      name: 'Wraith',
+      description: 'Add Holographic enhancement to 1 random card in your deck',
+      effect: { type: 'addHolographic' as const, count },
+    },
+    polychrome: {
+      type: 'spectral' as const,
+      id: 'spectral_sigil',
+      name: 'Sigil',
+      description: 'Add Polychrome enhancement to 1 random card in your deck',
+      effect: { type: 'addPolychrome' as const, count },
+    },
+  };
+  
+  return spectralMap[enhancement];
+}

@@ -23,7 +23,7 @@ export interface JokerItem extends ShopItemBase {
 
 export interface PackItem extends ShopItemBase {
   readonly type: 'pack';
-  readonly packType: 'arcana' | 'spectral' | 'standard';
+  readonly packType: 'arcana' | 'spectral' | 'standard' | 'celestial';
   readonly cardCount: number;
 }
 
@@ -145,6 +145,15 @@ const SHOP_PACKS: ReadonlyArray<PackItem> = [
     packType: 'spectral',
     cardCount: 2,
   },
+  {
+    id: 'pack-celestial',
+    type: 'pack',
+    name: 'Celestial Pack',
+    description: 'Choose 1 of 3 Planet cards',
+    price: 6,
+    packType: 'celestial',
+    cardCount: 3,
+  },
 ];
 
 const SHOP_VOUCHERS: ReadonlyArray<VoucherItem> = [
@@ -171,7 +180,7 @@ const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
     id: 'spectral-wraith',
     type: 'spectral',
     name: 'Wraith',
-    description: 'Add Holographic to 1 random card',
+    description: 'Add Holographic to 1 selected card',
     price: 8,
     effect: { type: 'addHolographic', count: 1 },
   },
@@ -179,7 +188,7 @@ const SHOP_SPECTRAL: ReadonlyArray<SpectralItem> = [
     id: 'spectral-sigil',
     type: 'spectral',
     name: 'Sigil',
-    description: 'Add Polychrome to 1 random card',
+    description: 'Add Polychrome to 1 selected card',
     price: 10,
     effect: { type: 'addPolychrome', count: 1 },
   },
@@ -206,9 +215,15 @@ export const PACK_DEFINITIONS = {
     price: 8,
     cardCount: 2,
   },
+  celestial: {
+    name: 'Celestial Pack',
+    description: 'Choose 1 of 3 planet cards',
+    price: 6,
+    cardCount: 3,
+  },
 } as const;
 
-export function createCardPack(packType: 'standard' | 'arcana' | 'spectral', count: number): ReadonlyArray<Card> {
+export function createCardPack(packType: 'standard' | 'arcana' | 'spectral' | 'celestial', count: number): ReadonlyArray<Card> {
   const suits: ReadonlyArray<Suit> = ['♠', '♥', '♦', '♣'];
   const ranks: ReadonlyArray<Rank> = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
   

@@ -3,6 +3,8 @@ import { createStandardDeck } from '../cards';
 import type { BossBlind } from '../blinds';
 import { getRandomBossBlind } from '../blinds';
 import type { Joker } from '../shop';
+import type { PlanetCard } from '../consumables';
+import type { HandLevels, PokerHandKey } from '../scoring';
 
 export const WINNING_ANTE = 8;
 
@@ -17,9 +19,11 @@ export interface RunState {
   readonly blindProgression: BlindProgression;
   readonly jokers: ReadonlyArray<Joker>;
   readonly maxJokers: number;
-  readonly consumables: ReadonlyArray<SpectralCard | ArcanaCard>;
+  readonly consumables: ReadonlyArray<SpectralCard | ArcanaCard | PlanetCard>;
   readonly maxConsumables: number;
+  readonly handLevels: HandLevels;
 }
+
 
 type BlindProgression =
   | SmallBlindUpcoming
@@ -61,6 +65,18 @@ export function createInitialRunState(): RunState {
     maxJokers: 5,
     consumables: [],
     maxConsumables: 2,
+    handLevels: {
+      ROYAL_FLUSH: 1,
+      STRAIGHT_FLUSH: 1,
+      FOUR_OF_A_KIND: 1,
+      FULL_HOUSE: 1,
+      FLUSH: 1,
+      STRAIGHT: 1,
+      THREE_OF_A_KIND: 1,
+      TWO_PAIR: 1,
+      PAIR: 1,
+      HIGH_CARD: 1,
+    },
   };
 }
 
@@ -220,5 +236,15 @@ export function removeConsumable(state: RunState, consumableId: string): RunStat
   return {
     ...state,
     consumables: state.consumables.filter(c => c.id !== consumableId),
+  };
+}
+
+export function levelUpPokerHand(state: RunState, handType: PokerHandKey): RunState {
+  return {
+    ...state,
+    handLevels: {
+      ...state.handLevels,
+      [handType]: state.handLevels[handType] + 1,
+    },
   };
 }

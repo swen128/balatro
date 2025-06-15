@@ -36,14 +36,13 @@ export function Hand({
         const isPlayed = playedCardIds.has(card.id);
         const isSelected = selectedCardIds.has(card.id);
         
-        // Determine animation class
-        const animationClass = state.type === 'drawing'
-          ? 'animate-card-deal'
-          : state.type === 'discarding' && isSelected
-          ? 'animate-card-discard'
-          : state.type === 'playing' && isPlayed
-          ? 'animate-card-play'
-          : '';
+        const animationClass = {
+          idle: '',
+          drawing: 'animate-card-deal',
+          discarding: isSelected ? 'animate-card-discard' : '',
+          playing: isPlayed ? 'animate-card-play' : '',
+          scoring: '',
+        }[state.type];
         
         const isFaceDown = faceDownCardIds.has(card.id);
         

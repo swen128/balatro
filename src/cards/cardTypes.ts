@@ -42,5 +42,13 @@ export interface ArcanaCard {
   readonly effect: ArcanaEffect;
 }
 
-export type Card = PlayingCard | SpectralCard | ArcanaCard;
+export interface PlanetCard {
+  readonly type: 'planet';
+  readonly id: string;
+  readonly name: string;
+  readonly handType: string;
+  readonly description: string;
+}
+
+export type Card = PlayingCard | SpectralCard | ArcanaCard | PlanetCard;
 

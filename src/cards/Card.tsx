@@ -47,6 +47,17 @@ export function Card({ card, isSelected, onClick, style, animationClass, animati
           size={size}
         />
       );
+    case 'planet':
+      return (
+        <SpecialCardView
+          card={card}
+          isSelected={isSelected}
+          onClick={onClick}
+          cardColor="from-blue-500 to-indigo-600"
+          borderColor={isSelected ? 'border-blue-400' : 'border-gray-600'}
+          size={size}
+        />
+      );
   }
 }
 

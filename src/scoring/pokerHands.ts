@@ -28,6 +28,21 @@ export const POKER_HANDS = {
   HIGH_CARD: { name: 'High Card', rank: 1, baseChips: 5, baseMult: 1 },
 } as const;
 
+export type PokerHandKey = keyof typeof POKER_HANDS;
+
+export interface HandLevels {
+  readonly ROYAL_FLUSH: number;
+  readonly STRAIGHT_FLUSH: number;
+  readonly FOUR_OF_A_KIND: number;
+  readonly FULL_HOUSE: number;
+  readonly FLUSH: number;
+  readonly STRAIGHT: number;
+  readonly THREE_OF_A_KIND: number;
+  readonly TWO_PAIR: number;
+  readonly PAIR: number;
+  readonly HIGH_CARD: number;
+}
+
 type RankCount = [Rank, number];
 
 function getRankCounts(cards: ReadonlyArray<Card>): ReadonlyArray<RankCount> {

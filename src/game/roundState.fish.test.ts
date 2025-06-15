@@ -1,5 +1,5 @@
 import { describe, test, expect } from 'bun:test';
-import { createRoundState, drawCardsToHandWithBossEffect, toggleCardSelection } from './roundState.ts';
+import { createRoundState, drawCardsToHandWithBossEffect, toggleCardSelection, playSelectedCards } from './roundState.ts';
 import { createCard } from '../cards';
 import { createDrawPile, type DrawPile } from '../cards/drawPile.ts';
 import type { BossBlind } from '../blinds';
@@ -58,7 +58,7 @@ describe('The Fish boss blind', () => {
     expect(stateWithCards.faceDownCardIds.size).toBe(0);
   });
 
-  test('cards flip when selected', () => {
+  test('cards remain face down when selected', () => {
     const drawPile = createTestDrawPile();
     const initialState = createRoundState(drawPile, 300, 4, 5, 3);
     const theFish: BossBlind = {
@@ -86,17 +86,17 @@ describe('The Fish boss blind', () => {
     // Select the card
     const selectedState = toggleCardSelection(stateWithCards, firstCard.id);
     
-    // Card is selected and no longer face down
+    // Card is selected but still face down
     expect(selectedState.selectedCardIds.has(firstCard.id)).toBe(true);
-    expect(selectedState.faceDownCardIds.has(firstCard.id)).toBe(false);
+    expect(selectedState.faceDownCardIds.has(firstCard.id)).toBe(true);
     
-    // Other cards remain face down
-    stateWithCards.hand.slice(1).forEach(card => {
+    // All cards remain face down
+    stateWithCards.hand.forEach(card => {
       expect(selectedState.faceDownCardIds.has(card.id)).toBe(true);
     });
   });
 
-  test('deselecting a card does not make it face down again', () => {
+  test('cards are revealed when played', () => {
     const drawPile = createTestDrawPile();
     const initialState = createRoundState(drawPile, 300, 4, 5, 3);
     const theFish: BossBlind = {
@@ -113,17 +113,34 @@ describe('The Fish boss blind', () => {
     };
     
     const stateWithCards = drawCardsToHandWithBossEffect(initialState, theFish);
-    const firstCard = stateWithCards.hand[0];
     
-    expect(firstCard).toBeDefined();
-    if (!firstCard) return;
+    // Select some cards
+    const selectedState = stateWithCards.hand.slice(0, 3).reduce(
+      (state, card) => toggleCardSelection(state, card.id),
+      stateWithCards
+    );
     
-    // Select then deselect
-    const selectedState = toggleCardSelection(stateWithCards, firstCard.id);
-    const deselectedState = toggleCardSelection(selectedState, firstCard.id);
+    // Cards are selected but still face down
+    selectedState.hand.slice(0, 3).forEach(card => {
+      expect(selectedState.selectedCardIds.has(card.id)).toBe(true);
+      expect(selectedState.faceDownCardIds.has(card.id)).toBe(true);
+    });
     
-    // Card is no longer selected but remains face up
-    expect(deselectedState.selectedCardIds.has(firstCard.id)).toBe(false);
-    expect(deselectedState.faceDownCardIds.has(firstCard.id)).toBe(false);
+    // Play the selected cards
+    const playingState = playSelectedCards(selectedState);
+    
+    expect(playingState.type).toBe('playing');
+    
+    // Played cards are now revealed (not face down)
+    if (playingState.type === 'playing') {
+      playingState.playedCards.forEach(card => {
+        expect(playingState.faceDownCardIds.has(card.id)).toBe(false);
+      });
+      
+      // Unplayed cards remain face down
+      playingState.hand.slice(3).forEach(card => {
+        expect(playingState.faceDownCardIds.has(card.id)).toBe(true);
+      });
+    }
   });
 });

@@ -1,6 +1,7 @@
 import type { RunState } from '../game';
-import { addCash } from '../game/runState.ts';
+import { addCash, levelUpPokerHand } from '../game/runState.ts';
 import type { SpectralCard, ArcanaCard, PlayingCard, CardEnhancement } from '../cards';
+import type { PlanetCard } from './planetCard.ts';
 
 interface ConsumableEffectContext {
   readonly selectedCards?: ReadonlyArray<PlayingCard>;
@@ -121,8 +122,15 @@ export function applyArcanaEffect(
   }
 }
 
+export function applyPlanetEffect(
+  runState: RunState,
+  card: PlanetCard
+): RunState {
+  return levelUpPokerHand(runState, card.handType);
+}
+
 export function canUseConsumable(
-  consumable: SpectralCard | ArcanaCard,
+  consumable: SpectralCard | ArcanaCard | PlanetCard,
   runState: RunState
 ): boolean {
   switch (consumable.type) {
@@ -159,13 +167,16 @@ export function canUseConsumable(
           return true;
       }
       break;
+      
+    case 'planet':
+      return true; // Planet cards can always be used
   }
   
   return false;
 }
 
 export function getRequiredSelections(
-  consumable: SpectralCard | ArcanaCard
+  consumable: SpectralCard | ArcanaCard | PlanetCard
 ): { cards?: number; jokers?: number } | null {
   switch (consumable.type) {
     case 'spectral':
@@ -198,6 +209,10 @@ export function getRequiredSelections(
         case 'transformCard':
           return null;
       }
+      break;
+      
+    case 'planet':
+      return null; // Planet cards don't require selections
   }
   
   return null;

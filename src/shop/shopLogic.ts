@@ -2,7 +2,8 @@ import type { RunState } from '../game';
 import { addConsumable } from '../game';
 import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
-import type { AnyCard } from '../cards';
+import type { AnyCard, SpectralCard } from '../cards';
+import { createSpectralCard } from '../cards';
 import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
 
 interface BaseShopState {
@@ -37,6 +38,24 @@ export function createShopState(runState: RunState): ShopState {
     rerollCost: 5,
     rerollsUsed: 0,
   };
+}
+
+function createSpectralCardFromShopItem(item: ShopItem): SpectralCard | null {
+  return item.type === 'spectral'
+    ? ((): SpectralCard | null => {
+        switch (item.effect.type) {
+          case 'addFoil':
+            return createSpectralCard('foil', item.effect.count);
+          case 'addHolographic':
+            return createSpectralCard('holographic', item.effect.count);
+          case 'addPolychrome':
+            return createSpectralCard('polychrome', item.effect.count);
+          case 'duplicateCard':
+            // Not sold directly in shop
+            return null;
+        }
+      })()
+    : null;
 }
 
 export function canAffordItem(cash: number, item: ShopItem): boolean {
@@ -91,11 +110,16 @@ function purchaseItemHelper(
         runState: baseRunState,
       };
       
-    case 'spectral':
+    case 'spectral': {
+      // Create a spectral card and add it to consumables
+      const spectralCard = createSpectralCardFromShopItem(item);
       return {
         shopState: baseShopState,
-        runState: baseRunState,
+        runState: spectralCard !== null 
+          ? addConsumable(baseRunState, spectralCard)
+          : baseRunState,
       };
+    }
   }
 }
 

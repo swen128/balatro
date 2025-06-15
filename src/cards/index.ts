@@ -3,7 +3,7 @@ export { SUITS, RANKS, getCardChipValue, createCard, createStandardDeck, getRank
 
 export type { PlayingCard, SpectralCard, ArcanaCard, Card as AnyCard } from './cardTypes.ts';
 
-export { getRandomSpectralCards } from './spectralCards.ts';
+export { getRandomSpectralCards, createSpectralCard } from './spectralCards.ts';
 export { getRandomArcanaCards } from './arcanaCards.ts';
 
 export type { DrawPile } from './drawPile.ts';

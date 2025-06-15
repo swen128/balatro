@@ -2,6 +2,7 @@ import type { RoundState } from '../game';
 import type { BossBlind } from '../blinds';
 import type { Joker } from '../shop';
 import type { Card } from '../cards';
+import type { HandLevels } from '../scoring';
 import {
   drawCardsToHand,
   drawCardsToHandWithBossEffect,
@@ -25,7 +26,8 @@ export function getNextRoundState(
   currentState: RoundState,
   bossBlind: BossBlind | null,
   money: number,
-  jokers: ReadonlyArray<Joker> = []
+  jokers: ReadonlyArray<Joker> = [],
+  handLevels?: HandLevels
 ): RoundTransition | null {
   switch (currentState.type) {
     case 'drawing': {
@@ -37,8 +39,8 @@ export function getNextRoundState(
 
     case 'playing': {
       const nextState = bossBlind
-        ? scoreHandWithBossEffect(currentState, bossBlind, money, jokers)
-        : scoreHand(currentState, jokers);
+        ? scoreHandWithBossEffect(currentState, bossBlind, money, jokers, handLevels)
+        : scoreHand(currentState, jokers, bossBlind, handLevels);
       
       // The Ox effect requires tracking hand counts which isn't available here
       // For now, we'll handle money reset at a higher level
