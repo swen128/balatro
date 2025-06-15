@@ -203,10 +203,10 @@ export function calculateScore(
   playedCards: ReadonlyArray<Card>,
   evaluatedHand: EvaluatedHand,
   jokers: ReadonlyArray<Joker>,
-  _bossBlind: BossBlind | null,
+  bossBlind: BossBlind | null,
   handsPlayed: number
 ): ScoreCalculation {
-  const baseChipMult = calculateBaseChipMult(evaluatedHand);
+  const baseChipMult = calculateBaseChipMult(evaluatedHand, bossBlind);
   
   // Apply enhancement effects from played cards
   const enhancementEffects = getCardEnhancementEffects(playedCards);
@@ -231,12 +231,12 @@ export function calculateScore(
   };
 }
 
-export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = []): ScoringState {
+export function scoreHand(state: PlayingState, jokers: ReadonlyArray<Joker> = [], bossBlind: BossBlind | null = null): ScoringState {
   const calculation = calculateScore(
     state.playedCards,
     state.evaluatedHand,
     jokers,
-    null,
+    bossBlind,
     state.handsPlayed
   );
   
@@ -254,7 +254,7 @@ export function scoreHandWithBossEffect(
   totalMoney: number,
   jokers: ReadonlyArray<Joker> = []
 ): ScoringState {
-  const baseScoring = scoreHand(state, jokers);
+  const baseScoring = scoreHand(state, jokers, bossBlind);
   
   return bossBlind
     ? applyBossEffectOnScoring(baseScoring, {

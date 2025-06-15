@@ -1,6 +1,7 @@
 import type { Card } from '../cards';
 import { getCardChipValue } from '../cards';
 import type { EvaluatedHand } from './pokerHands.ts';
+import type { BossBlind } from '../blinds';
 
 export interface ChipMult {
   readonly chips: number;
@@ -14,10 +15,21 @@ export interface ScoringEffect {
 }
 
 
-export function calculateBaseChipMult(evaluatedHand: EvaluatedHand): ChipMult {
+export function calculateBaseChipMult(evaluatedHand: EvaluatedHand, bossBlind?: BossBlind | null): ChipMult {
   const handChips = evaluatedHand.handType.baseChips;
+  
+  // Find suit restriction effect if boss blind exists
+  const restrictedSuit = bossBlind && 'effects' in bossBlind
+    ? bossBlind.effects.find((e): e is { readonly kind: 'scoringModifier'; readonly type: 'suitGivesNoChips'; readonly suit: string } => 
+        e.kind === 'scoringModifier' && e.type === 'suitGivesNoChips')
+    : undefined;
+    
   const cardChips = evaluatedHand.scoringCards.reduce(
-    (sum, card) => sum + getCardChipValue(card),
+    (sum, card) => {
+      // Skip chips from restricted suit
+      const shouldSkip = restrictedSuit !== undefined && card.suit === restrictedSuit.suit;
+      return sum + (shouldSkip ? 0 : getCardChipValue(card));
+    },
     0
   );
   

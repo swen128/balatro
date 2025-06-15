@@ -88,6 +88,19 @@ const BOSS_BLINDS: ReadonlyArray<BossBlind> = [
     }],
     effectDescription: 'Only one hand type scores',
   },
+  {
+    type: 'boss',
+    name: 'The Goad',
+    scoreMultiplier: 2,
+    cashReward: 5,
+    isBoss: true,
+    effects: [{
+      kind: 'scoringModifier',
+      type: 'suitGivesNoChips',
+      suit: '♠',
+    }],
+    effectDescription: 'Spades give no Chips',
+  },
 ];
 
 export function getBlindScoreGoal(ante: number, blind: BlindType | BossBlind): number {

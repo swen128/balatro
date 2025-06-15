@@ -33,6 +33,7 @@ type ScoringModifierEffect = {
   | { readonly type: 'capChips'; readonly max: number }
   | { readonly type: 'noFaceCardBonus' }
   | { readonly type: 'onlyOneHandType'; readonly handType: string }
+  | { readonly type: 'suitGivesNoChips'; readonly suit: string }
 );
 
 // Post-scoring effects - applied after score calculation
@@ -149,6 +150,9 @@ export function applyBossEffectOnScoring<T extends { finalScore: number }>(
               return Math.min(score, effect.max);
             case 'noFaceCardBonus':
               // This would need to be handled in calculateScore, not here
+              return score;
+            case 'suitGivesNoChips':
+              // This is handled in calculateBaseChipMult, not here
               return score;
           }
         }, afterPreScoring);
