@@ -1,6 +1,5 @@
 import type { Suit, Rank, CardEnhancement } from './card.ts';
 
-// Standard playing card (renamed from Card)
 export interface PlayingCard {
   readonly type: 'playing';
   readonly id: string;
@@ -9,7 +8,6 @@ export interface PlayingCard {
   readonly enhancement?: CardEnhancement;
 }
 
-// Spectral card effects
 type SpectralEffect =
   | { readonly type: 'addFoil'; readonly count: number }
   | { readonly type: 'addHolographic'; readonly count: number }
@@ -19,7 +17,6 @@ type SpectralEffect =
   | { readonly type: 'changeRank'; readonly targetRank: Rank }
   | { readonly type: 'changeSuit'; readonly targetSuit: Suit };
 
-// Spectral cards - rare cards with powerful one-time effects
 export interface SpectralCard {
   readonly type: 'spectral';
   readonly id: string;
@@ -28,7 +25,6 @@ export interface SpectralCard {
   readonly effect: SpectralEffect;
 }
 
-// Arcana card effects (Tarot cards)
 type ArcanaEffect = 
   | { readonly type: 'enhanceHand'; readonly enhancement: CardEnhancement; readonly count: number }
   | { readonly type: 'createJoker'; readonly rarity: 'common' | 'uncommon' | 'rare' }
@@ -38,7 +34,6 @@ type ArcanaEffect =
   | { readonly type: 'duplicateJoker' }
   | { readonly type: 'destroyJoker'; readonly moneyPerJoker: number };
 
-// Arcana cards (Tarot) - cards that provide various benefits
 export interface ArcanaCard {
   readonly type: 'arcana';
   readonly id: string;
@@ -47,10 +42,8 @@ export interface ArcanaCard {
   readonly effect: ArcanaEffect;
 }
 
-// Union type for all card types
 export type Card = PlayingCard | SpectralCard | ArcanaCard;
 
-// Type guards
 export function isPlayingCard(card: Card): card is PlayingCard {
   return card.type === 'playing';
 }

@@ -8,7 +8,6 @@ export type Rank = typeof RANKS[number];
 
 export type CardEnhancement = 'foil' | 'holographic' | 'polychrome' | 'glass';
 
-// Re-export PlayingCard as Card for backward compatibility
 export type Card = PlayingCard;
 
 // Use timestamp and random number for unique IDs

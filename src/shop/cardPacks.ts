@@ -8,19 +8,15 @@ function generateStandardPackCards(count: number): ReadonlyArray<AnyCard> {
     const randomSuit = SUITS[suitIndex];
     const randomRank = RANKS[rankIndex];
     
-    // 10% chance for enhancement
     const enhancements: ReadonlyArray<CardEnhancement> = ['foil', 'holographic', 'polychrome'];
     const enhancementIndex = Math.floor(Math.random() * enhancements.length);
     const enhancement: CardEnhancement | undefined = 
       Math.random() < 0.1 && enhancements[enhancementIndex] !== undefined
         ? enhancements[enhancementIndex]
         : undefined;
-    
-    // We know SUITS and RANKS are non-empty const arrays, so these will always be defined
-    // But TypeScript with noUncheckedIndexedAccess requires us to check
     return randomSuit !== undefined && randomRank !== undefined
       ? createCard(randomSuit, randomRank, enhancement)
-      : createCard('♠', 'A'); // Fallback that should never happen
+      : createCard('♠', 'A');
   });
 }
 

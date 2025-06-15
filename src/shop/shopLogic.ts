@@ -147,7 +147,6 @@ export function selectCardFromPack(
     runState: {
       ...runState,
       deck: card.type === 'playing' ? [...runState.deck, card] : runState.deck,
-      // TODO: Handle spectral and arcana card effects
     },
   };
 }
