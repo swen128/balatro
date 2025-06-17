@@ -38,8 +38,6 @@
   "dependencies": {
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
-    "jotai": "^2.12.5",
-    "jotai-effect": "^2.0.4",
     "nanoid": "^5.1.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
