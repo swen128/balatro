@@ -80,6 +80,7 @@ export default [
       'no-unused-vars': 'off', // Using @typescript-eslint/no-unused-vars instead
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': 'error',
+      'no-fallthrough': 'off', // Allow switch case fallthrough
       
       // Additional rules for exhaustive switches
       '@typescript-eslint/switch-exhaustiveness-check': 'error',

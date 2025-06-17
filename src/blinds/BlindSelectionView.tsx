@@ -26,27 +26,37 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
   const getBlindStatus = (blindType: 'small' | 'big' | 'boss'): 'completed' | 'current' | 'upcoming' => {
     const progression = runState.blindProgression;
     
-    if (blindType === 'small') {
-      if (progression.type === 'smallBlindUpcoming') return 'current';
-      if (progression.type === 'bigBlindUpcoming' && progression.smallBlindDefeated) return 'completed';
-      if (progression.type === 'bigBlindUpcoming' && progression.smallBlindSkipped) return 'completed';
-      if (progression.type === 'bossBlindUpcoming' && (progression.smallBlindDefeated || progression.smallBlindSkipped)) return 'completed';
-      return 'upcoming';
+    switch (blindType) {
+      case 'small':
+        switch (progression.type) {
+          case 'smallBlindUpcoming':
+            return 'current';
+          case 'bigBlindUpcoming':
+            return (progression.smallBlindDefeated || progression.smallBlindSkipped) ? 'completed' : 'upcoming';
+          case 'bossBlindUpcoming':
+            return (progression.smallBlindDefeated || progression.smallBlindSkipped) ? 'completed' : 'upcoming';
+        }
+      
+      case 'big':
+        switch (progression.type) {
+          case 'smallBlindUpcoming':
+            return 'upcoming';
+          case 'bigBlindUpcoming':
+            return 'current';
+          case 'bossBlindUpcoming':
+            return (progression.bigBlindDefeated || progression.bigBlindSkipped) ? 'completed' : 'upcoming';
+        }
+      
+      case 'boss':
+        switch (progression.type) {
+          case 'smallBlindUpcoming':
+            return 'upcoming';
+          case 'bigBlindUpcoming':
+            return 'upcoming';
+          case 'bossBlindUpcoming':
+            return 'current';
+        }
     }
-    
-    if (blindType === 'big') {
-      if (progression.type === 'smallBlindUpcoming') return 'upcoming';
-      if (progression.type === 'bigBlindUpcoming') return 'current';
-      if (progression.type === 'bossBlindUpcoming' && (progression.bigBlindDefeated || progression.bigBlindSkipped)) return 'completed';
-      return 'upcoming';
-    }
-    
-    if (blindType === 'boss') {
-      if (progression.type === 'bossBlindUpcoming') return 'current';
-      return 'upcoming';
-    }
-    
-    return 'upcoming';
   };
 
   return (
