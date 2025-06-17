@@ -7,7 +7,6 @@ import { getNextRoundState } from './roundLogic.ts';
 
 interface TransitionCallbacks {
   readonly onStateChange: (nextState: RoundState) => void;
-  readonly onMoneyReset: () => void;
   readonly onHandPlayed: (handType: string, score: number, moneyGenerated?: number) => void;
   readonly onRoundFinished: (won: boolean) => void;
 }
@@ -31,10 +30,6 @@ export function useRoundTransitions(
 
     const timeoutId = setTimeout(() => {
       callbacksRef.current.onStateChange(transition.nextState);
-      
-      if (transition.shouldResetMoney === true) {
-        callbacksRef.current.onMoneyReset();
-      }
       
       // Track hand statistics when transitioning from scoring to played
       if (roundState.type === 'scoring' && transition.nextState.type === 'played') {

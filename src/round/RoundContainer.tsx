@@ -35,7 +35,6 @@ export function RoundContainer({
   onUpdateRunState 
 }: RoundContainerProps): React.ReactElement {
   const [roundState, setRoundState] = useState(gameState.roundState);
-  const [money, setMoney] = useState(gameState.runState.cash);
   const [isDiscarding, setIsDiscarding] = useState(false);
   const [pendingConsumable, setPendingConsumable] = useState<string | null>(null);
   const stats = useStatisticsContext();
@@ -45,18 +44,16 @@ export function RoundContainer({
   // Handle round transitions with custom hook
   useRoundTransitions(
     roundState,
-    money,
+    gameState.runState.cash,
     gameState.runState.jokers,
     gameState.runState.handLevels,
     bossBlind,
     {
       onStateChange: setRoundState,
-      onMoneyReset: () => setMoney(0),
       onHandPlayed: (handType, score, moneyGenerated) => {
         stats.trackHandPlayed(handType, score);
         
         if (moneyGenerated !== undefined && moneyGenerated > 0) {
-          setMoney(currentMoney => currentMoney + moneyGenerated);
           onUpdateRunState(runState => ({
             ...runState,
             cash: runState.cash + moneyGenerated,

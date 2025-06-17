@@ -41,9 +41,6 @@ export function getNextRoundState(
       const nextState = bossBlind
         ? scoreHandWithBossEffect(currentState, bossBlind, money, jokers, handLevels)
         : scoreHand(currentState, jokers, bossBlind, handLevels);
-      
-      // The Ox effect requires tracking hand counts which isn't available here
-      // For now, we'll handle money reset at a higher level
       return { nextState, delayMs: 1000 };
     }
 
