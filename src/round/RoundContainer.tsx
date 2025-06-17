@@ -1,27 +1,15 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import type { PlayingRoundState } from '../game/gameState.ts';
-import type { RoundState } from '../game/roundState.ts';
 import type { RunState } from '../game/runState.ts';
 import type { PlayingCard, Card } from '../cards';
-import { 
-  getNextRoundState, 
-  canPlayHand, 
-  handleCardClick, 
-  handlePlayHand,
-  handleDiscardCards,
-  canDiscardCards,
-} from './roundLogic.ts';
+import { canPlayHand, canDiscardCards } from './roundLogic.ts';
 import { RoundView } from './RoundView.tsx';
 import { CardSelectionModal } from './CardSelectionModal.tsx';
 import { useStatisticsContext } from '../statistics/StatisticsContext.tsx';
-import { 
-  applySpectralEffect, 
-  applyArcanaEffect,
-  applyPlanetEffect,
-  canUseConsumable,
-  getRequiredSelections 
-} from '../consumables';
-import { removeConsumable } from '../game/runState.ts';
+import { getRequiredSelections } from '../consumables';
+import { useRoundTransitions } from './useRoundTransitions.tsx';
+import { useRoundActions } from './useRoundActions.tsx';
+import { useConsumableEffects } from './useConsumableEffects.tsx';
 
 interface RoundContainerProps {
   readonly gameState: PlayingRoundState;
@@ -40,163 +28,73 @@ function getPlayingCards(deck: ReadonlyArray<Card>): ReadonlyArray<PlayingCard> 
   return result;
 }
 
-export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: RoundContainerProps): React.ReactElement {
-  const [roundState, setRoundState] = useState<RoundState>(gameState.roundState);
-  const [money, setMoney] = useState<number>(gameState.runState.cash);
-  const [isDiscarding, setIsDiscarding] = useState<boolean>(false);
+export function RoundContainer({ 
+  gameState, 
+  onWin, 
+  onLose, 
+  onUpdateRunState 
+}: RoundContainerProps): React.ReactElement {
+  const [roundState, setRoundState] = useState(gameState.roundState);
+  const [money, setMoney] = useState(gameState.runState.cash);
+  const [isDiscarding, setIsDiscarding] = useState(false);
   const [pendingConsumable, setPendingConsumable] = useState<string | null>(null);
   const stats = useStatisticsContext();
   
   const bossBlind = gameState.blind.isBoss ? gameState.blind : null;
 
-  useEffect(() => {
-    const transition = getNextRoundState(roundState, bossBlind, money, gameState.runState.jokers, gameState.runState.handLevels);
-    
-    if (transition) {
-      const timeoutId = setTimeout(() => {
-        setRoundState(transition.nextState);
+  // Handle round transitions with custom hook
+  useRoundTransitions(
+    roundState,
+    money,
+    gameState.runState.jokers,
+    gameState.runState.handLevels,
+    bossBlind,
+    {
+      onStateChange: setRoundState,
+      onMoneyReset: () => setMoney(0),
+      onHandPlayed: (handType, score, moneyGenerated) => {
+        stats.trackHandPlayed(handType, score);
         
-        if (transition.shouldResetMoney === true) {
-          setMoney(0);
+        if (moneyGenerated !== undefined && moneyGenerated > 0) {
+          setMoney(currentMoney => currentMoney + moneyGenerated);
+          onUpdateRunState(runState => ({
+            ...runState,
+            cash: runState.cash + moneyGenerated,
+          }));
         }
-        
-        // Note: Broken glass cards are handled when the round is won
-        // The game state will update the deck at that time
-        
-        // Track hand statistics when transitioning from scoring to played
-        if (roundState.type === 'scoring' && transition.nextState.type === 'played') {
-          const scoringState = roundState;
-          stats.trackHandPlayed(
-            scoringState.evaluatedHand.handType.name,
-            scoringState.finalScore
-          );
-          
-          // Apply money generated from jokers
-          if (scoringState.moneyGenerated !== undefined && scoringState.moneyGenerated > 0) {
-            const moneyToAdd = scoringState.moneyGenerated;
-            setMoney(currentMoney => currentMoney + moneyToAdd);
-            onUpdateRunState(runState => ({
-              ...runState,
-              cash: runState.cash + moneyToAdd,
-            }));
-          }
+      },
+      onRoundFinished: (won) => {
+        if (won) {
+          onWin();
+        } else {
+          onLose();
         }
-        
-        // Handle round finished
-        if (transition.nextState.type === 'roundFinished') {
-          const finishedState = transition.nextState;
-          setTimeout(() => {
-            if (finishedState.won) {
-              onWin();
-            } else {
-              onLose();
-            }
-          }, 2000);
-        }
-      }, transition.delayMs);
-      
-      return (): void => { clearTimeout(timeoutId); };
-    }
-    
-    return undefined;
-  }, [roundState, bossBlind, money, gameState.runState.jokers, gameState.runState.handLevels, onWin, onLose, stats, onUpdateRunState]);
-
-  const handleCardClickCallback = useCallback((cardId: string): void => {
-    const newState = handleCardClick(roundState, cardId);
-    if (newState) {
-      setRoundState(newState);
-    }
-  }, [roundState]);
-
-  const handlePlayHandCallback = useCallback((): void => {
-    const newState = handlePlayHand(roundState);
-    if (newState) {
-      setRoundState(newState);
-    }
-  }, [roundState]);
-
-  const handleDiscardCardsCallback = useCallback((): void => {
-    setIsDiscarding(true);
-    setTimeout(() => {
-      const newState = handleDiscardCards(roundState);
-      if (newState) {
-        setRoundState(newState);
-        setIsDiscarding(false);
       }
-    }, 600); // Wait for discard animation
-  }, [roundState]);
-  
-  const handleUseConsumable = useCallback((consumableId: string): void => {
-    const consumable = gameState.runState.consumables.find(c => c.id === consumableId);
-    if (!consumable || roundState.type !== 'selectingHand' || !canUseConsumable(consumable, gameState.runState)) return;
-    
-    const requiredSelections = getRequiredSelections(consumable);
-    
-    if (requiredSelections !== null && requiredSelections.cards !== undefined) {
-      setPendingConsumable(consumableId);
-    } else {
-      // Apply effect immediately if no selection needed
-      const updatedRunState = ((): RunState => {
-        switch (consumable.type) {
-          case 'spectral':
-            return applySpectralEffect(gameState.runState, consumable, {});
-          case 'arcana':
-            return applyArcanaEffect(gameState.runState, consumable, {});
-          case 'planet':
-            return applyPlanetEffect(gameState.runState, consumable);
-        }
-      })();
-      
-      // Sync the hand cards with the updated deck
-      const syncHandWithDeck = (hand: ReadonlyArray<Card>, deck: ReadonlyArray<Card>): ReadonlyArray<Card> => {
-        return hand.map(handCard => {
-          const updatedCard = deck.find(deckCard => deckCard.id === handCard.id);
-          return updatedCard ?? handCard;
-        });
-      };
-      
-      setRoundState(currentState => ({
-        ...currentState,
-        hand: syncHandWithDeck(currentState.hand, updatedRunState.deck)
-      }));
-        
-      onUpdateRunState(() => removeConsumable(updatedRunState, consumableId));
     }
-  }, [gameState.runState, roundState.type, onUpdateRunState]);
-  
-  const handleCardSelection = useCallback((selectedCards: ReadonlyArray<PlayingCard>): void => {
-    if (pendingConsumable === null) return;
-    
-    const consumable = gameState.runState.consumables.find(c => c.id === pendingConsumable);
-    if (!consumable) return;
-    
-    const updatedRunState = ((): RunState => {
-      switch (consumable.type) {
-        case 'spectral':
-          return applySpectralEffect(gameState.runState, consumable, { selectedCards });
-        case 'arcana':
-          return applyArcanaEffect(gameState.runState, consumable, { selectedCards });
-        case 'planet':
-          return applyPlanetEffect(gameState.runState, consumable);
-      }
-    })();
-    
-    // Sync the hand cards with the updated deck
-    const syncHandWithDeck = (hand: ReadonlyArray<Card>, deck: ReadonlyArray<Card>): ReadonlyArray<Card> => {
-      return hand.map(handCard => {
-        const updatedCard = deck.find(deckCard => deckCard.id === handCard.id);
-        return updatedCard ?? handCard;
-      });
-    };
-    
-    setRoundState(currentState => ({
-      ...currentState,
-      hand: syncHandWithDeck(currentState.hand, updatedRunState.deck)
-    }));
-      
-    onUpdateRunState(() => removeConsumable(updatedRunState, pendingConsumable));
-    setPendingConsumable(null);
-  }, [pendingConsumable, gameState.runState, onUpdateRunState, setRoundState]);
+  );
+
+  // Handle round actions with custom hook
+  const { handleCardClick, handlePlayHand, handleDiscardCards } = useRoundActions({
+    roundState,
+    setRoundState,
+    setIsDiscarding
+  });
+
+  // Handle consumable effects with custom hook
+  const { handleUseConsumable, handleCardSelection } = useConsumableEffects({
+    runState: gameState.runState,
+    roundState,
+    onUpdateRunState,
+    onUpdateRoundState: setRoundState,
+    setPendingConsumable
+  });
+
+  // Handle card selection for consumables
+  const handleCardSelectionCallback = useCallback((selectedCards: ReadonlyArray<PlayingCard>): void => {
+    if (pendingConsumable !== null) {
+      handleCardSelection(selectedCards, pendingConsumable);
+    }
+  }, [pendingConsumable, handleCardSelection]);
 
   const pendingConsumableCard = pendingConsumable !== null
     ? gameState.runState.consumables.find(c => c.id === pendingConsumable)
@@ -209,17 +107,17 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
   return (
     <>
       <RoundView
-      roundState={roundState}
-      runState={gameState.runState}
-      blind={gameState.blind}
-      bossEffect={gameState.bossEffect}
-      onCardClick={handleCardClickCallback}
-      onPlayHand={handlePlayHandCallback}
-      onDiscardCards={handleDiscardCardsCallback}
-      onUseConsumable={handleUseConsumable}
-      canPlayHand={canPlayHand(roundState, bossBlind)}
-      canDiscardCards={canDiscardCards(roundState)}
-      isDiscarding={isDiscarding}
+        roundState={roundState}
+        runState={gameState.runState}
+        blind={gameState.blind}
+        bossEffect={gameState.bossEffect}
+        onCardClick={handleCardClick}
+        onPlayHand={handlePlayHand}
+        onDiscardCards={handleDiscardCards}
+        onUseConsumable={handleUseConsumable}
+        canPlayHand={canPlayHand(roundState, bossBlind)}
+        canDiscardCards={canDiscardCards(roundState)}
+        isDiscarding={isDiscarding}
       />
       
       {pendingConsumableCard !== null && pendingConsumableCard !== undefined && requiredSelections !== null && requiredSelections.cards !== undefined && (
@@ -228,7 +126,7 @@ export function RoundContainer({ gameState, onWin, onLose, onUpdateRunState }: R
           description={pendingConsumableCard.description}
           cards={getPlayingCards(gameState.runState.deck)}
           maxSelections={requiredSelections.cards}
-          onConfirm={handleCardSelection}
+          onConfirm={handleCardSelectionCallback}
           onCancel={() => setPendingConsumable(null)}
         />
       )}
