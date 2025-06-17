@@ -5,7 +5,7 @@ import { createMainMenuState, startNewRun, selectBlind, skipBlindFromSelectScree
 import { saveGame, loadGame, hasSaveGame, deleteSaveGame, getSaveInfo } from '../save-game';
 import { MainMenuView } from '../game';
 import { BlindSelectionView } from '../blinds';
-import { RoundContainer } from '../round';
+import { RoundContainerJotai as RoundContainer } from '../round';
 import { ShopContainer } from '../shop';
 import { VictoryView } from './VictoryView.tsx';
 import { GameOverView } from './GameOverView.tsx';
