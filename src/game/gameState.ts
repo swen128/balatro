@@ -1,8 +1,8 @@
 import type { RunState } from './runState.ts';
 import type { RoundState } from './roundState.ts';
 import type { BlindType, BossBlind } from '../blinds';
-import { SMALL_BLIND, BIG_BLIND, getBlindScoreGoal, getRandomBossBlind } from '../blinds';
-import { createInitialRunState, getCurrentBlindType, skipBlind, defeatBlind, addJoker, WINNING_ANTE, updateDeck } from './runState.ts';
+import { SMALL_BLIND, getBlindScoreGoal } from '../blinds';
+import { createInitialRunState, getCurrentBlindType, skipBlind, defeatBlind, addJoker, WINNING_ANTE, updateDeck, getCurrentBlind } from './runState.ts';
 import { createRoundState } from './roundState.ts';
 import { createDrawPile } from '../cards/drawPile.ts';
 import { JOKERS } from '../shop/joker.ts';
@@ -24,11 +24,6 @@ interface SelectingBlindState {
   readonly runState: RunState;
   readonly availableBlind: BlindType | BossBlind;
   readonly bossEffect: string | null;
-  readonly allBlinds: {
-    readonly small: BlindType;
-    readonly big: BlindType;
-    readonly boss: BossBlind;
-  };
 }
 
 export interface PlayingRoundState {
@@ -71,17 +66,11 @@ export function startNewRun(): GameState {
   const runStateWithJoker1 = joker1 ? addJoker(initialRunState, joker1) : initialRunState;
   const runState = joker2 ? addJoker(runStateWithJoker1, joker2) : runStateWithJoker1;
   
-  const bossBlind = getRandomBossBlind();
   return {
     type: 'selectingBlind',
     runState,
     availableBlind: SMALL_BLIND,
     bossEffect: null,
-    allBlinds: {
-      small: SMALL_BLIND,
-      big: BIG_BLIND,
-      boss: bossBlind,
-    },
   };
 }
 
@@ -113,32 +102,14 @@ export function skipBlindFromSelectScreen(state: SelectingBlindState): Selecting
     ? state
     : ((): SelectingBlindState => {
         const newRunState = skipBlind(state.runState);
-        const newBlindType = getCurrentBlindType(newRunState);
-        
-        // Get the blind info for the new state
-        const { availableBlind, bossEffect } = ((): { readonly availableBlind: BlindType | BossBlind; readonly bossEffect: string | null } => {
-          switch (newBlindType) {
-            case 'small':
-              return { availableBlind: SMALL_BLIND, bossEffect: null };
-            case 'big':
-              return { availableBlind: BIG_BLIND, bossEffect: null };
-            case 'boss': {
-              const bossBlind = newRunState.blindProgression.type === 'bossBlindUpcoming'
-                ? newRunState.blindProgression.bossBlind
-                : state.allBlinds.boss;
-              return { availableBlind: bossBlind, bossEffect: bossBlind.effectDescription };
-            }
-          }
-        })();
+        const availableBlind = getCurrentBlind(newRunState);
+        const bossEffect = availableBlind.isBoss ? availableBlind.effectDescription : null;
         
         return {
           ...state,
           runState: newRunState,
           availableBlind,
           bossEffect,
-          allBlinds: newBlindType === 'boss' && newRunState.blindProgression.type === 'bossBlindUpcoming'
-            ? { ...state.allBlinds, boss: newRunState.blindProgression.bossBlind }
-            : state.allBlinds,
         };
       })();
 }
@@ -201,35 +172,13 @@ export function continueEndlessMode(state: VictoryState): ShopState {
 }
 
 export function leaveShop(state: ShopState): SelectingBlindState {
-  const blindType = getCurrentBlindType(state.runState);
-  
-  // Get or create boss blind for this ante
-  const bossBlind = state.runState.blindProgression.type === 'bossBlindUpcoming'
-    ? state.runState.blindProgression.bossBlind
-    : getRandomBossBlind();
-    
-  const allBlinds = {
-    small: SMALL_BLIND,
-    big: BIG_BLIND,
-    boss: bossBlind,
-  };
-  
-  const { availableBlind, bossEffect } = ((): { readonly availableBlind: BlindType | BossBlind; readonly bossEffect: string | null } => {
-    switch (blindType) {
-      case 'small':
-        return { availableBlind: SMALL_BLIND, bossEffect: null };
-      case 'big':
-        return { availableBlind: BIG_BLIND, bossEffect: null };
-      case 'boss':
-        return { availableBlind: bossBlind, bossEffect: bossBlind.effectDescription };
-    }
-  })();
+  const availableBlind = getCurrentBlind(state.runState);
+  const bossEffect = availableBlind.isBoss ? availableBlind.effectDescription : null;
   
   return {
     type: 'selectingBlind',
     runState: state.runState,
     availableBlind,
     bossEffect,
-    allBlinds,
   };
 }

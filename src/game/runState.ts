@@ -1,7 +1,7 @@
 import type { Card } from '../cards';
 import { createStandardDeck } from '../cards';
-import type { BossBlind } from '../blinds';
-import { getRandomBossBlind } from '../blinds';
+import type { BossBlind, BlindType } from '../blinds';
+import { getRandomBossBlind, SMALL_BLIND, BIG_BLIND } from '../blinds';
 import type { Joker } from '../shop';
 import type { ConsumableCard } from '../consumables';
 import type { HandLevels, PokerHandKey } from '../scoring';
@@ -17,6 +17,7 @@ export interface RunState {
   readonly discardsCount: number;
   readonly round: number;
   readonly blindProgression: BlindProgression;
+  readonly anteBossBlind: BossBlind;
   readonly jokers: ReadonlyArray<Joker>;
   readonly maxJokers: number;
   readonly consumables: ReadonlyArray<ConsumableCard>;
@@ -61,6 +62,7 @@ export function createInitialRunState(): RunState {
     blindProgression: {
       type: 'smallBlindUpcoming',
     },
+    anteBossBlind: getRandomBossBlind(),
     jokers: [],
     maxJokers: 5,
     consumables: [],
@@ -102,7 +104,7 @@ export function defeatBlind(state: RunState, cashReward: number): RunState {
         round: state.round + 1,
         blindProgression: {
           type: 'bossBlindUpcoming',
-          bossBlind: getRandomBossBlind(),
+          bossBlind: state.anteBossBlind,
           smallBlindSkipped: state.blindProgression.smallBlindSkipped,
           smallBlindDefeated: state.blindProgression.smallBlindDefeated,
           bigBlindSkipped: false,
@@ -119,6 +121,7 @@ export function defeatBlind(state: RunState, cashReward: number): RunState {
         blindProgression: {
           type: 'smallBlindUpcoming',
         },
+        anteBossBlind: getRandomBossBlind(),
       };
   }
 }
@@ -140,7 +143,7 @@ export function skipBlind(state: RunState): RunState {
         ...state,
         blindProgression: {
           type: 'bossBlindUpcoming',
-          bossBlind: getRandomBossBlind(),
+          bossBlind: state.anteBossBlind,
           smallBlindSkipped: state.blindProgression.smallBlindSkipped,
           smallBlindDefeated: state.blindProgression.smallBlindDefeated,
           bigBlindSkipped: true,
@@ -254,4 +257,54 @@ export function levelUpPokerHand(state: RunState, handType: PokerHandKey): RunSt
       [handType]: state.handLevels[handType] + 1,
     },
   };
+}
+
+export type BlindStatus = 'completed' | 'current' | 'upcoming';
+
+export function getBlindStatus(state: RunState, blindType: 'small' | 'big' | 'boss'): BlindStatus {
+  const progression = state.blindProgression;
+  
+  switch (blindType) {
+    case 'small':
+      switch (progression.type) {
+        case 'smallBlindUpcoming':
+          return 'current';
+        case 'bigBlindUpcoming':
+          return (progression.smallBlindDefeated || progression.smallBlindSkipped) ? 'completed' : 'upcoming';
+        case 'bossBlindUpcoming':
+          return (progression.smallBlindDefeated || progression.smallBlindSkipped) ? 'completed' : 'upcoming';
+      }
+    
+    case 'big':
+      switch (progression.type) {
+        case 'smallBlindUpcoming':
+          return 'upcoming';
+        case 'bigBlindUpcoming':
+          return 'current';
+        case 'bossBlindUpcoming':
+          return (progression.bigBlindDefeated || progression.bigBlindSkipped) ? 'completed' : 'upcoming';
+      }
+    
+    case 'boss':
+      switch (progression.type) {
+        case 'smallBlindUpcoming':
+          return 'upcoming';
+        case 'bigBlindUpcoming':
+          return 'upcoming';
+        case 'bossBlindUpcoming':
+          return 'current';
+      }
+  }
+}
+
+export function getCurrentBlind(state: RunState): BlindType | BossBlind {
+  const blindType = getCurrentBlindType(state);
+  switch (blindType) {
+    case 'small':
+      return SMALL_BLIND;
+    case 'big':
+      return BIG_BLIND;
+    case 'boss':
+      return state.anteBossBlind;
+  }
 }

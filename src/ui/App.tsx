@@ -146,7 +146,6 @@ function AppContent(): React.ReactElement {
       return (
         <BlindSelectionView
           runState={gameState.runState}
-          allBlinds={gameState.allBlinds}
           onSelect={handleSelectBlind}
           onSkip={handleSkipBlind}
         />

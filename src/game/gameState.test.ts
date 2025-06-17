@@ -29,9 +29,7 @@ describe('gameState', () => {
         expect(state.runState.cash).toBe(10);
         expect(state.availableBlind).toEqual(SMALL_BLIND);
         expect(state.bossEffect).toBeNull();
-        expect(state.allBlinds.small).toEqual(SMALL_BLIND);
-        expect(state.allBlinds.big).toEqual(BIG_BLIND);
-        expect(state.allBlinds.boss).toBeDefined();
+        expect(state.runState.anteBossBlind).toBeDefined();
         
         // Test jokers are added for demonstration
         expect(state.runState.jokers.length).toBeGreaterThan(0);

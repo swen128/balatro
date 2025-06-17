@@ -1,63 +1,56 @@
 import React, { useState } from 'react';
-import type { RunState } from '../game';
+import type { RunState, BlindStatus } from '../game';
 import type { BlindType } from './blind.ts';
 import type { BossBlind } from './bossEffects.ts';
-import { getBlindScoreGoal } from './blind.ts';
-import { getCurrentBlindType } from '../game';
+import { getBlindScoreGoal, SMALL_BLIND, BIG_BLIND } from './blind.ts';
+import { getCurrentBlindType, getBlindStatus } from '../game';
 import { DeckViewer } from '../cards/DeckViewer.tsx';
 import { ConsumablesDisplay } from '../round/ConsumablesDisplay.tsx';
 
 interface BlindSelectionProps {
   readonly runState: RunState;
-  readonly allBlinds: {
-    readonly small: BlindType;
-    readonly big: BlindType;
-    readonly boss: BossBlind;
-  };
   readonly onSelect: () => void;
   readonly onSkip: () => void;
 }
 
-export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
+interface BlindDisplayProps {
+  readonly blind: BlindType | BossBlind;
+  readonly status: BlindStatus;
+  readonly ante: number;
+  readonly effectDescription?: string;
+}
+
+function BlindDisplay({ blind, status, ante, effectDescription }: BlindDisplayProps): React.ReactElement {
+  const borderClass = ((): string => {
+    switch (status) {
+      case 'completed':
+        return 'border-green-600 opacity-50';
+      case 'current':
+        return blind.isBoss ? 'border-red-600' : 'border-blue-600';
+      case 'upcoming':
+        return 'border-gray-600';
+    }
+  })();
+
+  return (
+    <div className={`border-2 rounded-lg p-4 text-center ${borderClass}`}>
+      <h4 className="text-lg font-semibold mb-2">{blind.name}</h4>
+      <p className="text-sm">Goal: {getBlindScoreGoal(ante, blind)}</p>
+      <p className="text-sm">Reward: ${blind.cashReward}</p>
+      {effectDescription !== undefined && (
+        <p className="text-xs text-amber-500 mt-1">{effectDescription}</p>
+      )}
+      {status === 'completed' && (
+        <p className="text-sm text-green-500 mt-2">✓ Completed</p>
+      )}
+    </div>
+  );
+}
+
+export function BlindSelectionView({ runState, onSelect, onSkip }: BlindSelectionProps): React.ReactElement {
   const [showDeck, setShowDeck] = useState(false);
   const currentBlindType = getCurrentBlindType(runState);
   const canSkip = currentBlindType !== 'boss';
-
-  const getBlindStatus = (blindType: 'small' | 'big' | 'boss'): 'completed' | 'current' | 'upcoming' => {
-    const progression = runState.blindProgression;
-    
-    switch (blindType) {
-      case 'small':
-        switch (progression.type) {
-          case 'smallBlindUpcoming':
-            return 'current';
-          case 'bigBlindUpcoming':
-            return (progression.smallBlindDefeated || progression.smallBlindSkipped) ? 'completed' : 'upcoming';
-          case 'bossBlindUpcoming':
-            return (progression.smallBlindDefeated || progression.smallBlindSkipped) ? 'completed' : 'upcoming';
-        }
-      
-      case 'big':
-        switch (progression.type) {
-          case 'smallBlindUpcoming':
-            return 'upcoming';
-          case 'bigBlindUpcoming':
-            return 'current';
-          case 'bossBlindUpcoming':
-            return (progression.bigBlindDefeated || progression.bigBlindSkipped) ? 'completed' : 'upcoming';
-        }
-      
-      case 'boss':
-        switch (progression.type) {
-          case 'smallBlindUpcoming':
-            return 'upcoming';
-          case 'bigBlindUpcoming':
-            return 'upcoming';
-          case 'bossBlindUpcoming':
-            return 'current';
-        }
-    }
-  };
 
   return (
     <div className="flex h-screen bg-gray-900">
@@ -93,48 +86,22 @@ export function BlindSelectionView({ runState, allBlinds, onSelect, onSkip }: Bl
       <div className="flex-1 flex flex-col items-center justify-center gap-4 relative">
       {/* Display all three blinds */}
       <div className="flex gap-4 mb-8">
-        {/* Small Blind */}
-        <div className={`border-2 rounded-lg p-4 text-center ${
-          getBlindStatus('small') === 'completed' ? 'border-green-600 opacity-50' :
-          getBlindStatus('small') === 'current' ? 'border-blue-600' :
-          'border-gray-600'
-        }`}>
-          <h4 className="text-lg font-semibold mb-2">{allBlinds.small.name}</h4>
-          <p className="text-sm">Goal: {getBlindScoreGoal(runState.ante, allBlinds.small)}</p>
-          <p className="text-sm">Reward: ${allBlinds.small.cashReward}</p>
-          {getBlindStatus('small') === 'completed' && (
-            <p className="text-sm text-green-500 mt-2">✓ Completed</p>
-          )}
-        </div>
-
-        {/* Big Blind */}
-        <div className={`border-2 rounded-lg p-4 text-center ${
-          getBlindStatus('big') === 'completed' ? 'border-green-600 opacity-50' :
-          getBlindStatus('big') === 'current' ? 'border-blue-600' :
-          'border-gray-600'
-        }`}>
-          <h4 className="text-lg font-semibold mb-2">{allBlinds.big.name}</h4>
-          <p className="text-sm">Goal: {getBlindScoreGoal(runState.ante, allBlinds.big)}</p>
-          <p className="text-sm">Reward: ${allBlinds.big.cashReward}</p>
-          {getBlindStatus('big') === 'completed' && (
-            <p className="text-sm text-green-500 mt-2">✓ Completed</p>
-          )}
-        </div>
-
-        {/* Boss Blind */}
-        <div className={`border-2 rounded-lg p-4 text-center ${
-          getBlindStatus('boss') === 'completed' ? 'border-green-600 opacity-50' :
-          getBlindStatus('boss') === 'current' ? 'border-red-600' :
-          'border-gray-600'
-        }`}>
-          <h4 className="text-lg font-semibold mb-2">{allBlinds.boss.name}</h4>
-          <p className="text-sm">Goal: {getBlindScoreGoal(runState.ante, allBlinds.boss)}</p>
-          <p className="text-sm">Reward: ${allBlinds.boss.cashReward}</p>
-          <p className="text-xs text-amber-500 mt-1">{allBlinds.boss.effectDescription}</p>
-          {getBlindStatus('boss') === 'completed' && (
-            <p className="text-sm text-green-500 mt-2">✓ Completed</p>
-          )}
-        </div>
+        <BlindDisplay
+          blind={SMALL_BLIND}
+          status={getBlindStatus(runState, 'small')}
+          ante={runState.ante}
+        />
+        <BlindDisplay
+          blind={BIG_BLIND}
+          status={getBlindStatus(runState, 'big')}
+          ante={runState.ante}
+        />
+        <BlindDisplay
+          blind={runState.anteBossBlind}
+          status={getBlindStatus(runState, 'boss')}
+          ante={runState.ante}
+          effectDescription={runState.anteBossBlind.effectDescription}
+        />
       </div>
 
       <div className="flex gap-4">
