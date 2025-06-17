@@ -84,6 +84,9 @@ describe('The Fish boss blind', () => {
     expect(stateWithCards.faceDownCardIds.has(firstCard.id)).toBe(true);
     
     // Select the card
+    expect(stateWithCards.type).toBe('selectingHand');
+    if (stateWithCards.type !== 'selectingHand') return;
+    
     const selectedState = toggleCardSelection(stateWithCards, firstCard.id);
     
     // Card is selected but still face down
@@ -115,6 +118,9 @@ describe('The Fish boss blind', () => {
     const stateWithCards = drawCardsToHandWithBossEffect(initialState, theFish);
     
     // Select some cards
+    expect(stateWithCards.type).toBe('selectingHand');
+    if (stateWithCards.type !== 'selectingHand') return;
+    
     const selectedState = stateWithCards.hand.slice(0, 3).reduce(
       (state, card) => toggleCardSelection(state, card.id),
       stateWithCards

@@ -101,28 +101,41 @@ export function drawNewCards(state: RoundState): SelectingHandState {
   };
 }
 
-export function drawCardsToHand(state: DrawingState): SelectingHandState {
+export function drawCardsToHand(state: DrawingState): SelectingHandState | RoundFinishedState {
   const cardsNeeded = state.handSize - state.hand.length;
   const [drawnCards, pile] = drawCards(state.drawPile, cardsNeeded);
+  const newHand = [...state.hand, ...drawnCards];
   
-  return {
-    ...state,
-    type: 'selectingHand',
-    drawPile: pile,
-    hand: [...state.hand, ...drawnCards],
-    selectedCardIds: new Set(),
-  };
+  // Check if we're out of cards (empty hand and can't draw more)
+  return newHand.length === 0 && pile.cards.length === 0 && pile.discardPile.length === 0
+    ? {
+        ...state,
+        type: 'roundFinished',
+        drawPile: pile,
+        hand: newHand,
+        won: false,
+      }
+    : {
+        ...state,
+        type: 'selectingHand',
+        drawPile: pile,
+        hand: newHand,
+        selectedCardIds: new Set(),
+      };
 }
 
 export function drawCardsToHandWithBossEffect(
   state: DrawingState,
   bossBlind: BossBlind | null
-): SelectingHandState {
+): SelectingHandState | RoundFinishedState {
   const baseState = drawCardsToHand(state);
   
-  return !bossBlind
+  // If base state already resulted in round finished (out of cards), return it
+  return baseState.type === 'roundFinished'
     ? baseState
-    : ((): SelectingHandState => {
+    : !bossBlind
+    ? baseState
+    : ((): SelectingHandState | RoundFinishedState => {
         // Check for The Hook effect (discard random cards)
         const discardEffect = bossBlind.effects.find(
           e => e.kind === 'handSelection' && e.type === 'discardRandomCards'
@@ -142,17 +155,30 @@ export function drawCardsToHandWithBossEffect(
             })()
           : baseState;
         
-        // Check for The Fish effect (cards start face down)
-        const faceDownEffect = bossBlind.effects.find(
-          e => e.kind === 'cardVisibility' && e.type === 'cardsStartFaceDown'
-        );
+        // Check if The Hook left us with no cards
+        const outOfCards = hookProcessedState.hand.length === 0 && 
+            hookProcessedState.drawPile.cards.length === 0 && 
+            hookProcessedState.drawPile.discardPile.length === 0;
         
-        return faceDownEffect
+        return outOfCards
           ? {
               ...hookProcessedState,
-              faceDownCardIds: new Set([...state.faceDownCardIds, ...hookProcessedState.hand.map(card => card.id)]),
+              type: 'roundFinished' as const,
+              won: false,
             }
-          : hookProcessedState;
+          : ((): SelectingHandState => {
+              // Check for The Fish effect (cards start face down)
+              const faceDownEffect = bossBlind.effects.find(
+                e => e.kind === 'cardVisibility' && e.type === 'cardsStartFaceDown'
+              );
+              
+              return faceDownEffect
+                ? {
+                    ...hookProcessedState,
+                    faceDownCardIds: new Set([...state.faceDownCardIds, ...hookProcessedState.hand.map(card => card.id)]),
+                  }
+                : hookProcessedState;
+            })();
       })();
 }
 
