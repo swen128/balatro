@@ -32,7 +32,7 @@ export interface VoucherItem extends ShopItemBase {
   readonly effect: VoucherEffect;
 }
 
-interface SpectralItem extends ShopItemBase {
+export interface SpectralItem extends ShopItemBase {
   readonly type: 'spectral';
   readonly effect: 
     | { readonly type: 'addFoil'; readonly count: number }

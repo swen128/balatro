@@ -1,11 +1,11 @@
 import type { RunState } from '../game';
 import { addConsumable } from '../game';
-import type { ShopItem, JokerItem, PackItem } from './shopItems.ts';
+import type { ShopItem, JokerItem, PackItem, UpgradeItem, VoucherItem, SpectralItem } from './shopItems.ts';
 import { generateShopItems } from './shopItems.ts';
 import type { SpectralCard } from '../cards';
 import { createSpectralCard } from '../cards';
 import type { AnyCard } from '../cards';
-import { applyUpgradeEffect, applyVoucherToShop, addJokerToShop, createPackPendingState, createBaseStates } from './purchaseHelpers.ts';
+import { generatePackCards } from './cardPacks.ts';
 
 interface BaseShopState {
   readonly purchasedJokers: ReadonlyArray<JokerItem>;
@@ -13,7 +13,7 @@ interface BaseShopState {
   readonly rerollsUsed: number;
 }
 
-export interface BrowsingShopState extends BaseShopState {
+interface BrowsingShopState extends BaseShopState {
   readonly type: 'browsing';
   readonly availableItems: ReadonlyArray<ShopItem>;
 }
@@ -41,22 +41,39 @@ export function createShopState(runState: RunState): ShopState {
   };
 }
 
-function createSpectralCardFromShopItem(item: ShopItem): SpectralCard | null {
-  return item.type === 'spectral'
-    ? ((): SpectralCard | null => {
-        switch (item.effect.type) {
-          case 'addFoil':
-            return createSpectralCard('foil', item.effect.count);
-          case 'addHolographic':
-            return createSpectralCard('holographic', item.effect.count);
-          case 'addPolychrome':
-            return createSpectralCard('polychrome', item.effect.count);
-          case 'duplicateCard':
-            // Not sold directly in shop
-            return null;
-        }
-      })()
-    : null;
+function createCardSelectionState(
+  baseShopState: BaseShopState & { availableItems: ReadonlyArray<ShopItem> },
+  item: PackItem
+): SelectingCardState {
+  const cards = generatePackCards(item.packType, item.cardCount);
+  
+  return {
+    type: 'selectingCard',
+    availableItems: baseShopState.availableItems,
+    purchasedJokers: baseShopState.purchasedJokers,
+    rerollCost: baseShopState.rerollCost,
+    rerollsUsed: baseShopState.rerollsUsed,
+    pendingPack: {
+      packType: item.packType,
+      cards,
+      price: item.price,
+      originalItem: item,
+    },
+  };
+}
+
+function createSpectralCardFromShopItem(item: SpectralItem): SpectralCard | null {
+  switch (item.effect.type) {
+    case 'addFoil':
+      return createSpectralCard('foil', item.effect.count);
+    case 'addHolographic':
+      return createSpectralCard('holographic', item.effect.count);
+    case 'addPolychrome':
+      return createSpectralCard('polychrome', item.effect.count);
+    case 'duplicateCard':
+      // Not sold directly in shop
+      return null;
+  }
 }
 
 export function canAffordItem(cash: number, item: ShopItem): boolean {
@@ -75,53 +92,60 @@ export function purchaseItem(
   const item = shopState.availableItems.find(i => i.id === itemId);
   return !item || !canAffordItem(runState.cash, item)
     ? null
-    : purchaseItemHelper(shopState, runState, item);
-}
+    : ((): { shopState: ShopState; runState: RunState } => {
+        // Deduct the cost and remove item from shop
+        const baseRunState: RunState = {
+          ...runState,
+          cash: runState.cash - item.price,
+        };
+        
+        const baseShopState: BrowsingShopState = {
+          type: 'browsing',
+          availableItems: shopState.availableItems.filter(i => i.id !== item.id),
+          purchasedJokers: shopState.purchasedJokers,
+          rerollCost: shopState.rerollCost,
+          rerollsUsed: shopState.rerollsUsed,
+        };
 
-function purchaseItemHelper(
-  shopState: ShopState,
-  runState: RunState,
-  item: ShopItem
-): { shopState: ShopState; runState: RunState } {
-
-  const { baseRunState, baseShopState } = createBaseStates(shopState, runState, item);
-
-  switch (item.type) {
-    case 'upgrade':
-      return {
-        shopState: baseShopState,
-        runState: applyUpgradeEffect(baseRunState, item),
-      };
-      
-    case 'joker':
-      return {
-        shopState: addJokerToShop(baseShopState, item),
-        runState: baseRunState,
-      };
-      
-    case 'pack':
-      return {
-        shopState: createPackPendingState(baseShopState, item),
-        runState: baseRunState,
-      };
-      
-    case 'voucher':
-      return {
-        shopState: applyVoucherToShop(baseShopState, item),
-        runState: baseRunState,
-      };
-      
-    case 'spectral': {
-      // Create a spectral card and add it to consumables
-      const spectralCard = createSpectralCardFromShopItem(item);
-      return {
-        shopState: baseShopState,
-        runState: spectralCard !== null 
-          ? addConsumable(baseRunState, spectralCard)
-          : baseRunState,
-      };
-    }
-  }
+        switch (item.type) {
+          case 'upgrade':
+            return {
+              shopState: baseShopState,
+              runState: applyUpgradeEffect(baseRunState, item),
+            };
+            
+          case 'joker':
+            return {
+              shopState: {
+                ...baseShopState,
+                purchasedJokers: [...baseShopState.purchasedJokers, item],
+              },
+              runState: baseRunState,
+            };
+            
+          case 'pack':
+            return {
+              shopState: createCardSelectionState(baseShopState, item),
+              runState: baseRunState,
+            };
+            
+          case 'voucher':
+            return {
+              shopState: applyVoucherToShop(baseShopState, item),
+              runState: baseRunState,
+            };
+            
+          case 'spectral': {
+            const spectralCard = createSpectralCardFromShopItem(item);
+            return {
+              shopState: baseShopState,
+              runState: spectralCard !== null 
+                ? addConsumable(baseRunState, spectralCard)
+                : baseRunState,
+            };
+          }
+        }
+      })();
 }
 
 export function rerollShop(
@@ -130,30 +154,27 @@ export function rerollShop(
 ): { shopState: ShopState; runState: RunState } | null {
   return !canReroll(runState.cash, shopState.rerollCost)
     ? null
-    : rerollShopHelper(shopState, runState);
-}
-
-function rerollShopHelper(
-  shopState: ShopState,
-  runState: RunState
-): { shopState: ShopState; runState: RunState } {
-  // Reroll only works in browsing state
-  return shopState.type !== 'browsing'
-    ? { shopState, runState }
     : ((): { shopState: ShopState; runState: RunState } => {
-        const newRunState = {
-          ...runState,
-          cash: runState.cash - shopState.rerollCost,
-        };
+        switch (shopState.type) {
+          case 'browsing': {
+            const newRunState: RunState = {
+              ...runState,
+              cash: runState.cash - shopState.rerollCost,
+            };
 
-        const newShopState: BrowsingShopState = {
-          ...shopState,
-          availableItems: generateShopItems(newRunState.cash),
-          rerollCost: shopState.rerollCost + 1, // Increase cost each time
-          rerollsUsed: shopState.rerollsUsed + 1,
-        };
+            const newShopState: BrowsingShopState = {
+              ...shopState,
+              availableItems: generateShopItems(newRunState.cash),
+              rerollCost: shopState.rerollCost + 1, // Increase cost each time
+              rerollsUsed: shopState.rerollsUsed + 1,
+            };
 
-        return { shopState: newShopState, runState: newRunState };
+            return { shopState: newShopState, runState: newRunState };
+          }
+          
+          case 'selectingCard':
+            return { shopState, runState };
+        }
       })();
 }
 
@@ -202,4 +223,41 @@ export function cancelPackSelection(
       cash: runState.cash + shopState.pendingPack.price,
     },
   };
+}
+
+function applyUpgradeEffect(
+  runState: RunState,
+  item: UpgradeItem
+): RunState {
+  switch (item.effect.type) {
+    case 'increaseHandSize':
+      return { ...runState, handSize: runState.handSize + item.effect.amount };
+      
+    case 'increaseHandsPerRound':
+      return { ...runState, handsCount: runState.handsCount + item.effect.amount };
+      
+    case 'increaseDiscards':
+      return { ...runState, discardsCount: runState.discardsCount + item.effect.amount };
+  }
+}
+
+function applyVoucherToShop(
+  shopState: BrowsingShopState,
+  item: VoucherItem
+): BrowsingShopState {
+  switch (item.effect.type) {
+    case 'rerollCost':
+      return {
+        ...shopState,
+        rerollCost: Math.max(0, shopState.rerollCost - item.effect.amount),
+      };
+      
+    case 'shopDiscount':
+      // Would need to track discount in shop state
+      return shopState;
+      
+    case 'interestRate':
+      // Would need to track interest rate
+      return shopState;
+  }
 }
