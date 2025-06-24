@@ -8,7 +8,7 @@
     "build": "bunx --bun vite build",
     "preview": "bunx --bun vite preview",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsgo --noEmit",
     "test": "bun test",
     "check": "bun run lint && bun run typecheck && bun test && bun run knip",
     "knip": "knip",
@@ -38,6 +38,7 @@
   "dependencies": {
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
+    "@typescript/native-preview": "^7.0.0-dev.20250624.1",
     "nanoid": "^5.1.5",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
