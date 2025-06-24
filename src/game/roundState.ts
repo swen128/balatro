@@ -124,6 +124,70 @@ export function drawCardsToHand(state: DrawingState): SelectingHandState | Round
       };
 }
 
+function applyHookEffect(
+  state: SelectingHandState,
+  discardCount: number
+): SelectingHandState {
+  const shuffled = [...state.hand].sort(() => Math.random() - 0.5);
+  const remainingHand = shuffled.slice(discardCount);
+  const discardedCards = shuffled.slice(0, discardCount);
+  
+  return {
+    ...state,
+    hand: remainingHand,
+    drawPile: discardCards(state.drawPile, discardedCards),
+  };
+}
+
+function applyFishEffect(
+  state: SelectingHandState,
+  originalFaceDownIds: ReadonlySet<string>
+): SelectingHandState {
+  return {
+    ...state,
+    faceDownCardIds: new Set([...originalFaceDownIds, ...state.hand.map(card => card.id)]),
+  };
+}
+
+function isOutOfCards(state: SelectingHandState): boolean {
+  return state.hand.length === 0 && 
+         state.drawPile.cards.length === 0 && 
+         state.drawPile.discardPile.length === 0;
+}
+
+function applyBossEffectsToHand(
+  baseState: SelectingHandState,
+  bossBlind: BossBlind,
+  originalState: DrawingState
+): SelectingHandState | RoundFinishedState {
+  // Apply The Hook effect (discardRandomCards) if present
+  const hookEffect = bossBlind.effects.find(
+    effect => effect.kind === 'handSelection' && effect.type === 'discardRandomCards'
+  );
+  
+  const stateAfterHook = hookEffect && hookEffect.kind === 'handSelection' && hookEffect.type === 'discardRandomCards'
+    ? (baseState.hand.length > hookEffect.count 
+        ? applyHookEffect(baseState, hookEffect.count)
+        : baseState)
+    : baseState;
+  
+  // Check if we're out of cards after The Hook effect
+  const afterHookState = isOutOfCards(stateAfterHook)
+    ? {
+        ...stateAfterHook,
+        type: 'roundFinished' as const,
+        won: false,
+      }
+    : stateAfterHook;
+    
+  // Apply The Fish effect (cardsStartFaceDown) if present
+  return afterHookState.type === 'roundFinished'
+    ? afterHookState
+    : bossBlind.effects.some(effect => effect.kind === 'cardVisibility')
+    ? applyFishEffect(afterHookState, originalState.faceDownCardIds)
+    : afterHookState;
+}
+
 export function drawCardsToHandWithBossEffect(
   state: DrawingState,
   bossBlind: BossBlind | null
@@ -135,75 +199,44 @@ export function drawCardsToHandWithBossEffect(
     ? baseState
     : !bossBlind
     ? baseState
-    : ((): SelectingHandState | RoundFinishedState => {
-        // Check for The Hook effect (discard random cards)
-        const discardEffect = bossBlind.effects.find(
-          e => e.kind === 'handSelection' && e.type === 'discardRandomCards'
-        );
-        
-        const hookProcessedState = discardEffect && discardEffect.type === 'discardRandomCards' && baseState.hand.length > discardEffect.count
-          ? ((): SelectingHandState => {
-              const shuffled = [...baseState.hand].sort(() => Math.random() - 0.5);
-              const remainingHand = shuffled.slice(discardEffect.count);
-              const discardedCards = shuffled.slice(0, discardEffect.count);
-              
-              return {
-                ...baseState,
-                hand: remainingHand,
-                drawPile: discardCards(baseState.drawPile, discardedCards),
-              };
-            })()
-          : baseState;
-        
-        // Check if The Hook left us with no cards
-        const outOfCards = hookProcessedState.hand.length === 0 && 
-            hookProcessedState.drawPile.cards.length === 0 && 
-            hookProcessedState.drawPile.discardPile.length === 0;
-        
-        return outOfCards
-          ? {
-              ...hookProcessedState,
-              type: 'roundFinished' as const,
-              won: false,
-            }
-          : ((): SelectingHandState => {
-              // Check for The Fish effect (cards start face down)
-              const faceDownEffect = bossBlind.effects.find(
-                e => e.kind === 'cardVisibility' && e.type === 'cardsStartFaceDown'
-              );
-              
-              return faceDownEffect
-                ? {
-                    ...hookProcessedState,
-                    faceDownCardIds: new Set([...state.faceDownCardIds, ...hookProcessedState.hand.map(card => card.id)]),
-                  }
-                : hookProcessedState;
-            })();
-      })();
+    : applyBossEffectsToHand(baseState, bossBlind, state);
+}
+
+function removeCardFromSelection(
+  state: SelectingHandState,
+  cardId: string
+): SelectingHandState {
+  const newSelectedIds = new Set(state.selectedCardIds);
+  newSelectedIds.delete(cardId);
+  return {
+    ...state,
+    selectedCardIds: newSelectedIds,
+  };
+}
+
+function addCardToSelection(
+  state: SelectingHandState,
+  cardId: string
+): SelectingHandState {
+  const newSelectedIds = new Set(state.selectedCardIds);
+  newSelectedIds.add(cardId);
+  return {
+    ...state,
+    selectedCardIds: newSelectedIds,
+  };
 }
 
 export function toggleCardSelection(
   state: SelectingHandState,
   cardId: string
 ): SelectingHandState {
-  const newSelectedIds = new Set(state.selectedCardIds);
+  const isSelected = state.selectedCardIds.has(cardId);
+  const canSelect = state.selectedCardIds.size < 5;
   
-  return newSelectedIds.has(cardId)
-    ? ((): SelectingHandState => {
-        newSelectedIds.delete(cardId);
-        return {
-          ...state,
-          selectedCardIds: newSelectedIds,
-        };
-      })()
-    : newSelectedIds.size < 5
-    ? ((): SelectingHandState => {
-        newSelectedIds.add(cardId);
-        return {
-          ...state,
-          selectedCardIds: newSelectedIds,
-        };
-      })()
+  return isSelected
+    ? removeCardFromSelection(state, cardId)
+    : canSelect
+    ? addCardToSelection(state, cardId)
     : state;
 }
 
@@ -229,25 +262,32 @@ export function deselectCard(state: SelectingHandState, cardId: string): Selecti
     : state;
 }
 
+function createPlayingState(
+  state: SelectingHandState,
+  playedCards: ReadonlyArray<Card>
+): PlayingState {
+  const evaluatedHand = evaluatePokerHand(playedCards);
+  
+  // Remove played cards from face down set
+  const newFaceDownIds = new Set(state.faceDownCardIds);
+  playedCards.forEach(card => newFaceDownIds.delete(card.id));
+  
+  return {
+    ...state,
+    type: 'playing',
+    playedCards,
+    evaluatedHand,
+    faceDownCardIds: newFaceDownIds,
+  };
+}
+
 export function playSelectedCards(state: SelectingHandState): PlayingState | SelectingHandState {
   return state.selectedCardIds.size === 0
     ? state
-    : ((): PlayingState => {
-        const playedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
-        const evaluatedHand = evaluatePokerHand(playedCards);
-        
-        // Remove played cards from face down set
-        const newFaceDownIds = new Set(state.faceDownCardIds);
-        playedCards.forEach(card => newFaceDownIds.delete(card.id));
-        
-        return {
-          ...state,
-          type: 'playing',
-          playedCards,
-          evaluatedHand,
-          faceDownCardIds: newFaceDownIds,
-        };
-      })();
+    : createPlayingState(
+        state,
+        state.hand.filter(card => state.selectedCardIds.has(card.id))
+      );
 }
 
 interface ScoreCalculation {
@@ -329,6 +369,25 @@ export function scoreHand(
   };
 }
 
+function applyBossModifierToScore(
+  baseScoring: ScoringState,
+  state: PlayingState,
+  bossBlind: BossBlind,
+  totalMoney: number
+): ScoringState {
+  const modifiedScore = applyBossEffectOnScoring(baseScoring.finalScore, {
+    bossBlind,
+    handsPlayed: state.handsPlayed,
+    totalMoney,
+    evaluatedHand: state.evaluatedHand,
+  });
+  
+  return {
+    ...baseScoring,
+    finalScore: modifiedScore,
+  };
+}
+
 export function scoreHandWithBossEffect(
   state: PlayingState,
   bossBlind: BossBlind | null,
@@ -340,19 +399,7 @@ export function scoreHandWithBossEffect(
   
   return !bossBlind
     ? baseScoring
-    : ((): ScoringState => {
-        const modifiedScore = applyBossEffectOnScoring(baseScoring.finalScore, {
-          bossBlind,
-          handsPlayed: state.handsPlayed,
-          totalMoney,
-          evaluatedHand: state.evaluatedHand,
-        });
-        
-        return {
-          ...baseScoring,
-          finalScore: modifiedScore,
-        };
-      })();
+    : applyBossModifierToScore(baseScoring, state, bossBlind, totalMoney);
 }
 
 export function finishScoring(state: ScoringState): PlayedState | RoundFinishedState {
@@ -407,28 +454,28 @@ export function continueToNextHand(state: PlayedState): DrawingState {
   };
 }
 
+function performDiscard(state: SelectingHandState): DrawingState {
+  // Remove selected cards from hand
+  const remainingCards = state.hand.filter(card => !state.selectedCardIds.has(card.id));
+  const discardedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
+  
+  // Add discarded cards to discard pile
+  const newDrawPile = discardCards(state.drawPile, discardedCards);
+  
+  return {
+    ...state,
+    type: 'drawing',
+    hand: remainingCards,
+    drawPile: newDrawPile,
+    discardsRemaining: state.discardsRemaining - 1,
+  };
+}
+
 export function discardSelectedCards(state: SelectingHandState): DrawingState | SelectingHandState {
   return state.selectedCardIds.size === 0 || state.discardsRemaining <= 0
     ? state
-    : ((): DrawingState => {
-        // Remove selected cards from hand
-        const remainingCards = state.hand.filter(card => !state.selectedCardIds.has(card.id));
-        const discardedCards = state.hand.filter(card => state.selectedCardIds.has(card.id));
-        
-        // Add discarded cards to discard pile
-        const newDrawPile = discardCards(state.drawPile, discardedCards);
-        
-        return {
-          ...state,
-          type: 'drawing',
-          hand: remainingCards,
-          drawPile: newDrawPile,
-          discardsRemaining: state.discardsRemaining - 1,
-        };
-      })();
-}
-
-;
+    : performDiscard(state);
+};
 
 
 // Utility functions

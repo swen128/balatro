@@ -34,6 +34,63 @@ function getHandLevelBonus(level: number): { chips: number; mult: number } {
   };
 }
 
+function getHandLevelDecrease(bossBlind: BossBlind | null | undefined): number {
+  return !bossBlind
+    ? 0
+    : ((): number => {
+        const effect = bossBlind.effects.find(e => 
+          e.kind === 'scoringModifier' && e.type === 'decreaseHandLevel'
+        );
+        
+        return effect && effect.kind === 'scoringModifier' && effect.type === 'decreaseHandLevel'
+          ? effect.amount
+          : 0;
+      })();
+}
+
+function calculateHandLevelBonus(
+  evaluatedHand: EvaluatedHand,
+  handLevels: HandLevels,
+  handLevelDecrease: number
+): { chips: number; mult: number } {
+  const handKey = getHandLevelKey(evaluatedHand);
+  
+  return handKey === null 
+    ? { chips: 0, mult: 0 }
+    : ((): { chips: number; mult: number } => {
+        const baseLevel = handLevels[handKey];
+        const effectiveLevel = Math.max(1, baseLevel + handLevelDecrease);
+        return getHandLevelBonus(effectiveLevel);
+      })();
+}
+
+function getRestrictedSuit(bossBlind: BossBlind | null | undefined): { readonly suit: string } | undefined {
+  return !bossBlind
+    ? undefined
+    : ((): { readonly suit: string } | undefined => {
+        const effect = bossBlind.effects.find(e => 
+          e.kind === 'scoringModifier' && e.type === 'suitGivesNoChips'
+        );
+        
+        return effect && effect.kind === 'scoringModifier' && effect.type === 'suitGivesNoChips'
+          ? effect
+          : undefined;
+      })();
+}
+
+function calculateCardChips(
+  scoringCards: ReadonlyArray<Card>,
+  restrictedSuit: { readonly suit: string } | undefined
+): number {
+  return scoringCards.reduce(
+    (sum, card) => {
+      const shouldSkip = restrictedSuit !== undefined && card.suit === restrictedSuit.suit;
+      return sum + (shouldSkip ? 0 : getCardChipValue(card));
+    },
+    0
+  );
+}
+
 export function calculateBaseChipMult(
   evaluatedHand: EvaluatedHand, 
   bossBlind?: BossBlind | null,
@@ -42,53 +99,17 @@ export function calculateBaseChipMult(
   const baseHandChips = evaluatedHand.handType.baseChips;
   const baseHandMult = evaluatedHand.handType.baseMult;
   
-  // Check for hand level decrease effect from boss blind
-  const handLevelDecrease = bossBlind
-    ? ((): number => {
-        const effect = bossBlind.effects.find(e => 
-          e.kind === 'scoringModifier' && e.type === 'decreaseHandLevel'
-        );
-        return effect && effect.kind === 'scoringModifier' && effect.type === 'decreaseHandLevel'
-          ? effect.amount
-          : 0;
-      })()
-    : 0;
+  const handLevelDecrease = getHandLevelDecrease(bossBlind);
   
-  // Apply hand level bonuses if available
   const levelBonus = handLevels !== undefined
-    ? ((): { chips: number; mult: number } => {
-        const handKey = getHandLevelKey(evaluatedHand);
-        return handKey === null 
-          ? { chips: 0, mult: 0 }
-          : ((): { chips: number; mult: number } => {
-              const baseLevel = handLevels[handKey];
-              const effectiveLevel = Math.max(1, baseLevel + handLevelDecrease);
-              return getHandLevelBonus(effectiveLevel);
-            })();
-      })()
+    ? calculateHandLevelBonus(evaluatedHand, handLevels, handLevelDecrease)
     : { chips: 0, mult: 0 };
   
   const handChips = baseHandChips + levelBonus.chips;
   const handMult = baseHandMult + levelBonus.mult;
   
-  const restrictedSuit = bossBlind
-    ? ((): { readonly suit: string } | undefined => {
-        const effect = bossBlind.effects.find(e => 
-          e.kind === 'scoringModifier' && e.type === 'suitGivesNoChips'
-        );
-        return effect && effect.kind === 'scoringModifier' && effect.type === 'suitGivesNoChips'
-          ? effect
-          : undefined;
-      })()
-    : undefined;
-    
-  const cardChips = evaluatedHand.scoringCards.reduce(
-    (sum, card) => {
-      const shouldSkip = restrictedSuit !== undefined && card.suit === restrictedSuit.suit;
-      return sum + (shouldSkip ? 0 : getCardChipValue(card));
-    },
-    0
-  );
+  const restrictedSuit = getRestrictedSuit(bossBlind);
+  const cardChips = calculateCardChips(evaluatedHand.scoringCards, restrictedSuit);
   
   return {
     chips: handChips + cardChips,

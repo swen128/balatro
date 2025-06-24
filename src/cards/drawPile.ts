@@ -22,32 +22,46 @@ export function drawCards(
     : drawCardsRecursive(pile, count, []);
 }
 
+function drawFromMainPile(
+  pile: DrawPile,
+  remaining: number,
+  drawnSoFar: ReadonlyArray<Card>,
+  firstCard: Card
+): [ReadonlyArray<Card>, DrawPile] {
+  return drawCardsRecursive(
+    { cards: pile.cards.slice(1), discardPile: pile.discardPile },
+    remaining - 1,
+    [...drawnSoFar, firstCard]
+  );
+}
+
+function reshuffleDiscardAndDraw(
+  pile: DrawPile,
+  remaining: number,
+  drawnSoFar: ReadonlyArray<Card>
+): [ReadonlyArray<Card>, DrawPile] {
+  return drawCardsRecursive(
+    { cards: shuffleDeck(pile.discardPile), discardPile: [] },
+    remaining,
+    drawnSoFar
+  );
+}
+
 function drawCardsRecursive(
   pile: DrawPile,
   remaining: number,
   drawnSoFar: ReadonlyArray<Card>
 ): [ReadonlyArray<Card>, DrawPile] {
+  const firstCard = pile.cards[0];
+  const firstDiscardCard = pile.discardPile[0];
+  
   return remaining === 0
     ? [drawnSoFar, pile]
-    : ((): [ReadonlyArray<Card>, DrawPile] => {
-        const firstCard = pile.cards[0];
-        return firstCard !== undefined
-          ? drawCardsRecursive(
-              { cards: pile.cards.slice(1), discardPile: pile.discardPile },
-              remaining - 1,
-              [...drawnSoFar, firstCard]
-            )
-          : ((): [ReadonlyArray<Card>, DrawPile] => {
-              const firstDiscardCard = pile.discardPile[0];
-              return firstDiscardCard !== undefined
-                ? drawCardsRecursive(
-                    { cards: shuffleDeck(pile.discardPile), discardPile: [] },
-                    remaining,
-                    drawnSoFar
-                  )
-                : [drawnSoFar, pile];
-            })();
-      })();
+    : firstCard !== undefined
+    ? drawFromMainPile(pile, remaining, drawnSoFar, firstCard)
+    : firstDiscardCard !== undefined
+    ? reshuffleDiscardAndDraw(pile, remaining, drawnSoFar)
+    : [drawnSoFar, pile];
 }
 
 export function discardCards(
@@ -64,16 +78,17 @@ export function addToDiscardPile(pile: DrawPile, cards: ReadonlyArray<Card>): Dr
   return discardCards(pile, cards);
 }
 
+function reshuffleDiscardIntoDraw(pile: DrawPile): DrawPile {
+  return {
+    cards: [...pile.cards, ...shuffleDeck(pile.discardPile)],
+    discardPile: [],
+  };
+}
+
 export function reshuffleIfNeeded(pile: DrawPile, neededCards: number): DrawPile {
   return pile.cards.length >= neededCards
     ? pile
-    : ((): DrawPile => {
-        const firstDiscardCard = pile.discardPile[0];
-        return firstDiscardCard !== undefined
-          ? {
-              cards: [...pile.cards, ...shuffleDeck(pile.discardPile)],
-              discardPile: [],
-            }
-          : pile;
-      })();
+    : pile.discardPile.length > 0
+    ? reshuffleDiscardIntoDraw(pile)
+    : pile;
 }
