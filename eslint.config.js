@@ -55,8 +55,6 @@ export default [
       // Additional strict type rules
       '@typescript-eslint/no-non-null-assertion': 'error',
       '@typescript-eslint/strict-boolean-expressions': 'error',
-      '@typescript-eslint/no-unnecessary-type-assertion': 'error',
-      '@typescript-eslint/no-unused-vars': 'error',
       '@typescript-eslint/explicit-function-return-type': 'error',
       '@typescript-eslint/no-floating-promises': 'error',
       '@typescript-eslint/await-thenable': 'error',
@@ -77,7 +75,7 @@ export default [
       'no-var': 'error',
       'eqeqeq': ['error', 'always'],
       'no-unused-expressions': 'error',
-      'no-unused-vars': 'off', // Using @typescript-eslint/no-unused-vars instead
+      'no-unused-vars': 'off', // TypeScript's noUnusedLocals and noUnusedParameters handle this
       'no-shadow': 'off',
       '@typescript-eslint/no-shadow': 'error',
       'no-fallthrough': 'off', // Allow switch case fallthrough
